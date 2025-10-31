@@ -48,33 +48,18 @@ export default function Index() {
       require("../public/images/heart-3.png"),
       
     ];
-    const count = 6;
+    const count = 5;
     const items = Array.from({ length: count }).map((_, i) => {
       const source = sources[i % sources.length];
       const size = Math.floor(40 + random() * 80); // 40-120px
-      const left = Math.floor(random() * width);
+      const top = Math.floor(random() * (height - size));
+      const left = Math.floor(random() * (width - size));
       const rotateDeg = Math.floor(-30 + random() * 60); // -30 to 30
       const opacity = 0.15 + random() * 0.25; // 0.15 - 0.4
-      const animY = new Animated.Value(height + size);
-      const duration = 8000 + random() * 4000; // 8-12 seconds
-      return { id: i, source, size, left, rotateDeg, opacity, animY, duration };
+      return { id: i, source, size, top, left, rotateDeg, opacity };
     });
     return items;
   }, [width, height]);
-  useEffect(() => {
-    hearts.forEach((heart) => {
-      const animate = () => {
-        heart.animY.setValue(height + heart.size);
-        Animated.timing(heart.animY, {
-          toValue: -heart.size,
-          duration: heart.duration,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }).start(() => animate());
-      };
-      animate();
-    });
-  }, [hearts, height]);
   useEffect(() => {
     const interval = setInterval(() => {
       Animated.parallel([
@@ -164,29 +149,20 @@ export default function Index() {
     <View className="flex-1 bg-primary ">
       <View pointerEvents="none" className="absolute inset-0">
         {hearts.map((h) => (
-          <Animated.View
+          <Image
             key={h.id}
+            source={h.source}
             style={{
               position: "absolute",
+              top: h.top,
               left: h.left,
               width: h.size,
               height: h.size,
               opacity: h.opacity,
-              transform: [
-                { translateY: h.animY },
-                { rotate: `${h.rotateDeg}deg` }
-              ],
+              transform: [{ rotate: `${h.rotateDeg}deg` }],
             }}
-          >
-            <Image
-              source={h.source}
-              style={{
-                width: h.size,
-                height: h.size,
-              }}
-              contentFit="contain"
-            />
-          </Animated.View>
+            contentFit="contain"
+          />
         ))}
       </View>
       <View className="flex-1 mt-[100px] items-center">
