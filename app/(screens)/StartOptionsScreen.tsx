@@ -6,16 +6,25 @@ import {
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Image } from "expo-image";
-import React from "react";
+import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import Logo from "../../app/(components)/Logo";
+import CreateNewRoom from "../(components)/CreateNewRoom";
+import Logo from "../(components)/Logo";
 
 const StartOptionsScreen = () => {
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
     MerriweatherSans_700Bold,
     LibreBaskerville_700Bold,
   });
+
+  const handleCreateRoom = (category: string) => {
+    console.log("Creating room with category:", category);
+    setShowCreateModal(false);
+    // TODO: Navigate to game room or handle room creation
+  };
 
   if (!fontsLoaded) {
     return null;
@@ -64,7 +73,7 @@ const StartOptionsScreen = () => {
           <TouchableOpacity
             className="bg-[#ffe4e6] border-2 border-gray-900 rounded-[14px] py-[18px] px-8 relative z-10"
             activeOpacity={0.8}
-            onPress={() => {}}
+            onPress={() => setShowCreateModal(true)}
           >
             <Text
               className="text-gray-900 text-xl font-bold text-center"
@@ -119,6 +128,13 @@ const StartOptionsScreen = () => {
           marginBottom: -40,
         }}
         contentFit="contain"
+      />
+
+      {/* Create New Room Modal */}
+      <CreateNewRoom
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateRoom={handleCreateRoom}
       />
     </View>
   );
