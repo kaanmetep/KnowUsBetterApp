@@ -9,10 +9,12 @@ import { Image } from "expo-image";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import CreateNewRoom from "../(components)/CreateNewRoom";
+import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import Logo from "../(components)/Logo";
 
 const StartOptionsScreen = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
@@ -24,6 +26,12 @@ const StartOptionsScreen = () => {
     console.log("Creating room with category:", category);
     setShowCreateModal(false);
     // TODO: Navigate to game room or handle room creation
+  };
+
+  const handleJoinRoom = (userName: string, roomCode: string) => {
+    console.log("Joining room with userName:", userName, "roomCode:", roomCode);
+    setShowJoinModal(false);
+    // TODO: Navigate to game room or handle room joining
   };
 
   if (!fontsLoaded) {
@@ -90,7 +98,7 @@ const StartOptionsScreen = () => {
           <TouchableOpacity
             className="bg-[#f0f9ff] border-2 border-gray-900 rounded-[14px] py-[18px] px-8 relative z-10"
             activeOpacity={0.8}
-            onPress={() => {}}
+            onPress={() => setShowJoinModal(true)}
           >
             <Text
               className="text-gray-900 text-xl font-bold text-center"
@@ -135,6 +143,13 @@ const StartOptionsScreen = () => {
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreateRoom={handleCreateRoom}
+      />
+
+      {/* Join Existing Room Modal */}
+      <JoinExistingRoom
+        visible={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        onJoinRoom={handleJoinRoom}
       />
     </View>
   );
