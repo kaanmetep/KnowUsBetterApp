@@ -219,11 +219,11 @@ const OnboardingPage = () => {
           );
         })}
       </View>
-      <View className="flex-1 mt-[150px] items-center">
+      <View className="flex-1 mt-[150px] items-center ">
         <Logo />
-        <View className="mt-12 w-11/12 max-w-[360px] gap-5">
+        <View className="flex flex-col items-center mt-12 w-11/12  gap-5 ">
           {/* Feature 1 */}
-          <View className="relative">
+          <View className="relative min-w-[330px]">
             <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
             <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
               <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
@@ -235,7 +235,7 @@ const OnboardingPage = () => {
               </View>
               <Text
                 style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900 flex-1"
+                className="text-gray-900"
               >
                 Real-time test with your partner
               </Text>
@@ -243,7 +243,7 @@ const OnboardingPage = () => {
           </View>
 
           {/* Feature 2 */}
-          <View className="relative">
+          <View className="relative min-w-[330px]">
             <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
             <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
               <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
@@ -251,7 +251,7 @@ const OnboardingPage = () => {
               </View>
               <Text
                 style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900 flex-1"
+                className="text-gray-900"
               >
                 Multiple fun categories to explore
               </Text>
@@ -259,7 +259,7 @@ const OnboardingPage = () => {
           </View>
 
           {/* Feature 3 */}
-          <View className="relative">
+          <View className="relative min-w-[330px]">
             <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
             <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
               <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
@@ -267,7 +267,7 @@ const OnboardingPage = () => {
               </View>
               <Text
                 style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900 flex-1"
+                className="text-gray-900"
               >
                 No login or signup required
               </Text>
@@ -275,7 +275,7 @@ const OnboardingPage = () => {
           </View>
 
           {/* Start Button */}
-          <View className="mt-4 items-center">
+          <View className="mt-4 items-center w-full">
             <View className="relative w-full">
               <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
               <TouchableOpacity
