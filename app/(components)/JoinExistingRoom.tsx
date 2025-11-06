@@ -14,7 +14,7 @@ import {
 interface JoinExistingRoomProps {
   visible: boolean;
   onClose: () => void;
-  onJoinRoom: (userName: string, roomCode: string) => void;
+  onJoinRoom: (userName: string, roomCode: string, avatar?: string) => void;
 }
 
 const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
@@ -37,7 +37,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
 
   const handleJoin = () => {
     if (userName.trim() && roomCode.trim()) {
-      onJoinRoom(userName.trim(), roomCode.trim());
+      onJoinRoom(userName.trim(), roomCode.trim().toUpperCase());
       setUserName("");
       setRoomCode("");
     }

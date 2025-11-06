@@ -5,6 +5,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -12,7 +13,7 @@ import {
 interface CreateNewRoomProps {
   visible: boolean;
   onClose: () => void;
-  onCreateRoom: (category: string) => void;
+  onCreateRoom: (userName: string, category: string, avatar?: string) => void;
 }
 
 type Category = {
@@ -56,18 +57,25 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   onCreateRoom,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
 
   const handleClose = () => {
     setSelectedCategory(null);
+    setUserName("");
+    setUserNameFocused(false);
     onClose();
   };
 
   const handleCreate = () => {
-    if (selectedCategory) {
-      onCreateRoom(selectedCategory);
+    if (selectedCategory && userName.trim()) {
+      onCreateRoom(userName.trim(), selectedCategory, "😊" as string);
       setSelectedCategory(null);
+      setUserName("");
     }
   };
+
+  const isFormValid = selectedCategory !== null && userName.trim().length > 0;
 
   return (
     <Modal
@@ -116,8 +124,47 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 className="text-sm text-gray-600 text-center mb-6"
                 style={{ fontFamily: "MerriweatherSans_400Regular" }}
               >
-                Choose a category for your test
+                Enter your name and choose a category
               </Text>
+
+              {/* User Name Input */}
+              <View className="mb-4">
+                <Text
+                  className="text-sm font-semibold text-gray-900 mb-2"
+                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                >
+                  Your Name
+                </Text>
+                <View className="relative">
+                  {/* Shadow */}
+                  <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+
+                  {/* Input Container */}
+                  <View
+                    className={`relative bg-white rounded-xl ${
+                      userNameFocused
+                        ? "border-4 border-gray-900"
+                        : "border-2 border-gray-900"
+                    }`}
+                  >
+                    <TextInput
+                      value={userName}
+                      onChangeText={setUserName}
+                      onFocus={() => setUserNameFocused(true)}
+                      onBlur={() => setUserNameFocused(false)}
+                      placeholder="Enter your name"
+                      placeholderTextColor="#9ca3af"
+                      className="px-4 py-3 text-gray-900 text-base"
+                      style={
+                        {
+                          fontFamily: "MerriweatherSans_400Regular",
+                          outline: "none",
+                        } as any
+                      }
+                    />
+                  </View>
+                </View>
+              </View>
 
               {/* Categories */}
               <ScrollView className="max-h-[300px] mb-4">
@@ -223,9 +270,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
                 <TouchableOpacity
                   onPress={handleCreate}
-                  disabled={!selectedCategory}
+                  disabled={!isFormValid}
                   className={`relative border-2 border-gray-900 rounded-[14px] py-4 px-8 ${
-                    selectedCategory ? "bg-[#ffe4e6]" : "bg-gray-300"
+                    isFormValid ? "bg-[#ffe4e6]" : "bg-gray-300"
                   }`}
                   activeOpacity={0.8}
                 >
@@ -233,7 +280,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     className="text-gray-900 text-lg text-center font-bold"
                     style={{ letterSpacing: -0.3 }}
                   >
-                    {selectedCategory ? "Create Room" : "Select a Category"}
+                    {isFormValid ? "Create Room" : "Fill All Fields"}
                   </Text>
                 </TouchableOpacity>
               </View>

@@ -13,6 +13,7 @@ import {
   Alert,
   Animated,
   Easing,
+  Platform,
   ScrollView,
   Share,
   Text,
@@ -20,35 +21,19 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
-import Logo from "./(components)/Logo";
+import Logo from "../(components)/Logo";
+import socketService, { Room } from "../services/socketService";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
-
-interface Participant {
-  id: string;
-  name: string;
-  isHost: boolean;
-  joinedAt: Date;
-}
 
 const GameRoom = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  // Get params from navigation
+  // Only get roomCode from params
   const roomCode = (params.roomCode as string) || "DEMO123";
-  const category = (params.category as string) || "just_friends";
-  const hostName = (params.hostName as string) || "You";
-  const isHost = params.isHost === "true";
 
-  const [participants, setParticipants] = useState<Participant[]>([
-    {
-      id: "1",
-      name: hostName,
-      isHost: true,
-      joinedAt: new Date(),
-    },
-  ]);
+  const [room, setRoom] = useState<Room | null>(null);
   const [copied, setCopied] = useState(false);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = React.useRef(new Animated.Value(0)).current;
@@ -90,6 +75,60 @@ const GameRoom = () => {
     ).start();
   }, [dashOffsetAnim]);
 
+  // Socket.io event listeners
+  useEffect(() => {
+    console.log("🎮 GameRoom mounted - roomCode:", roomCode);
+
+    // Load current room data on mount
+    const loadRoomData = async () => {
+      try {
+        const roomData = await socketService.getRoom(roomCode);
+        console.log("📋 Current room data loaded:", roomData);
+        setRoom(roomData);
+      } catch (error) {
+        console.error("❌ Failed to load room data:", error);
+      }
+    };
+
+    loadRoomData();
+
+    // New player joined
+    const handlePlayerJoined = (data: any) => {
+      console.log("👥 New player joined:", data);
+
+      if (data.room) {
+        setRoom(data.room);
+
+        // Show notification
+        if (Platform.OS === "web") {
+          alert(`🎉 New Player! ${data.player.name} joined the room!`);
+        } else {
+          Alert.alert("🎉 New Player!", `${data.player.name} joined the room!`);
+        }
+      }
+    };
+
+    // Player left
+    const handlePlayerLeft = (data: any) => {
+      console.log("🚪 Player left:", data);
+
+      if (data.room) {
+        setRoom(data.room);
+      }
+    };
+
+    // Register event listeners
+    socketService.onPlayerJoined(handlePlayerJoined);
+    socketService.onPlayerLeft(handlePlayerLeft);
+
+    // Cleanup - remove event listeners when component unmounts
+    return () => {
+      console.log("🧹 GameRoom cleanup");
+      socketService.offPlayerJoined(handlePlayerJoined);
+      socketService.offPlayerLeft(handlePlayerLeft);
+    };
+  }, [roomCode]);
+
   const getCategoryInfo = (categoryId: string) => {
     const categories: Record<
       string,
@@ -108,6 +147,12 @@ const GameRoom = () => {
       }
     );
   };
+
+  // Get data from room state
+  const category = room?.settings?.category || "just_friends";
+  const participants = room?.players || [];
+  const mySocketId = socketService.getSocket()?.id;
+  const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
 
   const categoryInfo = getCategoryInfo(category);
   const roomLink = `https://knowusbetter.app/join/${roomCode}`;
@@ -130,23 +175,43 @@ const GameRoom = () => {
     }
   };
 
-  const handleLeaveRoom = () => {
-    Alert.alert(
-      "Leave Room",
-      "Are you sure you want to leave this room?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Leave",
-          style: "destructive",
-          onPress: () => {
-            // TODO: Implement leave room logic
-            router.back();
+  const handleLeaveRoom = async () => {
+    const confirmLeave = async () => {
+      try {
+        await socketService.leaveRoom(roomCode);
+        console.log("✅ Successfully left the room");
+        router.back();
+      } catch (error) {
+        console.error("❌ Error leaving room:", error);
+        // Even if error occurs, go back
+        router.back();
+      }
+    };
+
+    // Web platform uses window.confirm
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(
+        "Are you sure you want to leave this room?"
+      );
+      if (confirmed) {
+        await confirmLeave();
+      }
+    } else {
+      // Mobile platforms use Alert
+      Alert.alert(
+        "Leave Room",
+        "Are you sure you want to leave this room?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Leave",
+            style: "destructive",
+            onPress: confirmLeave,
           },
-        },
-      ],
-      { cancelable: true }
-    );
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   const handleStartGame = () => {
@@ -157,7 +222,7 @@ const GameRoom = () => {
     }
   };
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !room) {
     return null;
   }
 

@@ -7,16 +7,18 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import CreateNewRoom from "../(components)/CreateNewRoom";
 import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import Logo from "../(components)/Logo";
+import socketService from "../services/socketService";
 
 const StartOptionsScreen = () => {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
@@ -24,42 +26,86 @@ const StartOptionsScreen = () => {
     LibreBaskerville_700Bold,
   });
 
-  const handleCreateRoom = (category: string) => {
-    console.log("Creating room with category:", category);
-    setShowCreateModal(false);
+  useEffect(() => {
+    socketService.connect();
 
-    // Generate random room code (6 characters)
-    const generatedRoomCode = Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
+    return () => {
+      // Cleanup - DO NOT UNCONNECT SOCKET ONCE USER LEAVES THE APP.
+      // socketService.disconnect();
+    };
+  }, []);
 
-    // Navigate to GameRoom
-    router.push({
-      pathname: "/GameRoom",
-      params: {
-        roomCode: generatedRoomCode,
-        category: category,
-        hostName: "You",
-        isHost: "true",
-      },
-    });
+  const handleCreateRoom = async (
+    userName: string,
+    category: string,
+    avatar: string = "😊"
+  ) => {
+    try {
+      setIsLoading(true);
+      console.log(
+        `🏠 Creating room with ${userName} and category is: ${category} and avatar is: ${avatar}...`
+      );
+
+      // Send request to create room to backend
+      const result = await socketService.createRoom(userName, avatar, category);
+      // result -> { roomCode: string; player: room.players[0]; category: string }
+
+      console.log("✅ Room is created:", result);
+      setShowCreateModal(false);
+
+      // Redirect to GameRoom (only roomCode needed, rest comes from backend)
+      router.push({
+        pathname: "/GameRoom",
+        params: {
+          roomCode: result.roomCode,
+        },
+      });
+    } catch (error: any) {
+      console.error("❌ Error creating room:", error);
+      Alert.alert(
+        "Hata",
+        error?.message || "Room not created. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleJoinRoom = (userName: string, roomCode: string) => {
-    console.log("Joining room with userName:", userName, "roomCode:", roomCode);
-    setShowJoinModal(false);
+  const handleJoinRoom = async (
+    userName: string,
+    roomCode: string,
+    avatar: string = "😊"
+  ) => {
+    try {
+      setIsLoading(true);
+      console.log("👥 Joining room...", { userName, roomCode, avatar });
 
-    // Navigate to GameRoom as participant
-    router.push({
-      pathname: "/GameRoom",
-      params: {
-        roomCode: roomCode,
-        category: "unknown", // Category will be fetched from the room
-        hostName: userName,
-        isHost: "false",
-      },
-    });
+      // Send request to join room to backend
+      const result = await socketService.joinRoom(
+        roomCode.toUpperCase(),
+        userName,
+        avatar
+      );
+
+      console.log("✅ Joined room:", result);
+      setShowJoinModal(false);
+
+      // Redirect to GameRoom (only roomCode needed, rest comes from backend)
+      router.push({
+        pathname: "/GameRoom",
+        params: {
+          roomCode: result.roomCode,
+        },
+      });
+    } catch (error: any) {
+      console.error("❌ Error joining room:", error);
+      Alert.alert(
+        "Hata",
+        error?.message || "Room not joined. Is the room code correct?"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!fontsLoaded) {
