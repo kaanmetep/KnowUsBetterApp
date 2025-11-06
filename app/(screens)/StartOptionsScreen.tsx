@@ -6,6 +6,7 @@ import {
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import CreateNewRoom from "../(components)/CreateNewRoom";
@@ -13,6 +14,7 @@ import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import Logo from "../(components)/Logo";
 
 const StartOptionsScreen = () => {
+  const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
@@ -25,13 +27,39 @@ const StartOptionsScreen = () => {
   const handleCreateRoom = (category: string) => {
     console.log("Creating room with category:", category);
     setShowCreateModal(false);
-    // TODO: Navigate to game room or handle room creation
+
+    // Generate random room code (6 characters)
+    const generatedRoomCode = Math.random()
+      .toString(36)
+      .substring(2, 8)
+      .toUpperCase();
+
+    // Navigate to GameRoom
+    router.push({
+      pathname: "/GameRoom",
+      params: {
+        roomCode: generatedRoomCode,
+        category: category,
+        hostName: "You",
+        isHost: "true",
+      },
+    });
   };
 
   const handleJoinRoom = (userName: string, roomCode: string) => {
     console.log("Joining room with userName:", userName, "roomCode:", roomCode);
     setShowJoinModal(false);
-    // TODO: Navigate to game room or handle room joining
+
+    // Navigate to GameRoom as participant
+    router.push({
+      pathname: "/GameRoom",
+      params: {
+        roomCode: roomCode,
+        category: "unknown", // Category will be fetched from the room
+        hostName: userName,
+        isHost: "false",
+      },
+    });
   };
 
   if (!fontsLoaded) {

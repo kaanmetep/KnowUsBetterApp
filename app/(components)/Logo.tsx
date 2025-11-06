@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
-const Logo = ({ marginTop = 0 }: { marginTop?: number }) => {
+
+interface LogoProps {
+  marginTop?: number;
+  size?: "default" | "small";
+}
+
+const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
   const [msgIndex, setMsgIndex] = useState(0);
   const messages = [
     "Test Your Connection Together",
@@ -9,6 +15,13 @@ const Logo = ({ marginTop = 0 }: { marginTop?: number }) => {
   ];
   const opacity = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
+
+  const isSmall = size === "small";
+  const logoSize = isSmall
+    ? { width: 50, height: 50 }
+    : { width: 80, height: 70 };
+  const titleSize = isSmall ? "text-3xl" : "text-5xl";
+
   useEffect(() => {
     const interval = setInterval(() => {
       Animated.parallel([
@@ -47,28 +60,31 @@ const Logo = ({ marginTop = 0 }: { marginTop?: number }) => {
     }, 3000);
     return () => clearInterval(interval);
   }, [messages.length, msgIndex, opacity, translateY]);
+
   return (
     <View className="flex items-center" style={{ marginTop }}>
       <Image
         source={require("../../assets/images/logo.png")}
-        style={{ width: 80, height: 70 }}
+        style={logoSize}
       />
       <Text
-        className="text-5xl text-red-950"
+        className={`${titleSize} text-red-950 -mt-2`}
         style={{ fontFamily: "LibreBaskerville_700Bold" }}
       >
         KnowUsBetter
       </Text>
-      <Animated.Text
-        className="mt-2 text-red-900"
-        style={{
-          fontFamily: "MerriweatherSans_400Regular",
-          opacity,
-          transform: [{ translateY }],
-        }}
-      >
-        {messages[msgIndex]}
-      </Animated.Text>
+      {!isSmall && (
+        <Animated.Text
+          className="mt-1 text-red-900"
+          style={{
+            fontFamily: "MerriweatherSans_400Regular",
+            opacity,
+            transform: [{ translateY }],
+          }}
+        >
+          {messages[msgIndex]}
+        </Animated.Text>
+      )}
     </View>
   );
 };
