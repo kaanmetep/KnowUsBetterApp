@@ -8,8 +8,8 @@ import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Foundation from "@expo/vector-icons/Foundation";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -30,6 +30,10 @@ const OnboardingPage = () => {
   });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedHeart, setSelectedHeart] = useState<any>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "tr" | "es">(
+    "en"
+  );
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   // Bottom ticker
   const scrollViewRef = useRef<ScrollView>(null);
   // Button gradient animation
@@ -39,6 +43,12 @@ const OnboardingPage = () => {
   const heartOpacity = useRef(new Animated.Value(1)).current;
   const heartTranslateX = useRef(new Animated.Value(0)).current;
   const heartTranslateY = useRef(new Animated.Value(0)).current;
+  const languages = {
+    en: { flag: "🇺🇸", label: "English" },
+    tr: { flag: "🇹🇷", label: "Turkish" },
+    es: { flag: "🇪🇸", label: "Español" },
+  };
+
   const tickerSentences = [
     "Would you ask your partner for their Instagram password?",
     "Would you accept it if your partner were a popular person?",
@@ -116,6 +126,21 @@ const OnboardingPage = () => {
     ).start();
   }, [gradientAnim]);
 
+  // Reset animation values when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Reset heart animation values
+      heartScale.setValue(1);
+      heartOpacity.setValue(1);
+      heartTranslateX.setValue(0);
+      heartTranslateY.setValue(0);
+
+      // Reset transition states
+      setIsTransitioning(false);
+      setSelectedHeart(null);
+    }, [heartScale, heartOpacity, heartTranslateX, heartTranslateY])
+  );
+
   const handleStartPress = () => {
     // Take the first heart to animate. (Changing screen animation)
     const heartToAnimate = hearts[0];
@@ -167,6 +192,73 @@ const OnboardingPage = () => {
   }
   return (
     <View className="flex-1 bg-primary ">
+      {/* Language Selector */}
+      <View className="absolute top-20 right-6 z-50">
+        <View className="relative">
+          {/* Shadow */}
+          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+          {/* Language Button */}
+          <TouchableOpacity
+            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+            activeOpacity={0.8}
+            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
+          >
+            <Text style={{ fontSize: 18 }}>
+              {languages[selectedLanguage].flag}
+            </Text>
+            <Text
+              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
+              className="text-gray-900"
+            >
+              {selectedLanguage.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {isLanguageMenuOpen && (
+            <View className="absolute top-[52px] right-0 w-[140px]">
+              <View className="relative">
+                {/* Shadow */}
+                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+                {/* Menu Container */}
+                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
+                  {(
+                    Object.keys(languages) as Array<keyof typeof languages>
+                  ).map((lang, index) => (
+                    <TouchableOpacity
+                      key={lang}
+                      onPress={() => {
+                        setSelectedLanguage(lang);
+                        setIsLanguageMenuOpen(false);
+                      }}
+                      activeOpacity={0.8}
+                      className={`flex-row items-center gap-1 px-3 py-3 ${
+                        index !== Object.keys(languages).length - 1
+                          ? "border-b-2 border-gray-900"
+                          : ""
+                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
+                    >
+                      <Text style={{ fontSize: 16 }}>
+                        {languages[lang].flag}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                          fontSize: 13,
+                        }}
+                        className="text-gray-900"
+                      >
+                        {languages[lang].label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+
       <View pointerEvents="none" className="absolute inset-0">
         {hearts.map((h) => {
           const isSelectedHeart =
@@ -211,7 +303,7 @@ const OnboardingPage = () => {
                 left: h.left,
                 width: h.size,
                 height: h.size,
-                opacity: isTransitioning ? 0 : h.opacity,
+                opacity: h.opacity,
                 transform: [{ rotate: `${h.rotateDeg}deg` }],
               }}
               contentFit="contain"
