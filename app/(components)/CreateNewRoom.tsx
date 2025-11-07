@@ -1,4 +1,4 @@
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -35,7 +35,7 @@ const categories: Category[] = [
   {
     id: "we_just_met",
     label: "💞 We Just Met",
-    color: "#ffe4e6",
+    color: "#fee4e6",
   },
   {
     id: "long_term",
@@ -137,8 +137,27 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
                   {/* Step Indicator */}
                   <View className="flex-row justify-center gap-2 mb-4">
-                    <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
-                    <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
+                    <TouchableOpacity
+                      onPress={() => setStep(1)}
+                      activeOpacity={0.8}
+                    >
+                      <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isNameValid) {
+                          setStep(2);
+                        }
+                      }}
+                      activeOpacity={0.8}
+                      disabled={!isNameValid}
+                    >
+                      <View
+                        className={`w-8 h-2 rounded-full ${
+                          isNameValid ? "bg-gray-300" : "bg-gray-200"
+                        } border-gray-900`}
+                      />
+                    </TouchableOpacity>
                   </View>
 
                   {/* Title */}
@@ -253,8 +272,18 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
                   {/* Step Indicator */}
                   <View className="flex-row justify-center gap-2 mb-4">
-                    <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                    <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
+                    <TouchableOpacity
+                      onPress={() => setStep(1)}
+                      activeOpacity={0.8}
+                    >
+                      <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setStep(2)}
+                      activeOpacity={0.8}
+                    >
+                      <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
+                    </TouchableOpacity>
                   </View>
 
                   {/* Title */}
@@ -311,7 +340,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                         className="text-gray-900 text-xs font-bold"
                                         style={{ letterSpacing: -0.2 }}
                                       >
-                                        <FontAwesome5
+                                        <FontAwesome6
                                           name="coins"
                                           size={8}
                                           color="#991b1b"
@@ -345,12 +374,8 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         className="text-amber-700 text-xs font-medium"
                         style={{ fontFamily: "MerriweatherSans_400Regular" }}
                       >
-                        <FontAwesome5
-                          name="coins"
-                          size={16}
-                          color="#991b1b"
-                          style={{ marginRight: 4 }}
-                        />{" "}
+                        <FontAwesome6 name="coins" size={16} color="#991b1b" />
+                        {"   "}
                         <Text>You have: 0 coins</Text>
                       </Text>
                     </View>
@@ -390,9 +415,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        {isCategoryValid
-                          ? "Create Room 🎮"
-                          : "Select a Category"}
+                        {isCategoryValid ? "Create Room" : "Select a Category"}
                       </Text>
                     </TouchableOpacity>
                   </View>

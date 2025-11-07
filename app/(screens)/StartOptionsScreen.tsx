@@ -4,11 +4,11 @@ import {
   MerriweatherSans_700Bold,
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
-import Fontisto from "@expo/vector-icons/Fontisto";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+import ContactUsButton from "../(components)/ContactUsButton";
 import CreateNewRoom from "../(components)/CreateNewRoom";
 import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import LanguageSelector from "../(components)/LanguageSelector";
@@ -118,27 +118,8 @@ const StartOptionsScreen = () => {
       {/* Language Selector */}
       <LanguageSelector position="top-right" />
 
-      {/* Contact Us Button - Moved to bottom-left */}
-      <View className="absolute bottom-20 left-6 z-10">
-        <View className="relative">
-          <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-          <TouchableOpacity
-            className="bg-white border-2 border-gray-900 rounded-full py-1.5 px-4 relative"
-            activeOpacity={0.8}
-            onPress={() => {}}
-          >
-            <View className="flex-row items-center gap-2">
-              <Fontisto name="email" size={14} color="black" />
-              <Text
-                className="text-gray-900 text-xs font-semibold"
-                style={{ letterSpacing: -0.2 }}
-              >
-                Contact Us
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* Contact Us Button */}
+      <ContactUsButton position="bottom-left" style="default" />
 
       <Image
         source={require("../../assets/images/options-screen-girl.png")}
@@ -188,7 +169,7 @@ const StartOptionsScreen = () => {
         </View>
 
         {/* How to Play Button */}
-        <View className="relative self-center mt-8">
+        <View className="relative self-center mt-6">
           <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
           <TouchableOpacity
             className="bg-white border-2 border-gray-900 rounded-full py-2 px-6 relative flex-row items-center gap-2"

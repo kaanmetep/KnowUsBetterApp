@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import ContactUsButton from "../(components)/ContactUsButton";
 import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
 import socketService, { Room } from "../services/socketService";
@@ -232,12 +233,15 @@ const GameRoom = () => {
       {/* Language Selector */}
       <LanguageSelector position="top-right" />
 
+      {/* Contact Us Button */}
+      <ContactUsButton position="top-left" style="default" />
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View className="items-center mt-10 mb-6">
+        <View className="items-center mt-16 mb-4">
           <Logo size="small" />
         </View>
 

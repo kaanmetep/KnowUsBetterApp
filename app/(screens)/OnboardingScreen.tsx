@@ -19,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ContactUsButton from "../(components)/ContactUsButton";
 import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
 const OnboardingPage = () => {
@@ -186,6 +187,9 @@ const OnboardingPage = () => {
     <View className="flex-1 bg-primary ">
       {/* Language Selector */}
       <LanguageSelector position="top-right" />
+
+      {/* Contact Us Button */}
+      <ContactUsButton position="top-left" style="default" />
 
       <View pointerEvents="none" className="absolute inset-0">
         {hearts.map((h) => {
