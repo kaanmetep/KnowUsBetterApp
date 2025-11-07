@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import "./globals.css";
 
 export default function RootLayout() {
@@ -49,5 +50,9 @@ export default function RootLayout() {
     };
   }, [router]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <LanguageProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </LanguageProvider>
+  );
 }

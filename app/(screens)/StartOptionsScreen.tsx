@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import CreateNewRoom from "../(components)/CreateNewRoom";
 import JoinExistingRoom from "../(components)/JoinExistingRoom";
+import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
 import socketService from "../services/socketService";
 
@@ -114,8 +115,11 @@ const StartOptionsScreen = () => {
 
   return (
     <View className="flex-1 bg-primary">
-      {/* Contact Us Button*/}
-      <View className="absolute top-20 right-4 z-10">
+      {/* Language Selector */}
+      <LanguageSelector position="top-right" />
+
+      {/* Contact Us Button - Moved to bottom-left */}
+      <View className="absolute bottom-20 left-6 z-10">
         <View className="relative">
           <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
           <TouchableOpacity

@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
 import socketService, { Room } from "../services/socketService";
 
@@ -227,7 +228,10 @@ const GameRoom = () => {
   }
 
   return (
-    <View className="flex-1 bg-primary pt-8">
+    <View className="flex-1 bg-primary pt-16">
+      {/* Language Selector */}
+      <LanguageSelector position="top-right" />
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -280,7 +284,6 @@ const GameRoom = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-
                   {/* Share Link Button */}
                   <View className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
