@@ -66,7 +66,6 @@ interface GamePlayProps {
   notifications: string[];
   roundResult: any;
   onSelectAnswer: (answer: string) => void;
-  onSubmitAnswer: () => void;
 }
 
 const GamePlay: React.FC<GamePlayProps> = ({
@@ -79,9 +78,9 @@ const GamePlay: React.FC<GamePlayProps> = ({
   notifications,
   roundResult,
   onSelectAnswer,
-  onSubmitAnswer,
 }) => {
   const progressAnim = useRef(new Animated.Value(100)).current;
+  const waitingPulseAnim = useRef(new Animated.Value(1)).current;
 
   // Animate progress bar when round result appears
   useEffect(() => {
@@ -96,6 +95,30 @@ const GamePlay: React.FC<GamePlayProps> = ({
       }).start();
     }
   }, [roundResult]);
+
+  // Waiting pulse animation
+  useEffect(() => {
+    if (hasSubmitted && !roundResult) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(waitingPulseAnim, {
+            toValue: 0.7,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waitingPulseAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      waitingPulseAnim.setValue(1);
+    }
+  }, [hasSubmitted, roundResult, waitingPulseAnim]);
 
   return (
     <View className="flex-1 bg-primary pt-16">
@@ -345,31 +368,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
             </View>
           </View>
 
-          {/* Submit Button */}
-          {!hasSubmitted && !roundResult && (
-            <View className="relative mb-6">
-              <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-              <TouchableOpacity
-                onPress={onSubmitAnswer}
-                disabled={!selectedAnswer}
-                className={`relative border-2 border-gray-900 rounded-[14px] py-4 px-8 ${
-                  selectedAnswer ? "bg-[#ffe4e6]" : "bg-gray-300"
-                }`}
-                activeOpacity={0.8}
-              >
-                <Text
-                  className="text-gray-900 text-lg text-center font-bold"
-                  style={{
-                    fontFamily: "MerriweatherSans_700Bold",
-                    letterSpacing: -0.3,
-                  }}
-                >
-                  {selectedAnswer ? "Submit Answer" : "Select an Answer"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
           {/* Notifications - Elegant slide-in */}
           {notifications.length > 0 && (
             <View className="gap-2 mb-6">
@@ -385,19 +383,24 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
           {/* Waiting Status */}
           {hasSubmitted && !roundResult && (
-            <View className="relative mb-6">
+            <Animated.View
+              className="relative mb-6"
+              style={{ opacity: waitingPulseAnim }}
+            >
               <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-              <View className="relative bg-amber-50 border-2 border-gray-900 rounded-xl p-4">
+              <View className="relative bg-[#ffe4e6] border-2 border-gray-900 rounded-xl px-4 py-3 flex-row items-center justify-center gap-2">
                 <Text
-                  className="text-amber-700 text-center font-semibold"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  className="text-gray-900 text-sm font-semibold"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                  }}
                 >
                   {opponentAnswered
-                    ? "⏳ Both answered! Processing..."
-                    : "⏳ Waiting for your partner..."}
+                    ? "Both answered! Processing..."
+                    : "Waiting for partner..."}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
           )}
         </View>
       </ScrollView>

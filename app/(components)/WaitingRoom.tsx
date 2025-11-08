@@ -38,6 +38,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [copied, setCopied] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
+  const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
 
   const participants = room.players || [];
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
@@ -74,6 +75,30 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
       })
     ).start();
   }, [dashOffsetAnim]);
+
+  // Start button glow animation
+  useEffect(() => {
+    if (canStartGame) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(startButtonGlowAnim, {
+            toValue: 1,
+            duration: 2000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
+          }),
+          Animated.timing(startButtonGlowAnim, {
+            toValue: 0,
+            duration: 2000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    } else {
+      startButtonGlowAnim.setValue(0);
+    }
+  }, [canStartGame, startButtonGlowAnim]);
 
   const getCategoryInfo = (categoryId: string) => {
     const categories: Record<
@@ -321,25 +346,37 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           {isHost && (
             <View className="mb-4">
               <View className="relative">
+                {/* Static Shadow */}
                 <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                <TouchableOpacity
-                  onPress={onStartGame}
-                  disabled={!canStartGame}
-                  className={`relative border-2 border-gray-900 rounded-[14px] py-[18px] px-8 ${
-                    canStartGame ? "bg-[#ffe4e6]" : "bg-gray-300"
-                  }`}
-                  activeOpacity={0.8}
+                {/* Animated Button */}
+                <Animated.View
+                  className="relative border-2 border-gray-900 rounded-[14px] overflow-hidden"
+                  style={{
+                    backgroundColor: canStartGame
+                      ? startButtonGlowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ["#ffe4e6", "#ffc0cb"],
+                        })
+                      : "#d1d5db",
+                  }}
                 >
-                  <Text
-                    className="text-gray-900 text-xl text-center font-bold"
-                    style={{
-                      fontFamily: "MerriweatherSans_700Bold",
-                      letterSpacing: -0.3,
-                    }}
+                  <TouchableOpacity
+                    onPress={onStartGame}
+                    disabled={!canStartGame}
+                    className="py-[18px] px-8"
+                    activeOpacity={0.8}
                   >
-                    {canStartGame ? "Start Game 🎮" : "Waiting for Players..."}
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      className="text-gray-900 text-xl text-center font-bold"
+                      style={{
+                        fontFamily: "MerriweatherSans_700Bold",
+                        letterSpacing: -0.3,
+                      }}
+                    >
+                      {canStartGame ? "Start Game" : "Waiting for Players..."}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
             </View>
           )}

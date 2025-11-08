@@ -6,6 +6,7 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
+import Countdown from "../(components)/Countdown";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import socketService, { Room } from "../services/socketService";
@@ -21,7 +22,7 @@ const GameRoom = () => {
 
   // Game state
   const [gameState, setGameState] = useState<
-    "waiting" | "playing" | "finished"
+    "waiting" | "countdown" | "playing" | "finished"
   >("waiting");
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -37,7 +38,7 @@ const GameRoom = () => {
     MerriweatherSans_700Bold,
   });
 
-  // Socket.io event listeners
+  // Socket.io event listeners and cleanup
   useEffect(() => {
     console.log("🎮 GameRoom mounted - roomCode:", roomCode);
 
@@ -57,16 +58,8 @@ const GameRoom = () => {
     // New player joined
     const handlePlayerJoined = (data: any) => {
       console.log("👥 New player joined:", data);
-
       if (data.room) {
         setRoom(data.room);
-
-        // Show notification
-        if (Platform.OS === "web") {
-          alert(`🎉 New Player! ${data.player.name} joined the room!`);
-        } else {
-          Alert.alert("🎉 New Player!", `${data.player.name} joined the room!`);
-        }
       }
     };
 
@@ -88,7 +81,7 @@ const GameRoom = () => {
       if (data.room) {
         setRoom(data.room);
       }
-      setGameState("playing");
+      setGameState("countdown");
       setCurrentQuestion(data.question);
       setTotalQuestions(data.totalQuestions);
       setCurrentQuestionIndex(0);
@@ -96,7 +89,7 @@ const GameRoom = () => {
       setHasSubmitted(false);
       setOpponentAnswered(false);
 
-      console.log("✅ State updated - gameState should be 'playing'");
+      console.log("✅ State updated - gameState should be 'countdown'");
     };
 
     // Player answered
@@ -146,9 +139,16 @@ const GameRoom = () => {
     socketService.onNextQuestion(handleNextQuestion);
     socketService.onGameFinished(handleGameFinished);
 
-    // Cleanup - remove event listeners when component unmounts
+    // Cleanup - remove event listeners and leave room when component unmounts
     return () => {
-      console.log("🧹 GameRoom cleanup");
+      console.log("🧹 GameRoom cleanup - leaving room");
+
+      // Leave room when navigating away
+      socketService.leaveRoom(roomCode).catch((error) => {
+        console.error("❌ Error leaving room during cleanup:", error);
+      });
+
+      // Remove event listeners
       socketService.offPlayerJoined(handlePlayerJoined);
       socketService.offPlayerLeft(handlePlayerLeft);
       socketService.offGameStarted(handleGameStarted);
@@ -219,16 +219,13 @@ const GameRoom = () => {
     }
   };
 
-  const handleSubmitAnswer = () => {
-    if (selectedAnswer && currentQuestion && !hasSubmitted) {
-      console.log("📝 Submitting answer:", selectedAnswer);
-      socketService.submitAnswer(currentQuestion.id, selectedAnswer);
+  const handleSelectAnswer = (answer: string) => {
+    if (!hasSubmitted && currentQuestion) {
+      setSelectedAnswer(answer);
+      console.log("📝 Submitting answer:", answer);
+      socketService.submitAnswer(currentQuestion.id, answer);
       setHasSubmitted(true);
     }
-  };
-
-  const handleSelectAnswer = (answer: string) => {
-    setSelectedAnswer(answer);
   };
 
   // Loading state
@@ -242,6 +239,20 @@ const GameRoom = () => {
     hasQuestion: !!currentQuestion,
     questionText: currentQuestion?.text,
   });
+
+  // Render countdown screen
+  if (gameState === "countdown") {
+    console.log("⏱️ Rendering Countdown component");
+    return (
+      <Countdown
+        onComplete={() => {
+          console.log("✅ Countdown complete, starting game");
+          console.log("📊 Current question exists:", !!currentQuestion);
+          setGameState("playing");
+        }}
+      />
+    );
+  }
 
   // Render game play screen
   if (gameState === "playing" && currentQuestion) {
@@ -257,13 +268,14 @@ const GameRoom = () => {
         notifications={notifications}
         roundResult={roundResult}
         onSelectAnswer={handleSelectAnswer}
-        onSubmitAnswer={handleSubmitAnswer}
       />
     );
   }
 
   // Render waiting room
   console.log("⏳ Rendering WaitingRoom component");
+  console.log("🔍 gameState:", gameState);
+  console.log("🔍 currentQuestion:", currentQuestion);
   return (
     <WaitingRoom
       room={room}

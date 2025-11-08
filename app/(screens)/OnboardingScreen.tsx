@@ -4,9 +4,6 @@ import {
   MerriweatherSans_700Bold,
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import Foundation from "@expo/vector-icons/Foundation";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -19,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import ContactUsButton from "../(components)/ContactUsButton";
 import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
 const OnboardingPage = () => {
@@ -36,11 +32,15 @@ const OnboardingPage = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   // Button gradient animation
   const gradientAnim = useRef(new Animated.Value(0)).current;
+  // Button pulse animation
+  const buttonPulseAnim = useRef(new Animated.Value(1)).current;
   // Heart transition animation
   const heartScale = useRef(new Animated.Value(1)).current;
   const heartOpacity = useRef(new Animated.Value(1)).current;
   const heartTranslateX = useRef(new Animated.Value(0)).current;
   const heartTranslateY = useRef(new Animated.Value(0)).current;
+  // Card carousel animation - infinite horizontal scroll
+  const cardScrollX = useRef(new Animated.Value(0)).current;
 
   const tickerSentences = [
     "Would you ask your partner for their Instagram password?",
@@ -119,6 +119,74 @@ const OnboardingPage = () => {
     ).start();
   }, [gradientAnim]);
 
+  // Button pulse animation
+  useEffect(() => {
+    // Start pulse animation
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonPulseAnim, {
+          toValue: 1.08,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonPulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    pulseAnimation.start();
+
+    return () => {
+      pulseAnimation.stop();
+    };
+  }, []);
+
+  // Infinite continuous horizontal carousel animation
+  useEffect(() => {
+    const cardWidth = 280;
+    const cardGap = 24;
+    const cardTotalWidth = cardWidth + cardGap;
+    const totalCards = tickerSentences.length;
+    const oneSetWidth = totalCards * cardTotalWidth;
+
+    // Track current scroll position
+    let currentScrollPosition = -oneSetWidth;
+    cardScrollX.setValue(currentScrollPosition);
+
+    // Start continuous animation
+    const animate = () => {
+      // Move one set forward
+      const targetPosition = currentScrollPosition - oneSetWidth;
+
+      Animated.timing(cardScrollX, {
+        toValue: targetPosition,
+        duration: totalCards * 4000, // 4 seconds per card (slower)
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(() => {
+        // Update current position
+        currentScrollPosition = targetPosition;
+
+        // If we've scrolled 2 sets, reset to middle set (seamless loop)
+        if (currentScrollPosition <= -oneSetWidth * 2) {
+          currentScrollPosition = -oneSetWidth;
+          cardScrollX.setValue(currentScrollPosition);
+        }
+
+        // Continue animation
+        animate();
+      });
+    };
+
+    // Start the animation
+    animate();
+  }, [cardScrollX, tickerSentences.length]);
+
   // Reset animation values when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -128,10 +196,25 @@ const OnboardingPage = () => {
       heartTranslateX.setValue(0);
       heartTranslateY.setValue(0);
 
+      // Reset card animation values
+      const cardWidth = 280;
+      const cardGap = 24;
+      const cardTotalWidth = cardWidth + cardGap;
+      const totalCards = tickerSentences.length;
+      const oneSetWidth = totalCards * cardTotalWidth;
+      cardScrollX.setValue(-oneSetWidth);
+
       // Reset transition states
       setIsTransitioning(false);
       setSelectedHeart(null);
-    }, [heartScale, heartOpacity, heartTranslateX, heartTranslateY])
+    }, [
+      heartScale,
+      heartOpacity,
+      heartTranslateX,
+      heartTranslateY,
+      buttonPulseAnim,
+      cardScrollX,
+    ])
   );
 
   const handleStartPress = () => {
@@ -188,10 +271,11 @@ const OnboardingPage = () => {
       {/* Language Selector */}
       <LanguageSelector position="top-right" />
 
-      {/* Contact Us Button */}
-      <ContactUsButton position="top-left" style="default" />
-
-      <View pointerEvents="none" className="absolute inset-0">
+      <View
+        pointerEvents="none"
+        className="absolute inset-0"
+        style={{ zIndex: 9999 }}
+      >
         {hearts.map((h) => {
           const isSelectedHeart =
             isTransitioning && selectedHeart && h.id === selectedHeart.id;
@@ -213,7 +297,7 @@ const OnboardingPage = () => {
                     { scale: heartScale },
                     { rotate: `${h.rotateDeg}deg` },
                   ],
-                  zIndex: 1000,
+                  zIndex: 10000,
                 }}
               >
                 <Image
@@ -243,125 +327,136 @@ const OnboardingPage = () => {
           );
         })}
       </View>
-      <View className="flex-1 mt-[150px] items-center ">
-        <Logo />
-        <View className="flex flex-col items-center mt-12 w-11/12  gap-5 ">
-          {/* Feature 1 */}
-          <View className="relative min-w-[330px]">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
-              <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
-                <FontAwesome6
-                  name="heart-circle-bolt"
-                  size={16}
-                  color="#991b1b"
-                />
-              </View>
-              <Text
-                style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900"
-              >
-                Real-time test with your partner
-              </Text>
-            </View>
+      <Image
+        source={require("../../assets/images/options-screen-girl.png")}
+        style={{
+          width: 200,
+          height: 200,
+          transform: [{ scaleX: -1 }, { rotate: "142deg" }],
+          marginTop: -50,
+          marginBottom: 30,
+          zIndex: 1,
+        }}
+        contentFit="contain"
+      />
+      <Logo />
+      <View className="flex-1 items-center gap-6 mt-16 px-6">
+        {/* Question Cards Carousel - Infinite Scroll */}
+        <View className="w-full" style={{ height: 180 }}>
+          <View
+            className="relative"
+            style={{
+              width: "100%",
+              height: 180,
+              overflow: "hidden",
+            }}
+          >
+            <Animated.View
+              style={{
+                flexDirection: "row",
+                transform: [{ translateX: cardScrollX }],
+              }}
+            >
+              {/* Repeat cards 3 times for infinite loop */}
+              {[0, 1, 2].map((setIndex) =>
+                tickerSentences.map((sentence, index) => {
+                  const cardWidth = 280;
+                  const cardGap = 24;
+                  const globalIndex = setIndex * tickerSentences.length + index;
+                  return (
+                    <View
+                      key={`${setIndex}-${index}`}
+                      style={{
+                        width: cardWidth,
+                        height: 180,
+                        marginRight: cardGap,
+                      }}
+                    >
+                      {/* Shadow layer - lighter */}
+                      <View
+                        className="absolute"
+                        style={{
+                          top: 3,
+                          left: 3,
+                          right: -3,
+                          bottom: -3,
+                          backgroundColor: "#000",
+                          borderRadius: 12,
+                          zIndex: 0,
+                        }}
+                      />
+                      {/* Card */}
+                      <View
+                        className={`relative border-[3px] border-gray-900 rounded-xl p-5 flex-1 justify-center z-10 ${
+                          index % 2 === 0 ? "bg-red-50" : "bg-blue-50"
+                        }`}
+                      >
+                        <Text
+                          className="text-gray-900 text-center font-bold leading-6"
+                          style={{
+                            fontFamily: "MerriweatherSans_700Bold",
+                            fontSize: 18,
+                            letterSpacing: -0.3,
+                          }}
+                        >
+                          {sentence}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </Animated.View>
           </View>
+        </View>
 
-          {/* Feature 2 */}
-          <View className="relative min-w-[330px]">
+        {/* Start Button */}
+        <View className="mt-6 items-center ">
+          <Animated.View
+            className="relative"
+            style={{
+              transform: [{ scale: buttonPulseAnim }],
+            }}
+          >
+            {/* Light Shadow Layer */}
             <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
-              <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
-                <Foundation name="page-multiple" size={16} color="#991b1b" />
-              </View>
-              <Text
-                style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900"
-              >
-                Multiple fun categories to explore
-              </Text>
-            </View>
-          </View>
-
-          {/* Feature 3 */}
-          <View className="relative min-w-[330px]">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <View className="relative flex-row items-center gap-3 bg-white border-2 border-gray-900 rounded-xl px-4 py-3">
-              <View className="w-8 h-8 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
-                <Entypo name="cross" size={16} color="#991b1b" />
-              </View>
-              <Text
-                style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                className="text-gray-900"
-              >
-                No login or signup required
-              </Text>
-            </View>
-          </View>
-
-          {/* Start Button */}
-          <View className="mt-4 items-center w-full">
-            <View className="relative w-full">
-              <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
+            <Animated.View
+              style={{
+                backgroundColor: gradientAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["#dbeafe", "#fce7f3"], // Pastel blue to pastel pink
+                }),
+              }}
+              className="relative border-2 border-gray-900 rounded-xl py-4 px-10"
+            >
               <TouchableOpacity
                 onPress={handleStartPress}
-                activeOpacity={0.8}
-                className="relative bg-[#ffe4e6] border-2 border-gray-900 rounded-[14px] py-[18px] px-12"
+                activeOpacity={0.9}
+                className="w-full"
               >
                 <Text
-                  className="text-gray-900 text-xl text-center font-bold"
+                  className="text-gray-900 text-lg text-center font-bold"
                   style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
                   Start playing now!
                 </Text>
               </TouchableOpacity>
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         </View>
       </View>
-      {/* Bottom ticker */}
-      <View className="absolute -left-0 right-0 bottom-10 px-2">
-        <View className="relative">
-          {/* Shadow */}
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-          {/* Ticker Container */}
-          <View
-            className="relative bg-white border-2 border-gray-900 rounded-xl overflow-hidden"
-            style={{ height: 42 }}
-          >
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              scrollEnabled={false}
-              contentContainerStyle={{ alignItems: "center", height: 42 }}
-              onContentSizeChange={(w) => {
-                // Loop back to start when reaching end
-                if (scrollViewRef.current) {
-                  scrollViewRef.current.scrollTo({ x: 0, animated: false });
-                }
-              }}
-            >
-              {Array(10)
-                .fill(tickerText)
-                .map((text, i) => (
-                  <Text
-                    key={i}
-                    style={{
-                      fontFamily: "MerriweatherSans_400Regular",
-                      fontSize: 14,
-                      lineHeight: 42,
-                      color: "#1a1a1a",
-                      paddingHorizontal: 16,
-                      fontWeight: "500",
-                    }}
-                  >
-                    {text}
-                  </Text>
-                ))}
-            </ScrollView>
-          </View>
-        </View>
-      </View>
+      <Image
+        source={require("../../assets/images/options-screen-man.png")}
+        style={{
+          width: 200,
+          height: 200,
+          transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
+          marginLeft: "auto",
+          marginBottom: -40,
+          zIndex: 1,
+        }}
+        contentFit="contain"
+      />
     </View>
   );
 };
