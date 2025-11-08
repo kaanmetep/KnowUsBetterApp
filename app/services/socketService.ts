@@ -275,7 +275,10 @@ class SocketService {
 
   onRoundCompleted(
     callback: (data: {
-      round: any;
+      allPlayersAnswered: boolean;
+      isMatched: boolean;
+      playerAnswers: any[];
+      question: any;
       matchScore: number;
       totalQuestions: number;
       percentage: number;

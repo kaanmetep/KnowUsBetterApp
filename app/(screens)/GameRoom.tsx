@@ -29,6 +29,8 @@ const GameRoom = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [opponentAnswered, setOpponentAnswered] = useState(false);
+  const [notifications, setNotifications] = useState<string[]>([]);
+  const [roundResult, setRoundResult] = useState<any>(null);
 
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
@@ -101,16 +103,19 @@ const GameRoom = () => {
     const handlePlayerAnswered = (data: any) => {
       console.log("✅ Player answered:", data);
       setOpponentAnswered(true);
+
+      // Add notification to the list
+      if (data.playerName) {
+        setNotifications((prev) => [...prev, `${data.playerName} answered!`]);
+      }
     };
 
     // Round completed
     const handleRoundCompleted = (data: any) => {
       console.log("🎯 Round completed:", data);
-      // TODO: Show round results with match/no match
-      // Reset for next question
-      setSelectedAnswer(null);
-      setHasSubmitted(false);
-      setOpponentAnswered(false);
+      // Show round results for 5 seconds (backend handles the timing)
+      setRoundResult(data);
+      setNotifications([]); // Clear notifications when showing round result
     };
 
     // Next question
@@ -121,6 +126,8 @@ const GameRoom = () => {
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setOpponentAnswered(false);
+      setNotifications([]); // Clear notifications when moving to next question
+      setRoundResult(null); // Clear round result for new question
     };
 
     // Game finished
@@ -247,6 +254,8 @@ const GameRoom = () => {
         selectedAnswer={selectedAnswer}
         hasSubmitted={hasSubmitted}
         opponentAnswered={opponentAnswered}
+        notifications={notifications}
+        roundResult={roundResult}
         onSelectAnswer={handleSelectAnswer}
         onSubmitAnswer={handleSubmitAnswer}
       />
