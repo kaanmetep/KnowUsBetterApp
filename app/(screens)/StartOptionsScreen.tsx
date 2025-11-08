@@ -12,6 +12,7 @@ import ContactUsButton from "../(components)/ContactUsButton";
 import CreateNewRoom from "../(components)/CreateNewRoom";
 import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import LanguageSelector from "../(components)/LanguageSelector";
+import LearnHowToPlay from "../(components)/LearnHowToPlay";
 import Logo from "../(components)/Logo";
 import socketService from "../services/socketService";
 
@@ -19,6 +20,7 @@ const StartOptionsScreen = () => {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showHowToPlayModal, setShowHowToPlayModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   let [fontsLoaded] = useFonts({
@@ -174,13 +176,13 @@ const StartOptionsScreen = () => {
           <TouchableOpacity
             className="bg-white border-2 border-gray-900 rounded-full py-2 px-6 relative flex-row items-center gap-2"
             activeOpacity={0.8}
-            onPress={() => {}}
+            onPress={() => setShowHowToPlayModal(true)}
           >
             <Text
               className="text-gray-900 text-sm font-semibold"
               style={{ letterSpacing: -0.2 }}
             >
-              Learn How to play
+              Learn How to Play
             </Text>
           </TouchableOpacity>
         </View>
@@ -209,6 +211,12 @@ const StartOptionsScreen = () => {
         visible={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onJoinRoom={handleJoinRoom}
+      />
+
+      {/* Learn How to Play Modal */}
+      <LearnHowToPlay
+        visible={showHowToPlayModal}
+        onClose={() => setShowHowToPlayModal(false)}
       />
     </View>
   );

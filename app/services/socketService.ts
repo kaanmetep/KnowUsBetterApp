@@ -2,6 +2,22 @@ import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = "http://192.168.1.133:3000";
 
+export type Category = "just-friends" | "we_just_met" | "long_term" | "spicy";
+
+export interface RoomSettings {
+  maxPlayers: number;
+  totalQuestions: number;
+  category: Category;
+}
+
+export interface Question {
+  id: number;
+  text: string; // "Do you like coffee?"
+  category: Category;
+  haveAnswers: boolean; // true = has answers, false = only yes/no answers
+  answers: string[]; // answers to the question
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -17,12 +33,8 @@ export interface Room {
   status: "waiting" | "playing" | "finished";
   players: Player[];
   currentQuestionIndex: number;
-  questions: any[];
-  settings: {
-    category: string;
-    maxPlayers: number;
-    questionCount: number;
-  };
+  questions: Question[];
+  settings: RoomSettings;
 }
 
 class SocketService {
@@ -184,6 +196,46 @@ class SocketService {
     });
   }
 
+  // Start game (Host only)
+  startGame(roomCode: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error("Socket connection not found"));
+        return;
+      }
+
+      console.log("🎮 Starting game...", { roomCode });
+
+      this.socket.emit("start-game", { roomCode });
+
+      this.socket.once("game-started", () => {
+        console.log("✅ Game started successfully");
+        resolve();
+      });
+
+      this.socket.once("room-error", (error) => {
+        console.error("❌ Error starting game:", error);
+        reject(error);
+      });
+
+      // Timeout
+      setTimeout(() => {
+        reject(new Error("Timeout: Start game"));
+      }, 10000);
+    });
+  }
+
+  // Submit answer
+  submitAnswer(questionId: string, answer: string): void {
+    if (!this.socket) {
+      console.error("❌ Socket connection not found");
+      return;
+    }
+
+    console.log("📝 Submitting answer...", { questionId, answer });
+    this.socket.emit("submit-answer", { questionId, answer });
+  }
+
   // Event listeners
   onPlayerJoined(callback: (data: { player: Player; room: Room }) => void) {
     this.socket?.on("player-joined", callback);
@@ -202,6 +254,76 @@ class SocketService {
 
   offPlayerLeft(callback?: (...args: any[]) => void) {
     this.socket?.off("player-left", callback);
+  }
+
+  // Game event listeners
+  onGameStarted(
+    callback: (data: {
+      room: Room;
+      question: any;
+      totalQuestions: number;
+    }) => void
+  ) {
+    this.socket?.on("game-started", callback);
+  }
+
+  onPlayerAnswered(
+    callback: (data: { playerId: string; playerName: string }) => void
+  ) {
+    this.socket?.on("player-answered", callback);
+  }
+
+  onRoundCompleted(
+    callback: (data: {
+      round: any;
+      matchScore: number;
+      totalQuestions: number;
+      percentage: number;
+    }) => void
+  ) {
+    this.socket?.on("round-completed", callback);
+  }
+
+  onNextQuestion(
+    callback: (data: {
+      question: any;
+      currentQuestionIndex: number;
+      totalQuestions: number;
+    }) => void
+  ) {
+    this.socket?.on("next-question", callback);
+  }
+
+  onGameFinished(
+    callback: (data: {
+      matchScore: number;
+      totalQuestions: number;
+      percentage: number;
+      completedRounds: any[];
+    }) => void
+  ) {
+    this.socket?.on("game-finished", callback);
+  }
+
+  // Remove game event listeners
+  offGameStarted(callback?: (...args: any[]) => void) {
+    this.socket?.off("game-started", callback);
+  }
+
+  offPlayerAnswered(callback?: (...args: any[]) => void) {
+    this.socket?.off("player-answered", callback);
+  }
+
+  offRoundCompleted(callback?: (...args: any[]) => void) {
+    this.socket?.off("round-completed", callback);
+  }
+
+  offNextQuestion(callback?: (...args: any[]) => void) {
+    this.socket?.off("next-question", callback);
+  }
+
+  offGameFinished(callback?: (...args: any[]) => void) {
+    this.socket?.off("game-finished", callback);
   }
 
   // Get socket (for special cases)
