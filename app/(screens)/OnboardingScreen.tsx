@@ -4,6 +4,7 @@ import {
   MerriweatherSans_700Bold,
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 import LanguageSelector from "../(components)/LanguageSelector";
 import Logo from "../(components)/Logo";
+import SocialMediaIcons from "../(components)/SocialMediaIcons";
 const OnboardingPage = () => {
   const router = useRouter();
   const { width, height } = Dimensions.get("window");
@@ -30,8 +32,6 @@ const OnboardingPage = () => {
   const [selectedHeart, setSelectedHeart] = useState<any>(null);
   // Bottom ticker
   const scrollViewRef = useRef<ScrollView>(null);
-  // Button gradient animation
-  const gradientAnim = useRef(new Animated.Value(0)).current;
   // Button pulse animation
   const buttonPulseAnim = useRef(new Animated.Value(1)).current;
   // Heart transition animation
@@ -41,6 +41,16 @@ const OnboardingPage = () => {
   const heartTranslateY = useRef(new Animated.Value(0)).current;
   // Card carousel animation - infinite horizontal scroll
   const cardScrollX = useRef(new Animated.Value(0)).current;
+  // Feature cards animation
+  const card1Scale = useRef(new Animated.Value(1)).current;
+  const card2Scale = useRef(new Animated.Value(1)).current;
+  const card3Scale = useRef(new Animated.Value(1)).current;
+  const card1Opacity = useRef(new Animated.Value(1)).current;
+  const card2Opacity = useRef(new Animated.Value(1)).current;
+  const card3Opacity = useRef(new Animated.Value(1)).current;
+  const card1TranslateY = useRef(new Animated.Value(0)).current;
+  const card2TranslateY = useRef(new Animated.Value(0)).current;
+  const card3TranslateY = useRef(new Animated.Value(0)).current;
 
   const tickerSentences = [
     "Would you ask your partner for their Instagram password?",
@@ -100,24 +110,6 @@ const OnboardingPage = () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
   }, []);
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(gradientAnim, {
-          toValue: 1,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(gradientAnim, {
-          toValue: 0,
-          duration: 3000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ])
-    ).start();
-  }, [gradientAnim]);
 
   // Button pulse animation
   useEffect(() => {
@@ -187,6 +179,90 @@ const OnboardingPage = () => {
     animate();
   }, [cardScrollX, tickerSentences.length]);
 
+  // Feature cards entrance animation
+  useEffect(() => {
+    // Initial values
+    card1Scale.setValue(0.95);
+    card2Scale.setValue(0.95);
+    card3Scale.setValue(0.95);
+    card1Opacity.setValue(0);
+    card2Opacity.setValue(0);
+    card3Opacity.setValue(0);
+    card1TranslateY.setValue(20);
+    card2TranslateY.setValue(20);
+    card3TranslateY.setValue(20);
+
+    // Staggered animations
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(card1Scale, {
+          toValue: 1,
+          tension: 50,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+        Animated.timing(card1Opacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(card1TranslateY, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 100);
+
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(card2Scale, {
+          toValue: 1,
+          tension: 50,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+        Animated.timing(card2Opacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(card2TranslateY, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 200);
+
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(card3Scale, {
+          toValue: 1,
+          tension: 50,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+        Animated.timing(card3Opacity, {
+          toValue: 1,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(card3TranslateY, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 300);
+  }, []);
+
   // Reset animation values when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -207,13 +283,102 @@ const OnboardingPage = () => {
       // Reset transition states
       setIsTransitioning(false);
       setSelectedHeart(null);
+
+      // Reset feature cards animation
+      card1Scale.setValue(0.95);
+      card2Scale.setValue(0.95);
+      card3Scale.setValue(0.95);
+      card1Opacity.setValue(0);
+      card2Opacity.setValue(0);
+      card3Opacity.setValue(0);
+      card1TranslateY.setValue(20);
+      card2TranslateY.setValue(20);
+      card3TranslateY.setValue(20);
+
+      // Start feature cards entrance animation
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.spring(card1Scale, {
+            toValue: 1,
+            tension: 50,
+            friction: 3,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card1Opacity, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(card1TranslateY, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 100);
+
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.spring(card2Scale, {
+            toValue: 1,
+            tension: 50,
+            friction: 3,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card2Opacity, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(card2TranslateY, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 200);
+
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.spring(card3Scale, {
+            toValue: 1,
+            tension: 50,
+            friction: 3,
+            useNativeDriver: true,
+          }),
+          Animated.timing(card3Opacity, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(card3TranslateY, {
+            toValue: 0,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 300);
     }, [
       heartScale,
       heartOpacity,
       heartTranslateX,
       heartTranslateY,
-      buttonPulseAnim,
       cardScrollX,
+      card1Scale,
+      card2Scale,
+      card3Scale,
+      card1Opacity,
+      card2Opacity,
+      card3Opacity,
+      card1TranslateY,
+      card2TranslateY,
+      card3TranslateY,
     ])
   );
 
@@ -274,7 +439,7 @@ const OnboardingPage = () => {
       <View
         pointerEvents="none"
         className="absolute inset-0"
-        style={{ zIndex: 9999 }}
+        style={{ zIndex: 1 }}
       >
         {hearts.map((h) => {
           const isSelectedHeart =
@@ -297,7 +462,7 @@ const OnboardingPage = () => {
                     { scale: heartScale },
                     { rotate: `${h.rotateDeg}deg` },
                   ],
-                  zIndex: 10000,
+                  zIndex: 1,
                 }}
               >
                 <Image
@@ -335,103 +500,138 @@ const OnboardingPage = () => {
           transform: [{ scaleX: -1 }, { rotate: "142deg" }],
           marginTop: -50,
           marginBottom: 30,
-          zIndex: 1,
+          zIndex: 0,
         }}
         contentFit="contain"
       />
+      {/* Social Media Icons - Above Logo */}
+      <SocialMediaIcons position="above-logo" />
       <Logo />
-      <View className="flex-1 items-center gap-6 mt-16 px-6">
-        {/* Question Cards Carousel - Infinite Scroll */}
-        <View className="w-full" style={{ height: 180 }}>
-          <View
-            className="relative"
+      <View className="flex-1 items-center gap-4 mt-6 px-6">
+        {/* Feature Cards - Vertical Stack */}
+        <View className="w-full items-center gap-2.5">
+          {/* Card 1: NO LOGIN REQUIRED */}
+          <Animated.View
+            className="relative w-full max-w-xs"
             style={{
-              width: "100%",
-              height: 180,
-              overflow: "hidden",
+              opacity: card1Opacity,
+              transform: [
+                {
+                  translateY: card1TranslateY,
+                },
+                {
+                  scale: card1Scale,
+                },
+              ],
             }}
           >
-            <Animated.View
-              style={{
-                flexDirection: "row",
-                transform: [{ translateX: cardScrollX }],
-              }}
-            >
-              {/* Repeat cards 3 times for infinite loop */}
-              {[0, 1, 2].map((setIndex) =>
-                tickerSentences.map((sentence, index) => {
-                  const cardWidth = 280;
-                  const cardGap = 24;
-                  const globalIndex = setIndex * tickerSentences.length + index;
-                  return (
-                    <View
-                      key={`${setIndex}-${index}`}
-                      style={{
-                        width: cardWidth,
-                        height: 180,
-                        marginRight: cardGap,
-                      }}
-                    >
-                      {/* Shadow layer - lighter */}
-                      <View
-                        className="absolute"
-                        style={{
-                          top: 3,
-                          left: 3,
-                          right: -3,
-                          bottom: -3,
-                          backgroundColor: "#000",
-                          borderRadius: 12,
-                          zIndex: 0,
-                        }}
-                      />
-                      {/* Card */}
-                      <View
-                        className={`relative border-[3px] border-gray-900 rounded-xl p-5 flex-1 justify-center z-10 ${
-                          index % 2 === 0 ? "bg-red-50" : "bg-blue-50"
-                        }`}
-                      >
-                        <Text
-                          className="text-gray-900 text-center font-bold leading-6"
-                          style={{
-                            fontFamily: "MerriweatherSans_700Bold",
-                            fontSize: 18,
-                            letterSpacing: -0.3,
-                          }}
-                        >
-                          {sentence}
-                        </Text>
-                      </View>
-                    </View>
-                  );
-                })
-              )}
-            </Animated.View>
-          </View>
-        </View>
+            {/* Shadow layer */}
+            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+            <View className="relative bg-blue-50 border-2 border-gray-900 rounded-lg px-4 py-3">
+              <View className="flex-row items-center justify-center gap-2.5">
+                <View className="bg-white border-2 border-gray-900 rounded-md p-1.5">
+                  <FontAwesome5 name="user-check" size={16} color="#000000" />
+                </View>
+                <Text
+                  className="text-gray-900 font-bold flex-1 text-center"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 14,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  NO LOGIN REQUIRED
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
 
-        {/* Start Button */}
-        <View className="mt-6 items-center ">
+          {/* Card 2: PLAY WITH YOUR PARTNER */}
           <Animated.View
-            className="relative"
+            className="relative w-full max-w-xs"
+            style={{
+              opacity: card2Opacity,
+              transform: [
+                {
+                  translateY: card2TranslateY,
+                },
+                {
+                  scale: card2Scale,
+                },
+              ],
+            }}
+          >
+            {/* Shadow layer */}
+            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+            <View className="relative bg-pink-50 border-2 border-gray-900 rounded-lg px-4 py-3">
+              <View className="flex-row items-center justify-center gap-2.5">
+                <View className="bg-white border-2 border-gray-900 rounded-md p-1.5">
+                  <FontAwesome5 name="heart" size={16} color="#000000" />
+                </View>
+                <Text
+                  className="text-gray-900 font-bold flex-1 text-center"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 14,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  PLAY WITH YOUR PARTNER
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Card 3: KNOW EACH OTHER BETTER */}
+          <Animated.View
+            className="relative w-full max-w-xs"
+            style={{
+              opacity: card3Opacity,
+              transform: [
+                {
+                  translateY: card3TranslateY,
+                },
+                {
+                  scale: card3Scale,
+                },
+              ],
+            }}
+          >
+            {/* Shadow layer */}
+            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+            <View className="relative bg-yellow-50 border-2 border-gray-900 rounded-lg px-4 py-3">
+              <View className="flex-row items-center justify-center gap-2.5">
+                <View className="bg-white border-2 border-gray-900 rounded-md p-1.5">
+                  <FontAwesome5 name="lightbulb" size={16} color="#000000" />
+                </View>
+                <Text
+                  className="text-gray-900 font-bold flex-1 text-center"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 14,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  KNOW EACH OTHER BETTER
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        </View>
+        {/* Start Button */}
+        <View className="mt-4 items-center w-full px-3 ">
+          <Animated.View
+            className="relative w-full"
             style={{
               transform: [{ scale: buttonPulseAnim }],
             }}
           >
-            {/* Light Shadow Layer */}
+            {/* Shadow Layer */}
             <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <Animated.View
-              style={{
-                backgroundColor: gradientAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ["#dbeafe", "#fce7f3"], // Pastel blue to pastel pink
-                }),
-              }}
-              className="relative border-2 border-gray-900 rounded-xl py-4 px-10"
-            >
+            <View className="relative bg-white border-2 border-gray-900 rounded-xl py-4 px-12 w-full">
               <TouchableOpacity
                 onPress={handleStartPress}
-                activeOpacity={0.9}
+                activeOpacity={0.85}
                 className="w-full"
               >
                 <Text
@@ -441,7 +641,7 @@ const OnboardingPage = () => {
                   Start playing now!
                 </Text>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
           </Animated.View>
         </View>
       </View>
@@ -453,7 +653,7 @@ const OnboardingPage = () => {
           transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
           marginLeft: "auto",
           marginBottom: -40,
-          zIndex: 1,
+          zIndex: 0,
         }}
         contentFit="contain"
       />
