@@ -1,4 +1,6 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -22,6 +24,7 @@ interface CreateNewRoomProps {
 type Category = {
   id: string;
   label: string;
+  iconName: "handshake" | "heart" | "ring" | "fire-flame-curved";
   color: string;
   isPremium?: boolean;
   coinsRequired?: number;
@@ -30,24 +33,28 @@ type Category = {
 const categories: Category[] = [
   {
     id: "just_friends",
-    label: "🤝 We're Just Friends",
+    label: "We're Just Friends",
+    iconName: "handshake",
     color: "#fef3c7",
   },
   {
     id: "we_just_met",
-    label: "💞 We Just Met",
+    label: "We Just Met",
+    iconName: "heart",
     color: "#fee4e6",
   },
   {
     id: "long_term",
-    label: "💍 Long-Term Lovers",
+    label: "Long-Term Lovers",
+    iconName: "ring",
     color: "#e0f2fe",
     isPremium: true,
     coinsRequired: 1,
   },
   {
     id: "spicy",
-    label: "🔥 Spicy & Flirty",
+    label: "Spicy & Flirty",
+    iconName: "fire-flame-curved",
     color: "#f87171",
     isPremium: true,
     coinsRequired: 2,
@@ -426,7 +433,20 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             }}
                           >
                             <View className="flex-row items-center justify-between">
-                              <View className="flex-row items-center gap-2 flex-1">
+                              <View className="flex-row items-center gap-3 flex-1">
+                                {category.iconName === "ring" ? (
+                                  <MaterialCommunityIcons
+                                    name={category.iconName}
+                                    size={20}
+                                    color="black"
+                                  />
+                                ) : (
+                                  <FontAwesome6
+                                    name={category.iconName}
+                                    size={20}
+                                    color="#1f2937"
+                                  />
+                                )}
                                 <Text
                                   className="text-lg font-semibold text-gray-900"
                                   style={{
