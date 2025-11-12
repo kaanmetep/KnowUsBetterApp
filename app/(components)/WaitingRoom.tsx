@@ -24,21 +24,26 @@ interface WaitingRoomProps {
   room: Room;
   roomCode: string;
   mySocketId: string | undefined;
+  isMe: (playerId: string) => boolean;
   onStartGame: () => void;
   onLeaveRoom: () => void;
+  onKickPlayer?: (playerId: string) => void;
 }
 
 const WaitingRoom: React.FC<WaitingRoomProps> = ({
   room,
   roomCode,
   mySocketId,
+  isMe,
   onStartGame,
   onLeaveRoom,
+  onKickPlayer,
 }) => {
   const [copied, setCopied] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
+  const dashAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const participants = room.players || [];
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
@@ -64,17 +69,43 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     ).start();
   }, [pulseAnim]);
 
-  // Dashed border animation
+  // Dashed border animation - keep it running continuously
+  // This effect ensures animation is always running when participants < 2
   useEffect(() => {
-    Animated.loop(
-      Animated.timing(dashOffsetAnim, {
-        toValue: -15,
-        duration: 800,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      })
-    ).start();
-  }, [dashOffsetAnim]);
+    if (participants.length < 2) {
+      // Stop existing animation if any to avoid conflicts
+      if (dashAnimationRef.current) {
+        dashAnimationRef.current.stop();
+        dashAnimationRef.current = null;
+      }
+
+      // Reset and start fresh animation
+      dashOffsetAnim.setValue(0);
+      const animation = Animated.loop(
+        Animated.timing(dashOffsetAnim, {
+          toValue: -15,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: false,
+        })
+      );
+
+      dashAnimationRef.current = animation;
+      animation.start();
+    } else {
+      // Stop animation when we have enough players
+      if (dashAnimationRef.current) {
+        dashAnimationRef.current.stop();
+        dashAnimationRef.current = null;
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      // Cleanup is handled by the effect logic above
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participants.length]);
 
   // Start button glow animation
   useEffect(() => {
@@ -265,36 +296,71 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
             </View>
 
             <View className="gap-3">
-              {participants.map((participant) => (
-                <View key={participant.id} className="relative">
-                  <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                  <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-3">
-                      <View className="w-10 h-10 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
-                        <FontAwesome5 name="user" size={16} color="#991b1b" />
+              {participants.map((participant) => {
+                const isCurrentUser = isMe(participant.id);
+                const canKick = isHost && !isCurrentUser && onKickPlayer;
+
+                return (
+                  <View key={participant.id} className="relative">
+                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                    <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-3">
+                        <View className="w-10 h-10 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
+                          <FontAwesome5 name="user" size={16} color="#991b1b" />
+                        </View>
+                        <View>
+                          <View className=" flex-row justify-between items-center gap-1 ">
+                            <Text
+                              className="text-gray-900 font-semibold text-base"
+                              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                            >
+                              {participant.name}
+                            </Text>
+                            {isCurrentUser && (
+                              <Text
+                                className="text-gray-500 mt-[2px] text-sm font-semibold"
+                                style={{
+                                  fontFamily: "MerriweatherSans_400Regular",
+                                }}
+                              >
+                                (You)
+                              </Text>
+                            )}
+                          </View>
+                          {participant.isHost && (
+                            <Text
+                              className="text-gray-500 text-xs"
+                              style={{
+                                fontFamily: "MerriweatherSans_400Regular",
+                              }}
+                            >
+                              Room Host
+                            </Text>
+                          )}
+                        </View>
                       </View>
-                      <View>
-                        <Text
-                          className="text-gray-900 font-semibold text-base"
-                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                      {canKick && (
+                        <TouchableOpacity
+                          onPress={() => onKickPlayer(participant.id)}
+                          className="p-2"
+                          activeOpacity={0.7}
                         >
-                          {participant.name}
-                        </Text>
-                        {participant.isHost && (
-                          <Text
-                            className="text-gray-500 text-xs"
-                            style={{
-                              fontFamily: "MerriweatherSans_400Regular",
-                            }}
-                          >
-                            Room Host
-                          </Text>
-                        )}
-                      </View>
+                          <View className="relative">
+                            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
+                            <View className="relative bg-red-100 border border-gray-900 rounded-lg p-1.5">
+                              <MaterialCommunityIcons
+                                name="account-remove"
+                                size={18}
+                                color="#991b1b"
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
 
               {/* Waiting for more players */}
               {participants.length < 2 && (

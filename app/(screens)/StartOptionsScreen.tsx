@@ -7,6 +7,7 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -54,7 +55,7 @@ const StartOptionsScreen = () => {
     socketService.connect();
 
     return () => {
-      // Cleanup - DO NOT UNCONNECT SOCKET ONCE USER LEAVES THE APP.
+      // Cleanup - DO NOT DISCONNECT SOCKET WHEN THIS COMPONENT UNMOUNTS.
       // socketService.disconnect();
     };
   }, []);
@@ -177,10 +178,6 @@ const StartOptionsScreen = () => {
   ) => {
     try {
       setIsLoading(true);
-      console.log(
-        `🏠 Creating room with ${userName} and category is: ${category} and avatar is: ${avatar}...`
-      );
-
       // Send request to create room to backend
       const result = await socketService.createRoom(userName, avatar, category);
       // result -> { roomCode: string; player: room.players[0]; category: string }
@@ -198,7 +195,7 @@ const StartOptionsScreen = () => {
     } catch (error: any) {
       console.error("❌ Error creating room:", error);
       Alert.alert(
-        "Hata",
+        "Error",
         error?.message || "Room not created. Please try again."
       );
     } finally {
@@ -235,7 +232,7 @@ const StartOptionsScreen = () => {
     } catch (error: any) {
       console.error("❌ Error joining room:", error);
       Alert.alert(
-        "Hata",
+        "Error",
         error?.message || "Room not joined. Is the room code correct?"
       );
     } finally {
@@ -284,17 +281,36 @@ const StartOptionsScreen = () => {
         >
           <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
           <TouchableOpacity
-            className="bg-[#ffd7da] border-2 border-gray-900 rounded-[14px] py-[18px] px-8 relative z-10 flex-row items-center justify-center gap-3"
             activeOpacity={0.85}
             onPress={() => setShowCreateModal(true)}
+            className="relative z-10 w-full"
+            style={{ borderRadius: 14, overflow: "hidden" }}
           >
-            <Entypo name="plus" size={24} color="#1f2937" />
-            <Text
-              className="text-gray-900 text-xl font-bold text-center"
-              style={{ letterSpacing: -0.3 }}
+            <LinearGradient
+              colors={["#fee2e2", "#fecaca", "#fca5a5"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderWidth: 2,
+                borderColor: "#1f2937",
+                borderRadius: 14,
+                paddingVertical: 18,
+                paddingHorizontal: 32,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              Create New Room
-            </Text>
+              <View style={{ marginRight: 12 }}>
+                <Entypo name="plus" size={24} color="#1f2937" />
+              </View>
+              <Text
+                className="text-gray-900 text-xl font-bold text-center"
+                style={{ letterSpacing: -0.3 }}
+              >
+                Create New Room
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
 
@@ -310,17 +326,36 @@ const StartOptionsScreen = () => {
         >
           <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
           <TouchableOpacity
-            className="bg-[#dbeafe] border-2 border-gray-900 rounded-[14px] py-[18px] px-8 relative z-10 flex-row items-center justify-center gap-3"
             activeOpacity={0.85}
             onPress={() => setShowJoinModal(true)}
+            className="relative z-10 w-full"
+            style={{ borderRadius: 14, overflow: "hidden" }}
           >
-            <FontAwesome6 name="user-group" size={16} color="#1f2937" />
-            <Text
-              className="text-gray-900 text-xl font-bold text-center"
-              style={{ letterSpacing: -0.3 }}
+            <LinearGradient
+              colors={["#dbeafe", "#bfdbfe", "#93c5fd"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderWidth: 2,
+                borderColor: "#1f2937",
+                borderRadius: 14,
+                paddingVertical: 18,
+                paddingHorizontal: 32,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              Join Existing Room
-            </Text>
+              <View style={{ marginRight: 12 }}>
+                <FontAwesome6 name="user-group" size={16} color="#1f2937" />
+              </View>
+              <Text
+                className="text-gray-900 text-xl font-bold text-center"
+                style={{ letterSpacing: -0.3 }}
+              >
+                Join Existing Room
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
 
@@ -336,16 +371,32 @@ const StartOptionsScreen = () => {
         >
           <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
           <TouchableOpacity
-            className="bg-white border-2 border-gray-900 rounded-full py-2 px-6 relative flex-row items-center gap-2"
             activeOpacity={0.85}
             onPress={() => setShowHowToPlayModal(true)}
+            className="relative"
+            style={{ borderRadius: 9999, overflow: "hidden" }}
           >
-            <Text
-              className="text-gray-900 text-sm font-semibold"
-              style={{ letterSpacing: -0.2 }}
+            <LinearGradient
+              colors={["#f9fafb", "#f3f4f6", "#e5e7eb"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderWidth: 2,
+                borderColor: "#1f2937",
+                borderRadius: 9999,
+                paddingVertical: 8,
+                paddingHorizontal: 24,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
             >
-              Learn How to Play
-            </Text>
+              <Text
+                className="text-gray-900 text-sm font-semibold"
+                style={{ letterSpacing: -0.2 }}
+              >
+                Learn How to Play
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -380,6 +431,37 @@ const StartOptionsScreen = () => {
         visible={showHowToPlayModal}
         onClose={() => setShowHowToPlayModal(false)}
       />
+
+      {/* Development Test Button - Only visible in __DEV__ mode */}
+      {__DEV__ && (
+        <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/GameFinishedPreview",
+            });
+          }}
+          style={{
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            backgroundColor: "#fef3c7",
+            padding: 12,
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor: "#991b1b",
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "MerriweatherSans_700Bold",
+              fontSize: 12,
+              color: "#991b1b",
+            }}
+          >
+            Test GameFinished
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

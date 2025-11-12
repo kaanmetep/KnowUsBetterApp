@@ -3,7 +3,7 @@ import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
 
 interface LogoProps {
   marginTop?: number;
-  size?: "default" | "small";
+  size?: "default" | "small" | "tiny";
 }
 
 const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
@@ -17,10 +17,13 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
   const translateY = useRef(new Animated.Value(0)).current;
 
   const isSmall = size === "small";
-  const logoSize = isSmall
+  const isTiny = size === "tiny";
+  const logoSize = isTiny
+    ? { width: 35, height: 35 }
+    : isSmall
     ? { width: 50, height: 50 }
     : { width: 80, height: 70 };
-  const titleSize = isSmall ? "text-3xl" : "text-5xl";
+  const titleSize = isTiny ? "text-xl" : isSmall ? "text-3xl" : "text-5xl";
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,7 +76,7 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
       >
         KnowUsBetter
       </Text>
-      {!isSmall && (
+      {!isSmall && !isTiny && (
         <Animated.Text
           className="mt-1 text-red-900"
           style={{

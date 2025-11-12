@@ -8,6 +8,7 @@ export interface RoomSettings {
   maxPlayers: number;
   totalQuestions: number;
   category: Category;
+  questionDuration: number;
 }
 
 export interface Question {
@@ -64,7 +65,7 @@ class SocketService {
       });
 
       this.socket.on("connect_error", (error) => {
-        console.error("🔴 Bağlantı hatası:", error.message);
+        console.error("🔴 Connection error:", error.message);
       });
     }
     return this.socket;
@@ -236,6 +237,17 @@ class SocketService {
     this.socket.emit("submit-answer", { questionId, answer });
   }
 
+  // Kick player (Host only)
+  kickPlayer(roomCode: string, targetPlayerId: string): void {
+    if (!this.socket) {
+      console.error("❌ Socket connection not found");
+      return;
+    }
+
+    console.log("🚫 Kicking player...", { roomCode, targetPlayerId });
+    this.socket.emit("kick-player", { roomCode, targetPlayerId });
+  }
+
   // Event listeners
   onPlayerJoined(callback: (data: { player: Player; room: Room }) => void) {
     this.socket?.on("player-joined", callback);
@@ -329,9 +341,67 @@ class SocketService {
     this.socket?.off("game-finished", callback);
   }
 
+  // Kick event listeners
+  onKickedFromRoom(
+    callback: (data: { message: string; roomCode: string }) => void
+  ) {
+    this.socket?.on("kicked-from-room", callback);
+  }
+
+  onPlayerKicked(
+    callback: (data: {
+      playerId: string;
+      playerName: string;
+      room: Room;
+    }) => void
+  ) {
+    this.socket?.on("player-kicked", callback);
+  }
+
+  // Remove kick event listeners
+  offKickedFromRoom(callback?: (...args: any[]) => void) {
+    this.socket?.off("kicked-from-room", callback);
+  }
+
+  offPlayerKicked(callback?: (...args: any[]) => void) {
+    this.socket?.off("player-kicked", callback);
+  }
+
+  // Room error listener (general error handler)
+  onRoomError(callback: (error: { message: string }) => void) {
+    this.socket?.on("room-error", callback);
+  }
+
+  offRoomError(callback?: (...args: any[]) => void) {
+    this.socket?.off("room-error", callback);
+  }
+
+  // Critical error listener (redirects to StartOptionsScreen)
+  onCriticalError(callback: (error: { message: string }) => void) {
+    this.socket?.on("critical-error", callback);
+  }
+
+  offCriticalError(callback?: (...args: any[]) => void) {
+    this.socket?.off("critical-error", callback);
+  }
+
+  // Game cancelled listener
+  onGameCancelled(callback: (data: { message: string; room: Room }) => void) {
+    this.socket?.on("game-cancelled", callback);
+  }
+
+  offGameCancelled(callback?: (...args: any[]) => void) {
+    this.socket?.off("game-cancelled", callback);
+  }
+
   // Get socket (for special cases)
   getSocket(): Socket | null {
     return this.socket;
+  }
+
+  // Get current socket ID
+  getSocketId(): string | undefined {
+    return this.socket?.id;
   }
 
   // Close connection
@@ -342,6 +412,47 @@ class SocketService {
       this.socket = null;
       this.isConnected = false;
     }
+  }
+
+  // Chat functions
+  sendMessage(roomCode: string, message: string): void {
+    if (!this.socket) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+    console.log("💬 Sending message:", { roomCode, message });
+    this.socket.emit("send-message", { roomCode, message });
+  }
+
+  onChatMessage(
+    callback: (data: {
+      playerId: string;
+      playerName: string;
+      avatar: string;
+      message: string;
+      timestamp: number;
+    }) => void
+  ): void {
+    if (!this.socket) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+    this.socket.on("chat-message", callback);
+  }
+
+  offChatMessage(
+    callback: (data: {
+      playerId: string;
+      playerName: string;
+      avatar: string;
+      message: string;
+      timestamp: number;
+    }) => void
+  ): void {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.off("chat-message", callback);
   }
 }
 

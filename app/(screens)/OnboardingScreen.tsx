@@ -12,26 +12,24 @@ import {
   Animated,
   Dimensions,
   Easing,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import LanguageSelector from "../(components)/LanguageSelector";
+import LoadingScreen from "../(components)/LoadingScreen";
 import Logo from "../(components)/Logo";
 import SocialMediaIcons from "../(components)/SocialMediaIcons";
 const OnboardingPage = () => {
   const router = useRouter();
   const { width, height } = Dimensions.get("window");
-  let [fontsLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
     MerriweatherSans_700Bold,
     LibreBaskerville_700Bold,
   });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedHeart, setSelectedHeart] = useState<any>(null);
-  // Bottom ticker
-  const scrollViewRef = useRef<ScrollView>(null);
   // Button pulse animation
   const buttonPulseAnim = useRef(new Animated.Value(1)).current;
   // Heart transition animation
@@ -39,8 +37,6 @@ const OnboardingPage = () => {
   const heartOpacity = useRef(new Animated.Value(1)).current;
   const heartTranslateX = useRef(new Animated.Value(0)).current;
   const heartTranslateY = useRef(new Animated.Value(0)).current;
-  // Card carousel animation - infinite horizontal scroll
-  const cardScrollX = useRef(new Animated.Value(0)).current;
   // Feature cards animation
   const card1Scale = useRef(new Animated.Value(1)).current;
   const card2Scale = useRef(new Animated.Value(1)).current;
@@ -52,13 +48,6 @@ const OnboardingPage = () => {
   const card2TranslateY = useRef(new Animated.Value(0)).current;
   const card3TranslateY = useRef(new Animated.Value(0)).current;
 
-  const tickerSentences = [
-    "Would you ask your partner for their Instagram password?",
-    "Would you accept it if your partner were a popular person?",
-    "Do long-distance relationships work?",
-    "Would you pay your partner's debt?",
-  ];
-  const tickerText = tickerSentences.join("     ");
   const hearts = useMemo(() => {
     let seed = 15;
     const heartsCount = 2;
@@ -69,47 +58,18 @@ const OnboardingPage = () => {
     const sources = [
       require("../../assets/images/heart-1.png"),
       require("../../assets/images/heart-2.png"),
-      require("../../assets/images/heart-3.png"),
     ];
     const items = Array.from({ length: heartsCount }).map((_, i) => {
       const source = sources[i % sources.length];
-      const size = Math.floor(40 + random() * 80); // 40-120px
-      // Sadece ekranın alt yarısında üret (height / 2'den başla)
+      const size = Math.floor(40 + random() * 80);
       const top = Math.floor(height / 2 + random() * (height / 2 - size));
       const left = Math.floor(random() * (width - size));
-      const rotateDeg = Math.floor(-30 + random() * 60); // -30 to 30
-      const opacity = 0.15 + random() * 0.25; // 0.15 - 0.4
+      const rotateDeg = Math.floor(-30 + random() * 60);
+      const opacity = 0.15 + random() * 0.25;
       return { id: i, source, size, top, left, rotateDeg, opacity };
     });
     return items;
   }, [width, height]);
-
-  useEffect(() => {
-    const scrollSpeed = 40; // px per second
-    let animationFrame: number;
-    let lastTime = Date.now();
-    let currentScroll = 0;
-
-    const animate = () => {
-      const now = Date.now();
-      const delta = (now - lastTime) / 1000;
-      lastTime = now;
-
-      currentScroll += scrollSpeed * delta;
-
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ x: currentScroll, animated: false });
-      }
-
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      if (animationFrame) cancelAnimationFrame(animationFrame);
-    };
-  }, []);
 
   // Button pulse animation
   useEffect(() => {
@@ -137,47 +97,6 @@ const OnboardingPage = () => {
       pulseAnimation.stop();
     };
   }, []);
-
-  // Infinite continuous horizontal carousel animation
-  useEffect(() => {
-    const cardWidth = 280;
-    const cardGap = 24;
-    const cardTotalWidth = cardWidth + cardGap;
-    const totalCards = tickerSentences.length;
-    const oneSetWidth = totalCards * cardTotalWidth;
-
-    // Track current scroll position
-    let currentScrollPosition = -oneSetWidth;
-    cardScrollX.setValue(currentScrollPosition);
-
-    // Start continuous animation
-    const animate = () => {
-      // Move one set forward
-      const targetPosition = currentScrollPosition - oneSetWidth;
-
-      Animated.timing(cardScrollX, {
-        toValue: targetPosition,
-        duration: totalCards * 4000, // 4 seconds per card (slower)
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start(() => {
-        // Update current position
-        currentScrollPosition = targetPosition;
-
-        // If we've scrolled 2 sets, reset to middle set (seamless loop)
-        if (currentScrollPosition <= -oneSetWidth * 2) {
-          currentScrollPosition = -oneSetWidth;
-          cardScrollX.setValue(currentScrollPosition);
-        }
-
-        // Continue animation
-        animate();
-      });
-    };
-
-    // Start the animation
-    animate();
-  }, [cardScrollX, tickerSentences.length]);
 
   // Feature cards entrance animation
   useEffect(() => {
@@ -272,14 +191,6 @@ const OnboardingPage = () => {
       heartTranslateX.setValue(0);
       heartTranslateY.setValue(0);
 
-      // Reset card animation values
-      const cardWidth = 280;
-      const cardGap = 24;
-      const cardTotalWidth = cardWidth + cardGap;
-      const totalCards = tickerSentences.length;
-      const oneSetWidth = totalCards * cardTotalWidth;
-      cardScrollX.setValue(-oneSetWidth);
-
       // Reset transition states
       setIsTransitioning(false);
       setSelectedHeart(null);
@@ -369,7 +280,6 @@ const OnboardingPage = () => {
       heartOpacity,
       heartTranslateX,
       heartTranslateY,
-      cardScrollX,
       card1Scale,
       card2Scale,
       card3Scale,
@@ -429,7 +339,7 @@ const OnboardingPage = () => {
   };
 
   if (!fontsLoaded) {
-    return null;
+    return <LoadingScreen />;
   }
   return (
     <View className="flex-1 bg-primary ">
@@ -500,17 +410,17 @@ const OnboardingPage = () => {
           transform: [{ scaleX: -1 }, { rotate: "142deg" }],
           marginTop: -50,
           marginBottom: 30,
-          zIndex: 0,
+          zIndex: -1,
         }}
         contentFit="contain"
       />
-      {/* Social Media Icons - Above Logo */}
+      {/* Social Media Icons */}
       <SocialMediaIcons position="above-logo" />
       <Logo />
       <View className="flex-1 items-center gap-4 mt-6 px-6">
-        {/* Feature Cards - Vertical Stack */}
+        {/* Feature Cards */}
         <View className="w-full items-center gap-2.5">
-          {/* Card 1: NO LOGIN REQUIRED */}
+          {/* Card 1 */}
           <Animated.View
             className="relative w-full max-w-xs"
             style={{
@@ -546,7 +456,7 @@ const OnboardingPage = () => {
             </View>
           </Animated.View>
 
-          {/* Card 2: PLAY WITH YOUR PARTNER */}
+          {/* Card 2 */}
           <Animated.View
             className="relative w-full max-w-xs"
             style={{
@@ -582,7 +492,7 @@ const OnboardingPage = () => {
             </View>
           </Animated.View>
 
-          {/* Card 3: KNOW EACH OTHER BETTER */}
+          {/* Card 3 */}
           <Animated.View
             className="relative w-full max-w-xs"
             style={{
@@ -612,18 +522,20 @@ const OnboardingPage = () => {
                     letterSpacing: -0.3,
                   }}
                 >
-                  KNOW EACH OTHER BETTER
+                  DISCOVER EACH OTHER
                 </Text>
               </View>
             </View>
           </Animated.View>
         </View>
         {/* Start Button */}
-        <View className="mt-4 items-center w-full px-3 ">
+        <View className="mt-4 items-center w-full px-3 " style={{ zIndex: 10 }}>
           <Animated.View
             className="relative w-full"
             style={{
               transform: [{ scale: buttonPulseAnim }],
+              zIndex: 10,
+              position: "relative",
             }}
           >
             {/* Shadow Layer */}
@@ -653,7 +565,7 @@ const OnboardingPage = () => {
           transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
           marginLeft: "auto",
           marginBottom: -40,
-          zIndex: 0,
+          zIndex: -1,
         }}
         contentFit="contain"
       />

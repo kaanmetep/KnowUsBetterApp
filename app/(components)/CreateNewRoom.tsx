@@ -7,10 +7,11 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import AvatarSelection from "./AvatarSelection";
+import NameInput from "./NameInput";
 
 interface CreateNewRoomProps {
   visible: boolean;
@@ -58,40 +59,54 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   onClose,
   onCreateRoom,
 }) => {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
 
   const handleClose = () => {
     setStep(1);
+    setSelectedAvatar(null);
     setSelectedCategory(null);
     setUserName("");
     setUserNameFocused(false);
     onClose();
   };
 
-  const handleContinue = () => {
-    if (userName.trim().length > 0) {
+  const handleContinueFromStep1 = () => {
+    if (selectedAvatar) {
       setStep(2);
     }
   };
 
+  const handleContinueFromStep2 = () => {
+    if (userName.trim().length > 0) {
+      setStep(3);
+    }
+  };
+
   const handleBack = () => {
-    setStep(1);
+    if (step === 2) {
+      setStep(1);
+    } else if (step === 3) {
+      setStep(2);
+    }
   };
 
   const handleCreate = () => {
-    if (selectedCategory && userName.trim()) {
-      onCreateRoom(userName.trim(), selectedCategory, "😊" as string);
+    if (selectedCategory && userName.trim() && selectedAvatar) {
+      onCreateRoom(userName.trim(), selectedCategory, selectedAvatar);
       setStep(1);
+      setSelectedAvatar(null);
       setSelectedCategory(null);
       setUserName("");
     }
   };
 
-  const isNameValid = userName.trim().length > 0;
-  const isCategoryValid = selectedCategory !== null;
+  const isStep1Valid = selectedAvatar !== null;
+  const isStep2Valid = userName.trim().length > 0;
+  const isStep3Valid = selectedCategory !== null;
 
   return (
     <Modal
@@ -112,7 +127,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
             className="w-full max-w-[400px]"
             onPress={(e) => e.stopPropagation()}
           >
-            {/* STEP 1: Name Input */}
+            {/* STEP 1: Avatar Selection */}
             {step === 1 && (
               <View className="relative">
                 {/* Shadow */}
@@ -145,86 +160,61 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
-                        if (isNameValid) {
+                        if (isStep1Valid) {
                           setStep(2);
                         }
                       }}
                       activeOpacity={0.8}
-                      disabled={!isNameValid}
+                      disabled={!isStep1Valid}
                     >
                       <View
                         className={`w-8 h-2 rounded-full ${
-                          isNameValid ? "bg-gray-300" : "bg-gray-200"
+                          isStep1Valid ? "bg-gray-300" : "bg-gray-200"
+                        } border-gray-900`}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isStep1Valid && isStep2Valid) {
+                          setStep(3);
+                        }
+                      }}
+                      activeOpacity={0.8}
+                      disabled={!isStep1Valid || !isStep2Valid}
+                    >
+                      <View
+                        className={`w-8 h-2 rounded-full ${
+                          isStep1Valid && isStep2Valid
+                            ? "bg-gray-300"
+                            : "bg-gray-200"
                         } border-gray-900`}
                       />
                     </TouchableOpacity>
                   </View>
 
-                  {/* Title */}
-                  <Text
-                    className="text-2xl font-bold text-gray-900 text-center mb-2"
-                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                  >
-                    What's Your Name?
-                  </Text>
-
-                  <Text
-                    className="text-sm text-gray-600 text-center mb-6"
-                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                  >
-                    Tell us how we should call you
-                  </Text>
-
-                  {/* User Name Input */}
-                  <View className="mb-6">
-                    <View className="relative">
-                      {/* Shadow */}
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-
-                      {/* Input Container */}
-                      <View
-                        className={`relative bg-white rounded-xl ${
-                          userNameFocused
-                            ? "border-4 border-gray-900"
-                            : "border-2 border-gray-900"
-                        }`}
-                      >
-                        <TextInput
-                          value={userName}
-                          onChangeText={setUserName}
-                          onFocus={() => setUserNameFocused(true)}
-                          onBlur={() => setUserNameFocused(false)}
-                          placeholder="Enter your name"
-                          placeholderTextColor="#9ca3af"
-                          className="px-4 py-3 text-gray-900 text-base"
-                          style={
-                            {
-                              fontFamily: "MerriweatherSans_400Regular",
-                              outline: "none",
-                            } as any
-                          }
-                          maxLength={20}
-                        />
-                      </View>
-                    </View>
-                  </View>
+                  <AvatarSelection
+                    selectedAvatar={selectedAvatar}
+                    onAvatarSelect={setSelectedAvatar}
+                    theme="red"
+                  />
 
                   {/* Continue Button */}
-                  <View className="relative">
+                  <View className="relative mt-6">
                     <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
                     <TouchableOpacity
-                      onPress={handleContinue}
-                      disabled={!isNameValid}
-                      className={`relative border-2 border-gray-900 rounded-[14px] py-4 px-8 ${
-                        isNameValid ? "bg-[#ffe4e6]" : "bg-gray-300"
-                      }`}
+                      onPress={handleContinueFromStep1}
+                      disabled={!isStep1Valid}
+                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
+                      style={{
+                        backgroundColor: isStep1Valid ? "#ffe4e6" : "#d1d5db",
+                      }}
                       activeOpacity={0.8}
                     >
                       <Text
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        Continue →
+                        {isStep1Valid ? "Continue →" : "Select an Avatar"}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -232,8 +222,115 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
               </View>
             )}
 
-            {/* STEP 2: Category Selection */}
+            {/* STEP 2: Name Input */}
             {step === 2 && (
+              <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <View className="relative">
+                  {/* Shadow */}
+                  <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
+
+                  {/* Modal Content */}
+                  <View className="relative bg-primary border-4 border-gray-900 rounded-2xl p-6">
+                    {/* Close Button */}
+                    <TouchableOpacity
+                      onPress={handleClose}
+                      className="absolute top-4 right-4 z-10"
+                    >
+                      <View className="relative">
+                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
+                          <Text className="text-gray-900 text-lg font-bold">
+                            ×
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Back Button */}
+                    <TouchableOpacity
+                      onPress={handleBack}
+                      className="absolute top-4 left-4 z-10"
+                    >
+                      <View className="relative">
+                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
+                          <Text className="text-gray-900 text-lg font-bold">
+                            ←
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+
+                    {/* Step Indicator */}
+                    <View className="flex-row justify-center gap-2 mb-4">
+                      <TouchableOpacity
+                        onPress={() => setStep(1)}
+                        activeOpacity={0.8}
+                      >
+                        <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setStep(2)}
+                        activeOpacity={0.8}
+                      >
+                        <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (isStep2Valid) {
+                            setStep(3);
+                          }
+                        }}
+                        activeOpacity={0.8}
+                        disabled={!isStep2Valid}
+                      >
+                        <View
+                          className={`w-8 h-2 rounded-full ${
+                            isStep2Valid ? "bg-gray-300" : "bg-gray-200"
+                          } border-gray-900`}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <NameInput
+                      userName={userName}
+                      onUserNameChange={setUserName}
+                      userNameFocused={userNameFocused}
+                      onUserNameFocus={() => setUserNameFocused(true)}
+                      onUserNameBlur={() => setUserNameFocused(false)}
+                    />
+
+                    {/* Continue Button */}
+                    <View className="relative mt-6">
+                      <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
+                      <TouchableOpacity
+                        onPress={handleContinueFromStep2}
+                        disabled={!isStep2Valid}
+                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
+                        style={{
+                          backgroundColor: isStep2Valid ? "#ffe4e6" : "#d1d5db",
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          className="text-gray-900 text-lg text-center font-bold"
+                          style={{ letterSpacing: -0.3 }}
+                        >
+                          {isStep2Valid ? "Continue →" : "Enter Your Name"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+
+            {/* STEP 3: Category Selection */}
+            {step === 3 && (
               <View className="relative">
                 {/* Shadow */}
                 <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
@@ -280,6 +377,12 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setStep(2)}
+                      activeOpacity={0.8}
+                    >
+                      <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setStep(3)}
                       activeOpacity={0.8}
                     >
                       <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
@@ -405,17 +508,18 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
                     <TouchableOpacity
                       onPress={handleCreate}
-                      disabled={!isCategoryValid}
-                      className={`relative border-2 border-gray-900 rounded-[14px] py-4 px-8 ${
-                        isCategoryValid ? "bg-[#ffe4e6]" : "bg-gray-300"
-                      }`}
+                      disabled={!isStep3Valid}
+                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
+                      style={{
+                        backgroundColor: isStep3Valid ? "#ffe4e6" : "#d1d5db",
+                      }}
                       activeOpacity={0.8}
                     >
                       <Text
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        {isCategoryValid ? "Create Room" : "Select a Category"}
+                        {isStep3Valid ? "Create Room" : "Select a Category"}
                       </Text>
                     </TouchableOpacity>
                   </View>

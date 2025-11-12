@@ -60,7 +60,15 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow KnowUsBetter to save your game results to your photos.",
+          "savePhotosPermission": "Allow KnowUsBetter to save your game results to your photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
