@@ -5,7 +5,7 @@ import GameFinished from "../(components)/GameFinished";
 const mockCompletedRounds = [
   {
     question: { text: "Do you prefer coffee or tea?" },
-    isMatched: true,
+    isMatched: false,
   },
   {
     question: { text: "Are you a morning person or a night owl?" },
@@ -17,7 +17,7 @@ const mockCompletedRounds = [
   },
   {
     question: { text: "Do you like to travel?" },
-    isMatched: true,
+    isMatched: false,
   },
   {
     question: { text: "Are you an introvert or an extrovert?" },
@@ -56,7 +56,7 @@ const GameFinishedPreview = () => {
           <GameFinished
             matchScore={7}
             totalQuestions={10}
-            percentage={70}
+            percentage={80}
             completedRounds={mockCompletedRounds}
             displayDuration={30}
             currentPlayerName="Alice"
