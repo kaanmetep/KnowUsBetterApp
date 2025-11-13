@@ -1,4 +1,4 @@
-import { FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useRef } from "react";
 import {
@@ -17,9 +17,9 @@ interface SocialMediaIconsProps {
 }
 
 const SocialMediaIcons: React.FC<SocialMediaIconsProps> = ({
-  twitterUrl = "https://x.com/yourusername",
-  tiktokUrl = "https://www.tiktok.com/@yourusername",
-  instagramUrl = "https://www.instagram.com/yourusername",
+  twitterUrl = "https://x.com/knowusbetterapp",
+  tiktokUrl = "https://www.tiktok.com/@knowusbetter.app",
+  instagramUrl = "https://www.instagram.com/knowusbetter.app",
   position = "above-logo",
 }) => {
   // Social icons animation
@@ -384,7 +384,7 @@ const SocialMediaIcons: React.FC<SocialMediaIconsProps> = ({
           {/* Shadow layer */}
           <View className="absolute top-[1.5px] left-[1.5px] right-[-1.5px] bottom-[-1.5px] bg-gray-900 rounded-md" />
           <View className="relative bg-white border-[1.5px] border-gray-900 rounded-md w-10 h-10 items-center justify-center">
-            <FontAwesome5 name="twitter" size={14} color="#000000" />
+            <FontAwesome6 name="x-twitter" size={14} color="#000000" />
           </View>
         </Animated.View>
       </TouchableOpacity>
