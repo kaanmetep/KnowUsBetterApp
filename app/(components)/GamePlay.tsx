@@ -1,4 +1,5 @@
 import { FontAwesome5 } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -13,6 +14,7 @@ import {
   View,
 } from "react-native";
 import socketService from "../services/socketService";
+import { getAvatarImage } from "../utils/avatarUtils";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
 import RoundResult from "./RoundResult";
@@ -460,15 +462,12 @@ const GamePlay: React.FC<GamePlayProps> = ({
                       <View className="relative">
                         <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
                         <View className="relative bg-white border-2 border-gray-900 rounded-full w-10 h-10 items-center justify-center overflow-hidden">
-                          {msg.avatar ? (
-                            <Text
-                              className="text-gray-900 text-xs font-bold"
-                              style={{
-                                fontFamily: "MerriweatherSans_700Bold",
-                              }}
-                            >
-                              {msg.avatar}
-                            </Text>
+                          {msg.avatar && getAvatarImage(msg.avatar) ? (
+                            <Image
+                              source={getAvatarImage(msg.avatar)}
+                              style={{ width: "100%", height: "100%" }}
+                              contentFit="cover"
+                            />
                           ) : (
                             <FontAwesome5
                               name="user"

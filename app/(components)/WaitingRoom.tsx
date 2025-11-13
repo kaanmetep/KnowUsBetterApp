@@ -3,6 +3,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
+import { Image } from "expo-image";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 import { Room } from "../services/socketService";
+import { getAvatarImage } from "../utils/avatarUtils";
 import ContactUsButton from "./ContactUsButton";
 import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
@@ -350,13 +352,26 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
                     <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-between">
                       <View className="flex-row items-center gap-3">
-                        <View className="w-10 h-10 rounded-full bg-[#ffe4e6] items-center justify-center border-2 border-gray-900">
-                          <FontAwesome5 name="user" size={16} color="#991b1b" />
+                        <View className="w-14 h-14 rounded-full items-center justify-center border  overflow-hidden">
+                          {participant.avatar &&
+                          getAvatarImage(participant.avatar) ? (
+                            <Image
+                              source={getAvatarImage(participant.avatar)}
+                              style={{ width: "100%", height: "100%" }}
+                              contentFit="cover"
+                            />
+                          ) : (
+                            <FontAwesome5
+                              name="user"
+                              size={16}
+                              color="#991b1b"
+                            />
+                          )}
                         </View>
                         <View>
                           <View className=" flex-row justify-between items-center gap-1 ">
                             <Text
-                              className="text-gray-900 font-semibold text-base"
+                              className="text-gray-900 font-semibold text-lg"
                               style={{ fontFamily: "MerriweatherSans_700Bold" }}
                             >
                               {participant.name}
