@@ -1,3 +1,4 @@
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useRef, useState } from "react";
 import {
@@ -20,19 +21,22 @@ type Step = 1 | 2 | 3;
 const steps = [
   {
     id: 1,
-    emoji: "🎮",
+    iconName: "user-group",
+    iconType: "FontAwesome6",
     title: "Create or Join a Room",
     description: "Create a room or join your friend's room.",
   },
   {
     id: 2,
-    emoji: "❓",
+    iconName: "question-circle",
+    iconType: "FontAwesome5",
     title: "Answer Questions",
     description: "Answer questions to get to know your partner better.",
   },
   {
     id: 3,
-    emoji: "💯",
+    iconName: "heart",
+    iconType: "FontAwesome5",
     title: "Check Your Match",
     description: "See your match percentage with your partner!",
   },
@@ -182,14 +186,24 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
                   transform: [{ translateX: slideAnim }],
                 }}
               >
-                {/* Emoji Icon */}
+                {/* Icon */}
                 <View className="items-center mb-4">
                   <View className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-2xl" />
                     <View className="relative bg-white border-4 border-gray-900 rounded-2xl w-20 h-20 items-center justify-center">
-                      <Text style={{ fontSize: 48 }}>
-                        {currentStepData.emoji}
-                      </Text>
+                      {currentStepData.iconType === "FontAwesome6" ? (
+                        <FontAwesome6
+                          name={currentStepData.iconName as any}
+                          size={36}
+                          color="#1f2937"
+                        />
+                      ) : (
+                        <FontAwesome5
+                          name={currentStepData.iconName as any}
+                          size={36}
+                          color="#1f2937"
+                        />
+                      )}
                     </View>
                   </View>
                 </View>
