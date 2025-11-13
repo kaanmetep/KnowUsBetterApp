@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useCoins } from "../contexts/CoinContext";
 import AvatarSelection from "./AvatarSelection";
 import NameInput from "./NameInput";
 
@@ -19,6 +20,7 @@ interface CreateNewRoomProps {
   visible: boolean;
   onClose: () => void;
   onCreateRoom: (userName: string, category: string, avatar?: string) => void;
+  onBuyCoins?: () => void;
 }
 
 type Category = {
@@ -65,12 +67,14 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   visible,
   onClose,
   onCreateRoom,
+  onBuyCoins,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
+  const { coins } = useCoins();
 
   const handleClose = () => {
     setStep(1);
@@ -101,8 +105,19 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     }
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (selectedCategory && userName.trim() && selectedAvatar) {
+      // Check if category requires coins (only check, don't deduct yet)
+      const category = categories.find((c) => c.id === selectedCategory);
+      if (category?.coinsRequired) {
+        // Only check if user has enough coins, don't deduct yet
+        if (coins < category.coinsRequired) {
+          // Not enough coins - show purchase modal
+          onBuyCoins?.();
+          return;
+        }
+      }
+
       onCreateRoom(userName.trim(), selectedCategory, selectedAvatar);
       setStep(1);
       setSelectedAvatar(null);
@@ -499,7 +514,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       >
                         <FontAwesome6 name="coins" size={16} color="#991b1b" />
                         {"   "}
-                        <Text>You have: 0 coins</Text>
+                        <Text>You have: {coins} coins</Text>
                       </Text>
                     </View>
                   </View>
@@ -507,15 +522,15 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   {/* Buy Coins Button */}
                   <View className="mb-4">
                     <TouchableOpacity
-                      onPress={() => {
-                        // TODO: Navigate to coin purchase
-                      }}
+                      onPress={() => onBuyCoins?.()}
                       activeOpacity={0.8}
                     >
                       <View className="flex-row items-center justify-center gap-2 py-2">
                         <Text
                           className="text-amber-600 text-sm font-semibold underline"
-                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                          style={{
+                            fontFamily: "MerriweatherSans_400Regular",
+                          }}
                         >
                           Buy Coins
                         </Text>

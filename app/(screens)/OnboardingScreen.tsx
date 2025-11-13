@@ -5,6 +5,7 @@ import {
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { FontAwesome5 } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,13 +17,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import LanguageSelector from "../(components)/LanguageSelector";
 import LoadingScreen from "../(components)/LoadingScreen";
 import Logo from "../(components)/Logo";
+import SettingsModal from "../(components)/SettingsModal";
 import SocialMediaIcons from "../(components)/SocialMediaIcons";
+import { useLanguage } from "../contexts/LanguageContext";
 const OnboardingPage = () => {
   const router = useRouter();
   const { width, height } = Dimensions.get("window");
+  const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
     MerriweatherSans_700Bold,
@@ -30,6 +33,8 @@ const OnboardingPage = () => {
   });
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedHeart, setSelectedHeart] = useState<any>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   // Button pulse animation
   const buttonPulseAnim = useRef(new Animated.Value(1)).current;
   // Heart transition animation
@@ -343,8 +348,81 @@ const OnboardingPage = () => {
   }
   return (
     <View className="flex-1 bg-primary ">
-      {/* Language Selector */}
-      <LanguageSelector position="top-right" />
+      {/* Language Selector & Settings Button Container */}
+      <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
+        {/* Inline Language Selector */}
+        <View className="relative">
+          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+          <TouchableOpacity
+            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+            activeOpacity={0.8}
+            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
+          >
+            <Text style={{ fontSize: 18 }}>
+              {languages[selectedLanguage].flag}
+            </Text>
+            <Text
+              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
+              className="text-gray-900"
+            >
+              {selectedLanguage.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {isLanguageMenuOpen && (
+            <View className="absolute top-[52px] right-0 w-[140px]">
+              <View className="relative">
+                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
+                  {(
+                    Object.keys(languages) as Array<keyof typeof languages>
+                  ).map((lang, index) => (
+                    <TouchableOpacity
+                      key={lang}
+                      onPress={() => {
+                        setSelectedLanguage(lang);
+                        setIsLanguageMenuOpen(false);
+                      }}
+                      activeOpacity={0.8}
+                      className={`flex-row items-center gap-1 px-3 py-3 ${
+                        index !== Object.keys(languages).length - 1
+                          ? "border-b-2 border-gray-900"
+                          : ""
+                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
+                    >
+                      <Text style={{ fontSize: 16 }}>
+                        {languages[lang].flag}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                          fontSize: 13,
+                        }}
+                        className="text-gray-900"
+                      >
+                        {languages[lang].label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Settings Button */}
+        <View className="relative">
+          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+          <TouchableOpacity
+            onPress={() => setShowSettingsModal(true)}
+            activeOpacity={0.8}
+            className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
+          >
+            <Feather name="settings" size={17} color="black" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <View
         pointerEvents="none"
@@ -567,6 +645,12 @@ const OnboardingPage = () => {
           zIndex: 0,
         }}
         contentFit="contain"
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
       />
     </View>
   );

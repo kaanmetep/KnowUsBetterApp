@@ -10,14 +10,27 @@ import Countdown from "../(components)/Countdown";
 import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
+import { useCoins } from "../contexts/CoinContext";
 import socketService, { Room } from "../services/socketService";
 
 const GameRoom = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { spendCoins } = useCoins();
 
   // Only get roomCode from params
   const roomCode = (params.roomCode as string) || "DEMO123";
+
+  // Category coin requirements mapping
+  const getCategoryCoinsRequired = (categoryId: string): number => {
+    const categoryCoinsMap: Record<string, number> = {
+      just_friends: 0,
+      we_just_met: 0,
+      long_term: 1,
+      spicy: 2,
+    };
+    return categoryCoinsMap[categoryId] || 0;
+  };
 
   const [room, setRoom] = useState<Room | null>(null);
 
@@ -392,6 +405,27 @@ const GameRoom = () => {
     const canStartGame = (room?.players?.length || 0) >= 2;
     if (canStartGame) {
       try {
+        // Deduct coins when starting the game
+        const category = room?.settings?.category || "just_friends";
+        const coinsRequired = getCategoryCoinsRequired(category);
+
+        if (coinsRequired > 0) {
+          const hasEnoughCoins = await spendCoins(coinsRequired);
+          if (!hasEnoughCoins) {
+            if (Platform.OS === "web") {
+              window.alert(
+                `Not enough coins to start the game. Required: ${coinsRequired} coins.`
+              );
+            } else {
+              Alert.alert(
+                "Not Enough Coins",
+                `You need ${coinsRequired} coins to start this game.`
+              );
+            }
+            return;
+          }
+        }
+
         console.log("🎮 Starting game");
         await socketService.startGame(roomCode);
       } catch (error: any) {

@@ -54,9 +54,22 @@ class SocketService {
         timeout: 10000,
       });
 
-      this.socket.on("connect", () => {
+      this.socket.on("connect", async () => {
         this.isConnected = true;
         console.log("✅ Connected to socket:", this.socket?.id);
+
+        // When socket connection is established, register the user with the backend
+        // To be able to send coin updates from the backend via webhook to this socket
+        try {
+          const { purchaseService } = await import("./purchaseService");
+          const appUserId = await purchaseService.getAppUserId();
+          if (appUserId && this.socket) {
+            this.socket.emit("register-user", appUserId);
+            console.log("📝 Registered user with socket:", appUserId);
+          }
+        } catch (error) {
+          console.warn("⚠️ Failed to register user with socket:", error);
+        }
       });
 
       this.socket.on("disconnect", (reason) => {
@@ -453,6 +466,110 @@ class SocketService {
       return;
     }
     this.socket.off("chat-message", callback);
+  }
+
+  spendCoins(data: {
+    appUserId: string;
+    amount: number;
+    transactionType?: "game_start" | "refund" | "admin";
+  }): void {
+    if (!this.socket) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+    console.log("💰 Spending coins via backend:", data);
+    this.socket.emit("spend-coins", data);
+  }
+
+  /**
+   * Listen for coin spent notifications from the backend
+   */
+  onCoinsSpent(
+    callback: (data: {
+      appUserId: string;
+      newBalance: number;
+      success: boolean;
+      error?: string;
+    }) => void
+  ): void {
+    const socket = this.connect();
+
+    if (!socket) {
+      console.error("❌ Failed to establish socket connection");
+      return;
+    }
+
+    if (socket.connected) {
+      socket.on("coins-spent", callback);
+    } else {
+      socket.once("connect", () => {
+        socket.on("coins-spent", callback);
+      });
+    }
+  }
+
+  /**
+   * Remove coin spent listener
+   */
+  offCoinsSpent(
+    callback?: (data: {
+      appUserId: string;
+      newBalance: number;
+      success: boolean;
+      error?: string;
+    }) => void
+  ): void {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.off("coins-spent", callback);
+  }
+
+  /**
+   * Listen for coin added notifications from the backend via webhook
+   */
+  onCoinsAdded(
+    callback: (data: {
+      appUserId: string;
+      newBalance: number;
+      success: boolean;
+      error?: string;
+    }) => void
+  ): void {
+    // Connect to socket (if not connected)
+    const socket = this.connect();
+
+    if (!socket) {
+      console.error("❌ Failed to establish socket connection");
+      return;
+    }
+
+    // If socket is already connected, add listener directly
+    if (socket.connected) {
+      socket.on("coins-added", callback);
+    } else {
+      // Wait for socket to connect
+      socket.once("connect", () => {
+        socket.on("coins-added", callback);
+      });
+    }
+  }
+
+  /**
+   * Remove coin added listener
+   */
+  offCoinsAdded(
+    callback?: (data: {
+      appUserId: string;
+      newBalance: number;
+      success: boolean;
+      error?: string;
+    }) => void
+  ): void {
+    if (!this.socket) {
+      return;
+    }
+    this.socket.off("coins-added", callback);
   }
 }
 

@@ -1,13 +1,20 @@
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
+import { CoinProvider } from "./contexts/CoinContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import "./globals.css";
+import { purchaseService } from "./services/purchaseService";
 
 export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
+    // Initialize RevenueCat
+    purchaseService.initialize().catch((error) => {
+      console.error("Failed to initialize RevenueCat:", error);
+    });
+
     // Handle deep linking when app is opened from a link
     const handleDeepLink = (event: { url: string }) => {
       const { hostname, path, queryParams } = Linking.parse(event.url);
@@ -52,7 +59,9 @@ export default function RootLayout() {
 
   return (
     <LanguageProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <CoinProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </CoinProvider>
     </LanguageProvider>
   );
 }
