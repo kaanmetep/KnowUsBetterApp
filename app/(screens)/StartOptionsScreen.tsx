@@ -407,7 +407,7 @@ const StartOptionsScreen = () => {
           height: 200,
           transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
           marginLeft: "auto",
-          marginBottom: -40,
+          marginBottom: -50,
         }}
         contentFit="contain"
       />

@@ -1,4 +1,5 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
@@ -134,18 +135,44 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const getCategoryInfo = (categoryId: string) => {
     const categories: Record<
       string,
-      { label: string; color: string; emoji: string }
+      {
+        label: string;
+        color: string;
+        iconName: "handshake" | "heart" | "ring" | "fire-flame-curved";
+        iconType: "FontAwesome6" | "MaterialCommunityIcons";
+      }
     > = {
-      just_friends: { label: "Just Friends", color: "#fef3c7", emoji: "🤝" },
-      we_just_met: { label: "We Just Met", color: "#ffe4e6", emoji: "💞" },
-      long_term: { label: "Long-Term Lovers", color: "#e0f2fe", emoji: "💍" },
-      spicy: { label: "Spicy & Flirty", color: "#f87171", emoji: "🔥" },
+      just_friends: {
+        label: "Just Friends",
+        color: "#fef3c7",
+        iconName: "handshake",
+        iconType: "FontAwesome6",
+      },
+      we_just_met: {
+        label: "We Just Met",
+        color: "#ffe4e6",
+        iconName: "heart",
+        iconType: "FontAwesome6",
+      },
+      long_term: {
+        label: "Long-Term Lovers",
+        color: "#e0f2fe",
+        iconName: "ring",
+        iconType: "MaterialCommunityIcons",
+      },
+      spicy: {
+        label: "Spicy & Flirty",
+        color: "#f87171",
+        iconName: "fire-flame-curved",
+        iconType: "FontAwesome6",
+      },
     };
     return (
       categories[categoryId] || {
         label: "Unknown",
         color: "#f3f4f6",
-        emoji: "❓",
+        iconName: "handshake",
+        iconType: "FontAwesome6",
       }
     );
   };
@@ -259,14 +286,32 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
             <View className="relative">
               <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
               <View
-                className="relative border-2 border-gray-900 rounded-full px-5 py-2"
+                className="relative border-2 border-gray-900 rounded-full px-5 py-2 flex-row items-center gap-2"
                 style={{ backgroundColor: categoryInfo.color }}
               >
+                {categoryInfo.iconType === "MaterialCommunityIcons" ? (
+                  <MaterialCommunityIcons
+                    name={categoryInfo.iconName as "ring"}
+                    size={18}
+                    color="#1f2937"
+                  />
+                ) : (
+                  <FontAwesome6
+                    name={
+                      categoryInfo.iconName as
+                        | "handshake"
+                        | "heart"
+                        | "fire-flame-curved"
+                    }
+                    size={18}
+                    color="#1f2937"
+                  />
+                )}
                 <Text
                   className="text-gray-900 font-semibold"
                   style={{ fontFamily: "MerriweatherSans_400Regular" }}
                 >
-                  {categoryInfo.emoji} {categoryInfo.label}
+                  {categoryInfo.label}
                 </Text>
               </View>
             </View>

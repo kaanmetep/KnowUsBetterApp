@@ -105,7 +105,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                 <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
 
                 {/* Modal Content */}
-                <View className="relative bg-primary border-4 border-gray-900 rounded-2xl p-6">
+                <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
                   {/* Close Button */}
                   <TouchableOpacity
                     onPress={handleClose}
@@ -205,7 +205,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                   <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
 
                   {/* Modal Content */}
-                  <View className="relative bg-primary border-4 border-gray-900 rounded-2xl p-6">
+                  <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
                     {/* Close Button */}
                     <TouchableOpacity
                       onPress={handleClose}
@@ -312,7 +312,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                   <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
 
                   {/* Modal Content */}
-                  <View className="relative bg-primary border-4 border-gray-900 rounded-2xl p-6">
+                  <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
                     {/* Close Button */}
                     <TouchableOpacity
                       onPress={handleClose}

@@ -78,7 +78,6 @@ const GameRoom = () => {
     // Player left
     const handlePlayerLeft = (data: any) => {
       console.log("🚪 Player left:", data);
-
       if (data.room) {
         setRoom(data.room);
       }

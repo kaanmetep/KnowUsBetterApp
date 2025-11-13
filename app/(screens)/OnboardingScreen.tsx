@@ -410,7 +410,7 @@ const OnboardingPage = () => {
           transform: [{ scaleX: -1 }, { rotate: "142deg" }],
           marginTop: -50,
           marginBottom: 30,
-          zIndex: -1,
+          zIndex: 0,
         }}
         contentFit="contain"
       />
@@ -529,12 +529,11 @@ const OnboardingPage = () => {
           </Animated.View>
         </View>
         {/* Start Button */}
-        <View className="mt-4 items-center w-full px-3 " style={{ zIndex: 10 }}>
+        <View className="mt-3 items-center w-full px-3 ">
           <Animated.View
             className="relative w-full"
             style={{
               transform: [{ scale: buttonPulseAnim }],
-              zIndex: 10,
               position: "relative",
             }}
           >
@@ -564,8 +563,8 @@ const OnboardingPage = () => {
           height: 200,
           transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
           marginLeft: "auto",
-          marginBottom: -40,
-          zIndex: -1,
+          marginBottom: -50,
+          zIndex: 0,
         }}
         contentFit="contain"
       />
