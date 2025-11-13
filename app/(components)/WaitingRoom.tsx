@@ -17,7 +17,6 @@ import {
 import Svg, { Rect } from "react-native-svg";
 import { Room } from "../services/socketService";
 import { getAvatarImage } from "../utils/avatarUtils";
-import ContactUsButton from "./ContactUsButton";
 import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
 
@@ -43,6 +42,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   onKickPlayer,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [coins, setCoins] = useState(0); // TODO: Get from backend/context
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
@@ -200,13 +200,52 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }
   };
 
+  const handleBuyCoins = () => {
+    // TODO: Navigate to coin purchase screen or open modal
+    console.log("Buy coins pressed");
+  };
+
   return (
     <View className="flex-1 bg-primary pt-16">
       {/* Language Selector */}
       <LanguageSelector position="top-right" />
 
-      {/* Contact Us Button */}
-      <ContactUsButton position="top-left" style="default" />
+      {/* Coin Display and Buy Button */}
+      <View className="absolute top-20 left-6 z-10">
+        <View className="flex-row items-center gap-2">
+          {/* Coin Display */}
+          <View className="relative">
+            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+            <View className="relative bg-white border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2">
+              <FontAwesome6 name="coins" size={16} color="#991b1b" />
+              <Text
+                className="text-gray-900 font-semibold"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              >
+                {coins}
+              </Text>
+            </View>
+          </View>
+
+          {/* Buy Coins Button */}
+          <View className="relative">
+            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+            <TouchableOpacity
+              onPress={handleBuyCoins}
+              className="relative bg-amber-300 border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2"
+              activeOpacity={0.8}
+            >
+              <FontAwesome6 name="plus" size={14} color="#991b1b" />
+              <Text
+                className="text-gray-900 font-semibold text-xs"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              >
+                Buy Coins
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
 
       <ScrollView
         className="flex-1"
