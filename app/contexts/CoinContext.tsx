@@ -192,21 +192,24 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       }
 
       // Get the real balance from Supabase first (for validation)
+      // CRITICAL: Must fetch from Supabase only, not from device (device can be edited)
       const id = appUserId || (await purchaseService.getAppUserId());
       if (!id) {
         console.error("❌ Unable to get appUserId");
         return false;
       }
 
-      // Fetch real balance from Supabase
-      const realBalance = await CoinStorageService.fetchBalance(id);
+      // Fetch real balance from Supabase ONLY (no device fallback for security)
+      const realBalance = await CoinStorageService.fetchBalanceFromSupabase(id);
 
       if (
         realBalance === null ||
         realBalance === undefined ||
         Number.isNaN(realBalance)
       ) {
-        console.error("❌ Unable to fetch balance from Supabase");
+        console.error(
+          "❌ Unable to fetch balance from Supabase. Cannot proceed with spending coins."
+        );
         return false;
       }
 
@@ -220,7 +223,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         return false;
       }
 
-      // Optimistic update (backend response gelene kadar)
+      // Optimistic update (until the backend response is received)
       const newCoins = realBalance - amount;
       setCoins(newCoins);
       await CoinStorageService.saveBalance(id, newCoins);
