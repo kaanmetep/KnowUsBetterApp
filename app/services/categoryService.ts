@@ -3,7 +3,6 @@ import { getSupabaseClient } from "../lib/supabaseClient";
 
 export interface Category {
   id: string;
-  name: string;
   label: string;
   color: string;
   iconName: string;
@@ -95,7 +94,6 @@ export const getCategories = async (): Promise<Category[]> => {
 
     const categories: Category[] = data.map((cat) => ({
       id: cat.id,
-      name: cat.name,
       label: cat.label,
       color: cat.color,
       iconName: cat.icon_name,
