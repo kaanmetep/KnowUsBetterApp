@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
 import NameInput from "./NameInput";
 
@@ -30,6 +31,47 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const [roomCode, setRoomCode] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
   const [roomCodeFocused, setRoomCodeFocused] = useState<boolean>(false);
+
+  // Load saved preferences when modal opens
+  useEffect(() => {
+    if (visible) {
+      loadSavedPreferences();
+    }
+  }, [visible]);
+
+  const loadSavedPreferences = async () => {
+    try {
+      const savedUsername = await UserPreferencesService.getUsername();
+      const savedAvatar = await UserPreferencesService.getAvatar();
+
+      if (savedUsername) {
+        setUserName(savedUsername);
+      }
+      if (savedAvatar) {
+        setSelectedAvatar(savedAvatar);
+      }
+    } catch (error) {
+      console.warn("⚠️ Failed to load saved preferences:", error);
+    }
+  };
+
+  // Save avatar when it changes
+  useEffect(() => {
+    if (selectedAvatar) {
+      UserPreferencesService.saveAvatar(selectedAvatar);
+    }
+  }, [selectedAvatar]);
+
+  // Save username when it changes (debounced)
+  useEffect(() => {
+    if (userName.trim().length > 0) {
+      const timeoutId = setTimeout(() => {
+        UserPreferencesService.saveUsername(userName.trim());
+      }, 500); // Save after 500ms of no typing
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [userName]);
 
   const handleClose = () => {
     setStep(1);
