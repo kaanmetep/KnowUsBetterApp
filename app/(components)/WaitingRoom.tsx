@@ -17,6 +17,7 @@ import {
 import Svg, { Rect } from "react-native-svg";
 import { Room } from "../services/socketService";
 import { getAvatarImage } from "../utils/avatarUtils";
+import ButtonLoading from "./ButtonLoading";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
 import LanguageSelector from "./LanguageSelector";
@@ -32,6 +33,7 @@ interface WaitingRoomProps {
   onStartGame: () => void;
   onLeaveRoom: () => void;
   onKickPlayer?: (playerId: string) => void;
+  isStartingGame?: boolean;
 }
 
 const WaitingRoom: React.FC<WaitingRoomProps> = ({
@@ -42,6 +44,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   onStartGame,
   onLeaveRoom,
   onKickPlayer,
+  isStartingGame = false,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -504,10 +507,11 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 >
                   <TouchableOpacity
                     onPress={onStartGame}
-                    disabled={!canStartGame}
-                    className="py-[18px] px-8"
+                    disabled={!canStartGame || isStartingGame}
+                    className="py-[18px] px-8 flex-row items-center justify-center gap-2"
                     activeOpacity={0.8}
                   >
+                    {isStartingGame && <ButtonLoading size={16} style="dots" />}
                     <Text
                       className="text-gray-900 text-xl text-center font-bold"
                       style={{
@@ -515,7 +519,11 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         letterSpacing: -0.3,
                       }}
                     >
-                      {canStartGame ? "Start Game" : "Waiting for Players..."}
+                      {isStartingGame
+                        ? "Starting..."
+                        : canStartGame
+                        ? "Start Game"
+                        : "Waiting for Players..."}
                     </Text>
                   </TouchableOpacity>
                 </Animated.View>

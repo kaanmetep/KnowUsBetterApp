@@ -54,6 +54,7 @@ const GameRoom = () => {
     percentage: number;
     completedRounds: any[];
   } | null>(null);
+  const [isStartingGame, setIsStartingGame] = useState(true);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -403,7 +404,8 @@ const GameRoom = () => {
 
   const handleStartGame = async () => {
     const canStartGame = (room?.players?.length || 0) >= 2;
-    if (canStartGame) {
+    if (canStartGame && !isStartingGame) {
+      setIsStartingGame(true);
       try {
         // Deduct coins when starting the game
         const category = room?.settings?.category || "just_friends";
@@ -412,6 +414,7 @@ const GameRoom = () => {
         if (coinsRequired > 0) {
           const hasEnoughCoins = await spendCoins(coinsRequired);
           if (!hasEnoughCoins) {
+            setIsStartingGame(false);
             if (Platform.OS === "web") {
               window.alert(
                 `Not enough coins to start the game. Required: ${coinsRequired} coins.`
@@ -435,6 +438,8 @@ const GameRoom = () => {
         } else {
           Alert.alert("Error", error?.message || "Failed to start game");
         }
+      } finally {
+        setIsStartingGame(false);
       }
     }
   };
@@ -587,6 +592,7 @@ const GameRoom = () => {
       onStartGame={handleStartGame}
       onLeaveRoom={handleLeaveRoom}
       onKickPlayer={handleKickPlayer}
+      isStartingGame={isStartingGame}
     />
   );
 };

@@ -182,7 +182,7 @@ const StartOptionsScreen = () => {
     userName: string,
     category: string,
     avatar: string = "😊"
-  ) => {
+  ): Promise<void> => {
     try {
       setIsLoading(true);
       // Send request to create room to backend
@@ -202,9 +202,11 @@ const StartOptionsScreen = () => {
     } catch (error: any) {
       console.error("❌ Error creating room:", error);
       Alert.alert(
-        "Error",
-        error?.message || "Room not created. Please try again."
+        "Oops! 😔",
+        error?.message || "Room could not be created. Please try again.",
+        [{ text: "OK", style: "default" }]
       );
+      // Don't re-throw - error is already handled, re-throwing causes "Uncaught (in promise)"
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +216,7 @@ const StartOptionsScreen = () => {
     userName: string,
     roomCode: string,
     avatar: string = "😊"
-  ) => {
+  ): Promise<void> => {
     try {
       setIsLoading(true);
       console.log("👥 Joining room...", { userName, roomCode, avatar });
@@ -238,10 +240,45 @@ const StartOptionsScreen = () => {
       });
     } catch (error: any) {
       console.error("❌ Error joining room:", error);
+
+      // Extract error message
+      let errorMessage =
+        "The room code you entered doesn't exist. Please check the code and try again.";
+      if (typeof error === "string") {
+        // If error is just "Room not found" or similar, use our friendly message
+        if (
+          error.toLowerCase().includes("room") &&
+          error.toLowerCase().includes("not found")
+        ) {
+          errorMessage =
+            "The room code you entered doesn't exist. Please check the code and try again.";
+        } else {
+          errorMessage = error;
+        }
+      } else if (error?.message) {
+        // If error message is generic, use our friendly message
+        if (
+          error.message.toLowerCase().includes("room") &&
+          error.message.toLowerCase().includes("not found")
+        ) {
+          errorMessage = "The room code you entered doesn't exist.";
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (error?.error) {
+        errorMessage = error.error;
+      }
+
+      // Show alert - modal will remain open and user can try again
       Alert.alert(
-        "Error",
-        error?.message || "Room not joined. Is the room code correct?"
+        "Room Not Found",
+        errorMessage,
+        [{ text: "OK", style: "default" }],
+        { cancelable: true }
       );
+      // Re-throw error so JoinExistingRoom component knows the join failed
+      // and doesn't reset the form/step
+      throw error;
     } finally {
       setIsLoading(false);
     }

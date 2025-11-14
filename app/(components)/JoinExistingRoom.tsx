@@ -12,12 +12,17 @@ import {
 } from "react-native";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
+import ButtonLoading from "./ButtonLoading";
 import NameInput from "./NameInput";
 
 interface JoinExistingRoomProps {
   visible: boolean;
   onClose: () => void;
-  onJoinRoom: (userName: string, roomCode: string, avatar?: string) => void;
+  onJoinRoom: (
+    userName: string,
+    roomCode: string,
+    avatar?: string
+  ) => Promise<void>;
 }
 
 const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
@@ -31,6 +36,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const [roomCode, setRoomCode] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
   const [roomCodeFocused, setRoomCodeFocused] = useState<boolean>(false);
+  const [isJoining, setIsJoining] = useState<boolean>(false);
 
   // Load saved preferences when modal opens
   useEffect(() => {
@@ -103,17 +109,26 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
     }
   };
 
-  const handleJoin = () => {
-    if (userName.trim() && roomCode.trim() && selectedAvatar) {
-      onJoinRoom(
-        userName.trim(),
-        roomCode.trim().toUpperCase(),
-        selectedAvatar
-      );
-      setStep(1);
-      setSelectedAvatar(null);
-      setUserName("");
-      setRoomCode("");
+  const handleJoin = async () => {
+    if (userName.trim() && roomCode.trim() && selectedAvatar && !isJoining) {
+      setIsJoining(true);
+      try {
+        await onJoinRoom(
+          userName.trim(),
+          roomCode.trim().toUpperCase(),
+          selectedAvatar
+        );
+        setStep(1);
+        setSelectedAvatar(null);
+        setUserName("");
+        setRoomCode("");
+      } catch (error) {
+        // Error is already handled in StartOptionsScreen (Alert shown)
+        // Don't reset step or form - keep user on step 3 so they can try again
+        console.error("Error joining room:", error);
+      } finally {
+        setIsJoining(false);
+      }
     }
   };
 
@@ -467,18 +482,24 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                       <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
                       <TouchableOpacity
                         onPress={handleJoin}
-                        disabled={!isStep3Valid}
-                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
+                        disabled={!isStep3Valid || isJoining}
+                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8 flex-row items-center justify-center gap-2"
                         style={{
-                          backgroundColor: isStep3Valid ? "#dbeafe" : "#d1d5db",
+                          backgroundColor:
+                            isStep3Valid && !isJoining ? "#dbeafe" : "#d1d5db",
                         }}
                         activeOpacity={0.8}
                       >
+                        {isJoining && <ButtonLoading size={14} style="dots" />}
                         <Text
                           className="text-gray-900 text-lg text-center font-bold"
                           style={{ letterSpacing: -0.3 }}
                         >
-                          {isStep3Valid ? "Join Room" : "Enter Room Code"}
+                          {isJoining
+                            ? "Joining..."
+                            : isStep3Valid
+                            ? "Join Room"
+                            : "Enter Room Code"}
                         </Text>
                       </TouchableOpacity>
                     </View>

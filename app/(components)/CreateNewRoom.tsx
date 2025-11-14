@@ -15,12 +15,17 @@ import {
 import { useCoins } from "../contexts/CoinContext";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
+import ButtonLoading from "./ButtonLoading";
 import NameInput from "./NameInput";
 
 interface CreateNewRoomProps {
   visible: boolean;
   onClose: () => void;
-  onCreateRoom: (userName: string, category: string, avatar?: string) => void;
+  onCreateRoom: (
+    userName: string,
+    category: string,
+    avatar?: string
+  ) => Promise<void>;
   onBuyCoins?: () => void;
 }
 
@@ -75,6 +80,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
   const { coins } = useCoins();
 
   // Load saved preferences when modal opens
@@ -148,7 +154,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   };
 
   const handleCreate = async () => {
-    if (selectedCategory && userName.trim() && selectedAvatar) {
+    if (selectedCategory && userName.trim() && selectedAvatar && !isCreating) {
       // Check if category requires coins (only check, don't deduct yet)
       const category = categories.find((c) => c.id === selectedCategory);
       if (category?.coinsRequired) {
@@ -160,11 +166,18 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
         }
       }
 
-      onCreateRoom(userName.trim(), selectedCategory, selectedAvatar);
-      setStep(1);
-      setSelectedAvatar(null);
-      setSelectedCategory(null);
-      setUserName("");
+      setIsCreating(true);
+      try {
+        await onCreateRoom(userName.trim(), selectedCategory, selectedAvatar);
+        setStep(1);
+        setSelectedAvatar(null);
+        setSelectedCategory(null);
+        setUserName("");
+      } catch (error) {
+        console.error("Error creating room:", error);
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -585,18 +598,24 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
                     <TouchableOpacity
                       onPress={handleCreate}
-                      disabled={!isStep3Valid}
-                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
+                      disabled={!isStep3Valid || isCreating}
+                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8 flex-row items-center justify-center gap-2"
                       style={{
-                        backgroundColor: isStep3Valid ? "#ffe4e6" : "#d1d5db",
+                        backgroundColor:
+                          isStep3Valid && !isCreating ? "#ffe4e6" : "#d1d5db",
                       }}
                       activeOpacity={0.8}
                     >
+                      {isCreating && <ButtonLoading size={14} style="dots" />}
                       <Text
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        {isStep3Valid ? "Create Room" : "Select a Category"}
+                        {isCreating
+                          ? "Creating..."
+                          : isStep3Valid
+                          ? "Create Room"
+                          : "Select a Category"}
                       </Text>
                     </TouchableOpacity>
                   </View>

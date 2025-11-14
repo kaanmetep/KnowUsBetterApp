@@ -192,7 +192,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       }
 
       // Get the real balance from Supabase first (for validation)
-      // CRITICAL: Must fetch from Supabase only, not from device (device can be edited)
+      // Must fetch from Supabase only, not from client (client can be manipulated)
       const id = appUserId || (await purchaseService.getAppUserId());
       if (!id) {
         console.error("❌ Unable to get appUserId");
