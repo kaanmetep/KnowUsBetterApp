@@ -7,12 +7,14 @@ interface CoinBalanceDisplayProps {
   onBuyCoins: () => void;
   style?: "default" | "absolute";
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  showBuyButton?: boolean;
 }
 
 const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
   onBuyCoins,
   style = "default",
   position = "top-left",
+  showBuyButton = true,
 }) => {
   const { coins } = useCoins();
 
@@ -33,7 +35,11 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
       {/* Coin Display */}
       <View className="relative">
         <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-        <View className="relative bg-white border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2">
+        <TouchableOpacity
+          onPress={onBuyCoins}
+          activeOpacity={0.8}
+          className="relative bg-white border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2"
+        >
           <FontAwesome6 name="coins" size={16} color="#991b1b" />
           <Text
             className="text-gray-900 font-semibold"
@@ -41,26 +47,28 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
           >
             {coins}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Buy Coins Button */}
-      <View className="relative">
-        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-        <TouchableOpacity
-          onPress={onBuyCoins}
-          className="relative bg-amber-200 border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2"
-          activeOpacity={0.8}
-        >
-          <FontAwesome6 name="plus" size={14} color="#991b1b" />
-          <Text
-            className="text-gray-900 font-semibold text-xs"
-            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+      {showBuyButton && (
+        <View className="relative">
+          <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+          <TouchableOpacity
+            onPress={onBuyCoins}
+            className="relative bg-amber-200 border-2 border-gray-900 rounded-full px-4 py-2 flex-row items-center gap-2"
+            activeOpacity={0.8}
           >
-            Buy Coins
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <FontAwesome6 name="plus" size={14} color="#991b1b" />
+            <Text
+              className="text-gray-900 font-semibold text-xs"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              Buy Coins
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

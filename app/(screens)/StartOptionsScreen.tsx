@@ -337,6 +337,7 @@ const StartOptionsScreen = () => {
         }}
         style="absolute"
         position="bottom-left"
+        showBuyButton={false}
       />
 
       <Image
