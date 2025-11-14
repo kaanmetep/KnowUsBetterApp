@@ -4,14 +4,11 @@ import {
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Feather from "@expo/vector-icons/Feather";
-import Fontisto from "@expo/vector-icons/Fontisto";
 import * as Clipboard from "expo-clipboard";
-import * as Linking from "expo-linking";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -20,6 +17,7 @@ import {
 import { useLanguage } from "../contexts/LanguageContext";
 import { purchaseService } from "../services/purchaseService";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
+import ContactUsButton from "./ContactUsButton";
 
 interface SettingsModalProps {
   visible: boolean;
@@ -64,51 +62,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     } catch (error) {
       console.error("❌ Error copying user ID:", error);
       Alert.alert("Error", "Could not copy user ID");
-    }
-  };
-
-  const handleContactUs = async () => {
-    const email = "help@knowusbetter.app";
-    const subject = "KnowUsBetter - Support Request";
-    const body = `Hi KnowUsBetter Team,\n\n[Please describe your issue or feedback here]\n\n---\nApp Info:\nPlatform: ${Platform.OS}\nVersion: ${Platform.Version}\nUser ID: ${userId}`;
-
-    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-
-    try {
-      const canOpen = await Linking.canOpenURL(mailtoUrl);
-      if (canOpen) {
-        await Linking.openURL(mailtoUrl);
-      } else {
-        if (Platform.OS === "web") {
-          window.alert(
-            `Please send your message to:\n\n${email}\n\nUser ID: ${userId}\n\nEmail has been copied to clipboard!`
-          );
-          await Clipboard.setStringAsync(email);
-        } else {
-          Alert.alert(
-            "Contact Us",
-            `Please send your message to:\n\n${email}\n\nUser ID: ${userId}`,
-            [
-              {
-                text: "Copy Email",
-                onPress: async () => {
-                  await Clipboard.setStringAsync(email);
-                  Alert.alert("Copied!", "Email address copied to clipboard");
-                },
-              },
-              { text: "OK", style: "cancel" },
-            ]
-          );
-        }
-      }
-    } catch (error) {
-      console.error("❌ Error opening email:", error);
-      Alert.alert(
-        "Error",
-        "Could not open email client. Please email us at: help@knowusbetter.app"
-      );
     }
   };
 
@@ -224,34 +177,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </View>
                   </View>
 
-                  <TouchableOpacity
-                    onPress={handleContactUs}
-                    activeOpacity={0.85}
-                    className="relative"
-                  >
+                  <View className="relative">
                     <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-lg" />
                     <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4">
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-2">
-                          <Fontisto name="email" size={20} color="#1f2937" />
-                          <Text
-                            style={{
-                              fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 16,
-                              color: "#1f2937",
-                            }}
-                          >
-                            Contact Us
-                          </Text>
-                        </View>
-                        <Feather
-                          name="chevron-right"
-                          size={20}
-                          color="#1f2937"
-                        />
-                      </View>
+                      <ContactUsButton position="none" />
                     </View>
-                  </TouchableOpacity>
+                  </View>
 
                   <View className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />

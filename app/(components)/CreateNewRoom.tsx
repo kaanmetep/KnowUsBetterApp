@@ -1,8 +1,8 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,9 +13,11 @@ import {
   View,
 } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
+import { Category, getCategories } from "../services/categoryService";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
 import ButtonLoading from "./ButtonLoading";
+import ContactUsButton from "./ContactUsButton";
 import NameInput from "./NameInput";
 
 interface CreateNewRoomProps {
@@ -29,46 +31,6 @@ interface CreateNewRoomProps {
   onBuyCoins?: () => void;
 }
 
-type Category = {
-  id: string;
-  label: string;
-  iconName: "handshake" | "heart" | "ring" | "fire-flame-curved";
-  color: string;
-  isPremium?: boolean;
-  coinsRequired?: number;
-};
-
-const categories: Category[] = [
-  {
-    id: "just_friends",
-    label: "We're Just Friends",
-    iconName: "handshake",
-    color: "#fef3c7",
-  },
-  {
-    id: "we_just_met",
-    label: "We Just Met",
-    iconName: "heart",
-    color: "#fee4e6",
-  },
-  {
-    id: "long_term",
-    label: "Long-Term Lovers",
-    iconName: "ring",
-    color: "#e0f2fe",
-    isPremium: true,
-    coinsRequired: 1,
-  },
-  {
-    id: "spicy",
-    label: "Spicy & Flirty",
-    iconName: "fire-flame-curved",
-    color: "#f87171",
-    isPremium: true,
-    coinsRequired: 2,
-  },
-];
-
 const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   visible,
   onClose,
@@ -81,7 +43,51 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [userName, setUserName] = useState<string>("");
   const [userNameFocused, setUserNameFocused] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const { coins } = useCoins();
+  const loadingOpacity = useRef(new Animated.Value(0.4)).current;
+
+  // Load categories from Supabase
+  useEffect(() => {
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const categoriesData = await getCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("❌ Error loading categories:", error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // Loading animation - always running
+  useEffect(() => {
+    loadingOpacity.setValue(0.1);
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(loadingOpacity, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(loadingOpacity, {
+          toValue: 0.4,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => {
+      pulse.stop();
+      pulse.reset();
+    };
+  }, []);
 
   // Load saved preferences when modal opens
   useEffect(() => {
@@ -483,81 +489,119 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
                   {/* Categories */}
                   <ScrollView className="max-h-[300px] mb-4">
-                    {categories.map((category) => (
-                      <TouchableOpacity
-                        key={category.id}
-                        onPress={() => setSelectedCategory(category.id)}
-                        className="mb-3"
-                      >
-                        <View className="relative">
-                          {/* Shadow */}
-                          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                    {categoriesLoading ? (
+                      <View className="py-8 items-center">
+                        <Animated.Text
+                          className="text-gray-600"
+                          style={{
+                            fontFamily: "MerriweatherSans_400Regular",
+                            opacity: loadingOpacity,
+                          }}
+                        >
+                          Loading categories...
+                        </Animated.Text>
+                      </View>
+                    ) : categories.length === 0 ? (
+                      <View className="py-4 items-center">
+                        <Text
+                          className="text-gray-600"
+                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                        >
+                          {`No categories available : (`}
+                        </Text>
+                        <Text
+                          className="text-gray-500 text-sm text-center mt-4"
+                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                        >
+                          {`You can try later, or you can help us by reporting this issue. We might give you free coins for your help !`}
+                        </Text>
+                        <View className="mt-4">
+                          <ContactUsButton
+                            position="none"
+                            text="Report Issue"
+                          />
+                        </View>
+                      </View>
+                    ) : (
+                      categories.map((category) => (
+                        <TouchableOpacity
+                          key={category.id}
+                          onPress={() => setSelectedCategory(category.id)}
+                          className="mb-3"
+                        >
+                          <View className="relative">
+                            {/* Shadow */}
+                            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
 
-                          {/* Category Card */}
-                          <View
-                            className={`relative border-2 border-gray-900 rounded-xl p-4 ${
-                              selectedCategory === category.id ? "border-4" : ""
-                            }`}
-                            style={{
-                              backgroundColor: category.color,
-                            }}
-                          >
-                            <View className="flex-row items-center justify-between">
-                              <View className="flex-row items-center gap-3 flex-1">
-                                {category.iconName === "ring" ? (
-                                  <MaterialCommunityIcons
-                                    name={category.iconName}
-                                    size={20}
-                                    color="black"
-                                  />
-                                ) : (
-                                  <FontAwesome6
-                                    name={category.iconName}
-                                    size={20}
-                                    color="#1f2937"
-                                  />
-                                )}
-                                <Text
-                                  className="text-lg font-semibold text-gray-900"
-                                  style={{
-                                    fontFamily: "MerriweatherSans_400Regular",
-                                  }}
-                                >
-                                  {category.label}
-                                </Text>
-                                {category.isPremium && (
-                                  <View className="relative">
-                                    <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-md" />
-                                    <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5">
-                                      <Text
-                                        className="text-gray-900 text-xs font-bold"
-                                        style={{ letterSpacing: -0.2 }}
-                                      >
-                                        <FontAwesome6
-                                          name="coins"
-                                          size={8}
-                                          color="#991b1b"
-                                        />{" "}
-                                        <Text>
-                                          {category.coinsRequired} Coin
+                            {/* Category Card */}
+                            <View
+                              className={`relative border-2 border-gray-900 rounded-xl p-4 ${
+                                selectedCategory === category.id
+                                  ? "border-4"
+                                  : ""
+                              }`}
+                              style={{
+                                backgroundColor: category.color,
+                              }}
+                            >
+                              <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center gap-3 flex-1">
+                                  {category.iconType ===
+                                  "MaterialCommunityIcons" ? (
+                                    <MaterialCommunityIcons
+                                      name={category.iconName as any}
+                                      size={20}
+                                      color="black"
+                                    />
+                                  ) : (
+                                    <FontAwesome6
+                                      name={category.iconName as any}
+                                      size={20}
+                                      color="#1f2937"
+                                    />
+                                  )}
+                                  <Text
+                                    className="text-lg font-semibold text-gray-900"
+                                    style={{
+                                      fontFamily: "MerriweatherSans_400Regular",
+                                    }}
+                                  >
+                                    {category.label}
+                                  </Text>
+                                  {category.isPremium && (
+                                    <View className="relative">
+                                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-md" />
+                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5">
+                                        <Text
+                                          className="text-gray-900 text-xs font-bold"
+                                          style={{ letterSpacing: -0.2 }}
+                                        >
+                                          <FontAwesome6
+                                            name="coins"
+                                            size={8}
+                                            color="#991b1b"
+                                          />{" "}
+                                          <Text>
+                                            {category.coinsRequired} Coin
+                                          </Text>
                                         </Text>
-                                      </Text>
+                                      </View>
                                     </View>
+                                  )}
+                                </View>
+                                {selectedCategory === category.id && (
+                                  <View className="w-6 h-6 rounded-full bg-gray-900 items-center justify-center">
+                                    <Text className="text-white text-sm font-bold">
+                                      ✓
+                                    </Text>
                                   </View>
                                 )}
                               </View>
-                              {selectedCategory === category.id && (
-                                <View className="w-6 h-6 rounded-full bg-gray-900 items-center justify-center">
-                                  <Text className="text-white text-sm font-bold">
-                                    ✓
-                                  </Text>
-                                </View>
-                              )}
                             </View>
                           </View>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
+                        </TouchableOpacity>
+                      ))
+                    )}
                   </ScrollView>
 
                   {/* Coin Balance */}

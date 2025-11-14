@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import { Category, getCategoryById } from "../services/categoryService";
 import { Room } from "../services/socketService";
 import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
@@ -48,6 +49,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
@@ -139,53 +141,29 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }
   }, [canStartGame, startButtonGlowAnim]);
 
-  const getCategoryInfo = (categoryId: string) => {
-    const categories: Record<
-      string,
-      {
-        label: string;
-        color: string;
-        iconName: "handshake" | "heart" | "ring" | "fire-flame-curved";
-        iconType: "FontAwesome6" | "MaterialCommunityIcons";
-      }
-    > = {
-      just_friends: {
-        label: "Just Friends",
-        color: "#fef3c7",
-        iconName: "handshake",
-        iconType: "FontAwesome6",
-      },
-      we_just_met: {
-        label: "We Just Met",
-        color: "#ffe4e6",
-        iconName: "heart",
-        iconType: "FontAwesome6",
-      },
-      long_term: {
-        label: "Long-Term Lovers",
-        color: "#e0f2fe",
-        iconName: "ring",
-        iconType: "MaterialCommunityIcons",
-      },
-      spicy: {
-        label: "Spicy & Flirty",
-        color: "#f87171",
-        iconName: "fire-flame-curved",
-        iconType: "FontAwesome6",
-      },
+  // Load category info from Supabase
+  useEffect(() => {
+    const loadCategoryInfo = async () => {
+      const category = room.settings?.category || "just_friends";
+      const categoryData = await getCategoryById(category);
+      setCategoryInfo(categoryData);
     };
-    return (
-      categories[categoryId] || {
-        label: "Unknown",
-        color: "#f3f4f6",
-        iconName: "handshake",
-        iconType: "FontAwesome6",
-      }
-    );
-  };
+
+    loadCategoryInfo();
+  }, [room.settings?.category]);
 
   const category = room.settings?.category || "just_friends";
-  const categoryInfo = getCategoryInfo(category);
+  const displayCategoryInfo = categoryInfo || {
+    id: category,
+    name: category,
+    label: "Unknown",
+    color: "#f3f4f6",
+    iconName: "handshake",
+    iconType: "FontAwesome6" as const,
+    coinsRequired: 0,
+    isPremium: false,
+    orderIndex: 0,
+  };
   const roomLink = `https://knowusbetter.app/join/${roomCode}`;
 
   const handleCopyCode = async () => {
@@ -308,22 +286,17 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
               <View
                 className="relative border-2 border-gray-900 rounded-full px-5 py-2 flex-row items-center gap-2"
-                style={{ backgroundColor: categoryInfo.color }}
+                style={{ backgroundColor: displayCategoryInfo.color }}
               >
-                {categoryInfo.iconType === "MaterialCommunityIcons" ? (
+                {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
                   <MaterialCommunityIcons
-                    name={categoryInfo.iconName as "ring"}
+                    name={displayCategoryInfo.iconName as any}
                     size={18}
                     color="#1f2937"
                   />
                 ) : (
                   <FontAwesome6
-                    name={
-                      categoryInfo.iconName as
-                        | "handshake"
-                        | "heart"
-                        | "fire-flame-curved"
-                    }
+                    name={displayCategoryInfo.iconName as any}
                     size={18}
                     color="#1f2937"
                   />
@@ -332,7 +305,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   className="text-gray-900 font-semibold"
                   style={{ fontFamily: "MerriweatherSans_400Regular" }}
                 >
-                  {categoryInfo.label}
+                  {displayCategoryInfo.label}
                 </Text>
               </View>
             </View>

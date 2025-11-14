@@ -11,6 +11,7 @@ import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
+import { getCategoryCoinsRequired } from "../services/categoryService";
 import socketService, { Room } from "../services/socketService";
 
 const GameRoom = () => {
@@ -20,17 +21,6 @@ const GameRoom = () => {
 
   // Only get roomCode from params
   const roomCode = (params.roomCode as string) || "DEMO123";
-
-  // Category coin requirements mapping
-  const getCategoryCoinsRequired = (categoryId: string): number => {
-    const categoryCoinsMap: Record<string, number> = {
-      just_friends: 0,
-      we_just_met: 0,
-      long_term: 1,
-      spicy: 2,
-    };
-    return categoryCoinsMap[categoryId] || 0;
-  };
 
   const [room, setRoom] = useState<Room | null>(null);
 
@@ -409,7 +399,7 @@ const GameRoom = () => {
       try {
         // Deduct coins when starting the game
         const category = room?.settings?.category || "just_friends";
-        const coinsRequired = getCategoryCoinsRequired(category);
+        const coinsRequired = await getCategoryCoinsRequired(category);
 
         if (coinsRequired > 0) {
           const hasEnoughCoins = await spendCoins(coinsRequired);

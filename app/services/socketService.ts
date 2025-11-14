@@ -2,7 +2,9 @@ import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = "http://192.168.1.133:3000";
 
-export type Category = "just-friends" | "we_just_met" | "long_term" | "spicy";
+// Category type is now a string (category ID from Supabase)
+// Use categoryService.getCategories() to get available categories
+export type Category = string;
 
 export interface RoomSettings {
   maxPlayers: number;

@@ -3,40 +3,61 @@ import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
+import { purchaseService } from "../services/purchaseService";
 
 interface ContactUsButtonProps {
-  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
+  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "none";
   style?: "default" | "compact"; // default: with text, compact: icon only
+  text?: string; // Custom button text
 }
 
 const ContactUsButton: React.FC<ContactUsButtonProps> = ({
   position = "bottom-left",
   style = "default",
+  text = "Contact Us",
 }) => {
   const handleContactUs = async () => {
-    const email = "help@knowusbetter.app";
-    const subject = "KnowUsBetter - Support Request";
-    const body = `Hi KnowUsBetter Team,\n\n[Please describe your issue or feedback here]\n\n---\nApp Info:\nPlatform: ${Platform.OS}\nVersion: ${Platform.Version}`;
-
-    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
-
     try {
+      // Get app user ID
+      let appUserId = "Unable to load ID";
+      try {
+        appUserId = await purchaseService.getAppUserId();
+      } catch (error) {
+        console.error("Error getting app user ID:", error);
+      }
+
+      const email = "help@knowusbetter.app";
+      const subject = "KnowUsBetter - Support Request";
+      const body = `Hi KnowUsBetter Team,
+
+[Please describe your issue or feedback here]
+
+---
+App Info:
+Platform: ${Platform.OS}
+Version: ${Platform.Version}
+User ID: ${appUserId}`;
+
+      const userInfo = `Platform: ${Platform.OS}\nVersion: ${Platform.Version}\nUser ID: ${appUserId}`;
+
+      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
+
       const canOpen = await Linking.canOpenURL(mailtoUrl);
       if (canOpen) {
         await Linking.openURL(mailtoUrl);
       } else {
-        // Fallback: Show email address
+        // Fallback: Show email address with user info
         if (Platform.OS === "web") {
           window.alert(
-            `Please send your message to:\n\n${email}\n\nEmail has been copied to clipboard!`
+            `Please send your message to:\n\n${email}\n\n${userInfo}\n\nEmail has been copied to clipboard!`
           );
           await Clipboard.setStringAsync(email);
         } else {
           Alert.alert(
             "Contact Us",
-            `Please send your message to:\n\n${email}`,
+            `Please send your message to:\n\n${email}\n\n${userInfo}`,
             [
               {
                 text: "Copy Email",
@@ -64,6 +85,7 @@ const ContactUsButton: React.FC<ContactUsButtonProps> = ({
     "top-left": "absolute top-20 left-6 z-10",
     "bottom-right": "absolute bottom-20 right-6 z-10",
     "bottom-left": "absolute bottom-20 left-6 z-10",
+    none: "",
   };
 
   return (
@@ -84,7 +106,7 @@ const ContactUsButton: React.FC<ContactUsButtonProps> = ({
                 className="text-gray-900 text-xs font-semibold"
                 style={{ letterSpacing: -0.2 }}
               >
-                Contact Us
+                {text}
               </Text>
             </View>
           )}

@@ -32,6 +32,12 @@ class PurchaseService {
       return;
     }
 
+    // RevenueCat doesn't work on web
+    if (Platform.OS === "web") {
+      console.log("⚠️ RevenueCat is not supported on web platform");
+      return;
+    }
+
     try {
       Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
 
@@ -71,6 +77,10 @@ class PurchaseService {
   }
 
   async getOfferings(): Promise<PurchasesOffering | null> {
+    if (Platform.OS === "web") {
+      return null;
+    }
+
     try {
       if (!this.isInitialized) {
         await this.initialize();
@@ -104,6 +114,10 @@ class PurchaseService {
   async purchasePackage(
     packageToPurchase: PurchasesPackage
   ): Promise<CustomerInfo> {
+    if (Platform.OS === "web") {
+      throw new Error("Purchases are not supported on web platform");
+    }
+
     try {
       if (!this.isInitialized) {
         await this.initialize();
@@ -126,6 +140,10 @@ class PurchaseService {
   }
 
   async restorePurchases(): Promise<CustomerInfo> {
+    if (Platform.OS === "web") {
+      throw new Error("Purchases are not supported on web platform");
+    }
+
     try {
       if (!this.isInitialized) {
         await this.initialize();
@@ -141,6 +159,10 @@ class PurchaseService {
   }
 
   async getCustomerInfo(): Promise<CustomerInfo> {
+    if (Platform.OS === "web") {
+      throw new Error("Purchases are not supported on web platform");
+    }
+
     try {
       if (!this.isInitialized) {
         await this.initialize();
