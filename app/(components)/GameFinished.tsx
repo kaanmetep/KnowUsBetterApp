@@ -22,6 +22,8 @@ import {
   View,
 } from "react-native";
 import { captureRef } from "react-native-view-shot";
+import { useLanguage } from "../contexts/LanguageContext";
+import { getQuestionText } from "../utils/questionUtils";
 import Logo from "./Logo";
 
 interface GameFinishedProps {
@@ -45,6 +47,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
   opponentPlayerName,
   onComplete,
 }) => {
+  const { selectedLanguage } = useLanguage();
   const [timeRemaining, setTimeRemaining] = useState(displayDuration);
   const startTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<number | null>(null);
@@ -809,9 +812,12 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                             }}
                             numberOfLines={2}
                           >
-                            {round.question?.text ||
-                              round.questionText ||
-                              `Question ${index + 1}`}
+                            {round.question
+                              ? getQuestionText(
+                                  round.question,
+                                  selectedLanguage
+                                )
+                              : round.questionText || `Question ${index + 1}`}
                           </Text>
                           <View className="relative flex-shrink-0">
                             <View

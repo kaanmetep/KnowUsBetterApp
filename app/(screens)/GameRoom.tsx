@@ -11,13 +11,16 @@ import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import { getCategoryCoinsRequired } from "../services/categoryService";
 import socketService, { Room } from "../services/socketService";
+import { getQuestionText } from "../utils/questionUtils";
 
 const GameRoom = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { spendCoins } = useCoins();
+  const { selectedLanguage } = useLanguage();
 
   // Only get roomCode from params
   const roomCode = (params.roomCode as string) || "DEMO123";
@@ -44,7 +47,7 @@ const GameRoom = () => {
     percentage: number;
     completedRounds: any[];
   } | null>(null);
-  const [isStartingGame, setIsStartingGame] = useState(true);
+  const [isStartingGame, setIsStartingGame] = useState(false);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -493,7 +496,9 @@ const GameRoom = () => {
   console.log("🔍 Render check:", {
     gameState,
     hasQuestion: !!currentQuestion,
-    questionText: currentQuestion?.text,
+    questionText: currentQuestion
+      ? getQuestionText(currentQuestion, selectedLanguage)
+      : undefined,
   });
 
   // Render countdown screen

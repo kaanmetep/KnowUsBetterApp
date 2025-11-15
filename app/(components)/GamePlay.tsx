@@ -13,8 +13,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useLanguage } from "../contexts/LanguageContext";
 import socketService from "../services/socketService";
 import { getAvatarImage } from "../utils/avatarUtils";
+import { getQuestionText } from "../utils/questionUtils";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
 import RoundResult from "./RoundResult";
@@ -100,6 +102,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   roomCode,
   currentPlayerId,
 }) => {
+  const { selectedLanguage } = useLanguage();
   const [timerKey, setTimerKey] = useState(0); // Key to force timer reset
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -240,6 +243,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
               currentQuestion={currentQuestion}
               currentQuestionIndex={currentQuestionIndex}
               totalQuestions={totalQuestions}
+              selectedLanguage={selectedLanguage}
             />
           )}
           {/* Main Card */}
@@ -294,7 +298,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                     className="text-2xl font-bold text-gray-900 text-center leading-9"
                     style={{ fontFamily: "MerriweatherSans_700Bold" }}
                   >
-                    {currentQuestion.text}
+                    {getQuestionText(currentQuestion, selectedLanguage)}
                   </Text>
                 </View>
 

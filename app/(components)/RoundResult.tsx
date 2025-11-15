@@ -2,12 +2,15 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Language } from "../contexts/LanguageContext";
+import { getQuestionText } from "../utils/questionUtils";
 
 interface RoundResultProps {
   roundResult: any;
   currentQuestion: any;
   currentQuestionIndex: number;
   totalQuestions: number;
+  selectedLanguage: Language;
 }
 
 const RoundResult: React.FC<RoundResultProps> = ({
@@ -15,6 +18,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
   currentQuestion,
   currentQuestionIndex,
   totalQuestions,
+  selectedLanguage,
 }) => {
   const isLastQuestion = currentQuestionIndex + 1 === totalQuestions;
   const progressAnim = useRef(new Animated.Value(100)).current;
@@ -67,7 +71,10 @@ const RoundResult: React.FC<RoundResultProps> = ({
                 className="text-lg font-bold text-gray-900 leading-6"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                {roundResult.question?.text || currentQuestion.text}
+                {getQuestionText(
+                  roundResult.question || currentQuestion,
+                  selectedLanguage
+                )}
               </Text>
             </View>
           </View>

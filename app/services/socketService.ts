@@ -14,8 +14,12 @@ export interface RoomSettings {
 }
 
 export interface Question {
-  id: number;
-  text: string; // "Do you like coffee?"
+  id: string; // UUID from Supabase
+  texts: {
+    text_en: string;
+    text_tr: string;
+    text_es: string; // Spanish
+  };
   category: Category;
   haveAnswers: boolean; // true = has answers, false = only yes/no answers
   answers: string[]; // answers to the question
