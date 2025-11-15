@@ -5,11 +5,13 @@ import {
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
   Platform,
+  Pressable,
   Text,
   TouchableOpacity,
   View,
@@ -25,7 +27,6 @@ interface CoinPurchaseModalProps {
 
 interface CoinPackage {
   identifier: string;
-  title: string;
   coins: number;
   price: string;
   package: PurchasesPackage | null;
@@ -84,7 +85,6 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
 
           return {
             identifier: pkg.identifier,
-            title: getPackageTitle(coins),
             coins,
             price: pkg.product.priceString,
             package: pkg,
@@ -101,13 +101,6 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const getPackageTitle = (coins: number): string => {
-    if (coins >= 30) return "Mega Pack";
-    if (coins >= 20) return "Value Pack";
-    if (coins >= 10) return "Popular Pack";
-    return "Starter Pack";
   };
 
   const handlePurchase = async (coinPackage: CoinPackage) => {
@@ -188,184 +181,259 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       presentationStyle="overFullScreen"
       statusBarTranslucent={true}
     >
-      <View
+      <Pressable
         style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.7)",
           justifyContent: "center",
           alignItems: "center",
         }}
+        onPress={onClose}
       >
-        <View
+        <Pressable
           style={{
             width: "90%",
-            maxWidth: 400,
-            backgroundColor: "white",
-            borderRadius: 20,
-            padding: 20,
+            maxWidth: 420,
           }}
+          onPress={() => {}}
         >
-          {/* Header */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <Text
-              style={{ fontSize: 24, fontWeight: "bold", color: "#1f2937" }}
-            >
-              Buy Coins
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={{ fontSize: 24, color: "#1f2937" }}>×</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Shadow */}
+          <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-[20px]" />
 
-          {/* Content */}
-          <View>
-            {/* Loading State */}
-            {loading && (
-              <View className="py-12 items-center">
-                <ActivityIndicator size="large" color="#991b1b" />
+          {/* Content Container */}
+          <View className="relative bg-gray-100 border-2 border-gray-900 rounded-[20px] p-6">
+            {/* Header */}
+            <View className="flex-row justify-between items-center mb-6">
+              <View className="flex-row items-center gap-2">
+                <FontAwesome6 name="coins" size={24} color="#991b1b" />
                 <Text
-                  className="text-gray-600 mt-4"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  className="text-gray-900 text-2xl font-bold"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    letterSpacing: -0.5,
+                  }}
                 >
-                  Loading packages...
+                  Buy Coins
                 </Text>
               </View>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <View className="bg-red-50 border-2 border-red-200 rounded-xl p-3 mb-4">
+              <TouchableOpacity
+                onPress={onClose}
+                className="w-8 h-8 items-center justify-center"
+                activeOpacity={0.7}
+              >
                 <Text
-                  className="text-red-700 text-sm text-center"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  className="text-gray-900 text-3xl"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
-                  {error}
+                  ×
                 </Text>
-              </View>
-            )}
+              </TouchableOpacity>
+            </View>
 
-            {/* Packages */}
-            {!loading && packages.length > 0 && (
-              <View className="gap-3 mb-4">
-                {packages.map((pkg) => {
-                  const isPurchasing = purchasing === pkg.identifier;
-                  const isDisabled = purchasing !== null;
+            {/* Content */}
+            <View>
+              {/* Loading State */}
+              {loading && (
+                <View className="py-16 items-center">
+                  <ActivityIndicator size="large" color="#991b1b" />
+                  <Text
+                    className="text-gray-700 mt-4 text-base"
+                    style={{
+                      fontFamily: "MerriweatherSans_400Regular",
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    Loading packages...
+                  </Text>
+                </View>
+              )}
 
-                  return (
-                    <TouchableOpacity
-                      key={pkg.identifier}
-                      onPress={() => handlePurchase(pkg)}
-                      disabled={isDisabled || !pkg.package}
-                      activeOpacity={0.8}
+              {/* Error Message */}
+              {error && (
+                <View className="relative mb-4">
+                  <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                  <View className="relative bg-red-50 border-2 border-gray-900 rounded-xl p-4">
+                    <Text
+                      className="text-red-800 text-sm text-center font-semibold"
+                      style={{
+                        fontFamily: "MerriweatherSans_400Regular",
+                        letterSpacing: -0.2,
+                      }}
                     >
-                      <View className="relative">
-                        {/* Shadow */}
-                        <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                      {error}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-                        {/* Content */}
-                        <View
-                          className={`relative border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-between ${
-                            pkg.popular ? "bg-amber-50" : "bg-white"
-                          } ${isDisabled ? "opacity-50" : ""}`}
-                        >
-                          <View className="flex-1">
-                            <View className="flex-row items-center gap-2 mb-1">
-                              <Text
-                                className="text-lg font-bold text-gray-900"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                {pkg.title}
-                              </Text>
-                              {pkg.popular && (
-                                <View className="bg-amber-300 border border-amber-400 rounded-full px-2 py-0.5">
-                                  <Text
-                                    className="text-xs font-semibold text-amber-900"
-                                    style={{
-                                      fontFamily: "MerriweatherSans_700Bold",
-                                    }}
-                                  >
-                                    POPULAR
-                                  </Text>
-                                </View>
-                              )}
-                            </View>
-                            <View className="flex-row items-center gap-2">
-                              <FontAwesome6
-                                name="coins"
-                                size={16}
-                                color="#991b1b"
-                              />
-                              <Text
-                                className="text-gray-700 font-semibold"
-                                style={{
-                                  fontFamily: "MerriweatherSans_400Regular",
-                                }}
-                              >
-                                {pkg.coins.toLocaleString()} Coins
-                              </Text>
-                            </View>
-                          </View>
+              {/* Packages */}
+              {!loading && packages.length > 0 && (
+                <View className="gap-3 mb-4">
+                  {packages.map((pkg) => {
+                    const isPurchasing = purchasing === pkg.identifier;
+                    const isDisabled = purchasing !== null;
 
-                          <View className="items-end">
-                            <Text
-                              className="text-xl font-bold text-gray-900"
+                    // Determine gradient colors based on package - more vibrant for Gumroad style
+                    const getGradientColors = (): [string, string, string] => {
+                      if (pkg.popular) {
+                        return ["#fef3c7", "#fde68a", "#fbbf24"]; // Vibrant amber gradient for popular
+                      }
+                      if (pkg.coins >= 30) {
+                        return ["#fee2e2", "#fecaca", "#f87171"]; // Vibrant red gradient for large packs
+                      }
+                      if (pkg.coins >= 20) {
+                        return ["#dbeafe", "#bfdbfe", "#60a5fa"]; // Vibrant blue gradient for medium packs
+                      }
+                      return ["#ffffff", "#f9fafb", "#f3f4f6"]; // Clean white gradient for small packs
+                    };
+
+                    return (
+                      <TouchableOpacity
+                        key={pkg.identifier}
+                        onPress={() => handlePurchase(pkg)}
+                        disabled={isDisabled || !pkg.package}
+                        activeOpacity={0.85}
+                      >
+                        <View className="relative">
+                          {/* Shadow */}
+                          <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[16px]" />
+
+                          {/* Content with Gradient - Horizontal long layout */}
+                          <View
+                            className={`relative border-2 border-gray-900 rounded-[16px] overflow-hidden ${
+                              isDisabled ? "opacity-50" : ""
+                            }`}
+                          >
+                            <LinearGradient
+                              colors={getGradientColors()}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
                               style={{
-                                fontFamily: "MerriweatherSans_700Bold",
+                                padding: 14,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between",
                               }}
                             >
-                              {pkg.price}
-                            </Text>
-                            {isPurchasing && (
-                              <ActivityIndicator
-                                size="small"
-                                color="#991b1b"
-                                className="mt-1"
-                              />
-                            )}
+                              {/* Popular Badge - Top Right */}
+                              {pkg.popular && (
+                                <View className="absolute top-2 right-2 z-10">
+                                  <View className="relative">
+                                    <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                                    <View className="relative bg-amber-300 border-2 border-gray-900 rounded-full px-2 py-0.5">
+                                      <Text
+                                        className="text-amber-900 text-[10px] font-bold"
+                                        style={{
+                                          fontFamily:
+                                            "MerriweatherSans_700Bold",
+                                        }}
+                                      >
+                                        ⭐ POPULAR
+                                      </Text>
+                                    </View>
+                                  </View>
+                                </View>
+                              )}
+
+                              {/* Left Side - Coin Info */}
+                              <View className="flex-1 flex-row items-center gap-3">
+                                {/* Coin Icon */}
+                                <View className="relative">
+                                  <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                                  <View className="relative bg-white border-2 border-gray-900 rounded-full p-2">
+                                    <FontAwesome6
+                                      name="coins"
+                                      size={20}
+                                      color="#991b1b"
+                                    />
+                                  </View>
+                                </View>
+
+                                {/* Coin Amount */}
+                                <View>
+                                  <Text
+                                    className="text-gray-900 text-2xl font-bold"
+                                    style={{
+                                      fontFamily: "MerriweatherSans_700Bold",
+                                      letterSpacing: -0.4,
+                                    }}
+                                  >
+                                    {pkg.coins.toLocaleString()}
+                                  </Text>
+                                  <Text
+                                    className="text-gray-700 text-sm"
+                                    style={{
+                                      fontFamily: "MerriweatherSans_400Regular",
+                                      letterSpacing: -0.2,
+                                    }}
+                                  >
+                                    Coins
+                                  </Text>
+                                </View>
+                              </View>
+
+                              {/* Right Side - Price */}
+                              <View className="items-end">
+                                <Text
+                                  className="text-gray-900 text-2xl font-bold"
+                                  style={{
+                                    fontFamily: "MerriweatherSans_700Bold",
+                                    letterSpacing: -0.6,
+                                  }}
+                                >
+                                  {pkg.price}
+                                </Text>
+                                {isPurchasing && (
+                                  <ActivityIndicator
+                                    size="small"
+                                    color="#991b1b"
+                                    className="mt-1.5"
+                                  />
+                                )}
+                              </View>
+                            </LinearGradient>
                           </View>
                         </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
 
-            {/* Restore Purchases */}
-            <TouchableOpacity
-              onPress={handleRestore}
-              disabled={loading || purchasing !== null}
-              className="mt-4"
-            >
-              <Text
-                className="text-center text-gray-600 text-sm underline"
-                style={{ fontFamily: "MerriweatherSans_400Regular" }}
+              {/* Restore Purchases */}
+              <TouchableOpacity
+                onPress={handleRestore}
+                disabled={loading || purchasing !== null}
+                className="mt-2"
+                activeOpacity={0.7}
               >
-                Restore Purchases
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  className="text-center text-gray-700 text-sm"
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Restore Purchases
+                </Text>
+              </TouchableOpacity>
 
-            {/* Info Text */}
-            <Text
-              className="text-center text-gray-500 text-xs mt-4"
-              style={{ fontFamily: "MerriweatherSans_400Regular" }}
-            >
-              {Platform.OS === "ios"
-                ? "Payment will be charged to your Apple ID account"
-                : "Payment will be charged to your Google Play account"}
-            </Text>
+              {/* Info Text */}
+              <Text
+                className="text-center text-gray-600 text-xs mt-4"
+                style={{
+                  fontFamily: "MerriweatherSans_400Regular",
+                  lineHeight: 16,
+                }}
+              >
+                {Platform.OS === "ios"
+                  ? "Payment will be charged to your Apple ID account"
+                  : "Payment will be charged to your Google Play account"}
+              </Text>
+            </View>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
