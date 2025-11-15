@@ -57,7 +57,7 @@ const NameInput: React.FC<NameInputProps> = ({
                 outline: "none",
               } as any
             }
-            maxLength={20}
+            maxLength={16}
           />
         </View>
       </View>

@@ -459,7 +459,11 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                         >
                           <TextInput
                             value={roomCode}
-                            onChangeText={setRoomCode}
+                            onChangeText={(text) => {
+                              // Convert to uppercase and limit to 16 characters
+                              const upperText = text.toUpperCase().slice(0, 16);
+                              setRoomCode(upperText);
+                            }}
                             onFocus={() => setRoomCodeFocused(true)}
                             onBlur={() => setRoomCodeFocused(false)}
                             placeholder="Enter room code"
@@ -474,6 +478,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                                 outline: "none",
                               } as any
                             }
+                            maxLength={16}
                           />
                         </View>
                       </View>
