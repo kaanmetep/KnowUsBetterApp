@@ -22,7 +22,11 @@ export interface Question {
   };
   category: Category;
   haveAnswers: boolean; // true = has answers, false = only yes/no answers
-  answers: string[]; // answers to the question
+  answers: {
+    answers_en: string[];
+    answers_tr: string[];
+    answers_es: string[];
+  } | null; // answers with translations (JSONB) or null for yes/no questions
 }
 
 export interface Player {

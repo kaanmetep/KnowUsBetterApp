@@ -11,7 +11,11 @@ import {
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
 import socketService from "../services/socketService";
-import { getQuestionText } from "../utils/questionUtils";
+import {
+  getQuestionAnswers,
+  getQuestionText,
+  getYesNoText,
+} from "../utils/questionUtils";
 import ChatMessages from "./ChatMessages";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
@@ -57,6 +61,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   currentPlayerId,
 }) => {
   const { selectedLanguage } = useLanguage();
+  const yesNoText = getYesNoText(selectedLanguage);
   const [timerKey, setTimerKey] = useState(0); // Key to force timer reset
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -176,12 +181,15 @@ const GamePlay: React.FC<GamePlayProps> = ({
                               if (!currentQuestion.haveAnswers) {
                                 // Auto-select "yes" for yes/no questions
                                 onSelectAnswer("yes");
-                              } else if (
-                                currentQuestion.answers &&
-                                currentQuestion.answers.length > 0
-                              ) {
+                              } else {
                                 // Auto-select first answer for multiple choice
-                                onSelectAnswer(currentQuestion.answers[0]);
+                                const answers = getQuestionAnswers(
+                                  currentQuestion,
+                                  selectedLanguage
+                                );
+                                if (answers.length > 0) {
+                                  onSelectAnswer(answers[0]);
+                                }
                               }
                             }
                           }}
@@ -245,7 +253,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                   fontFamily: "MerriweatherSans_700Bold",
                                 }}
                               >
-                                Yes
+                                {yesNoText.yes}
                               </Text>
                             </View>
                           </View>
@@ -279,7 +287,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                   fontFamily: "MerriweatherSans_700Bold",
                                 }}
                               >
-                                No
+                                {yesNoText.no}
                               </Text>
                             </View>
                           </View>
@@ -288,43 +296,44 @@ const GamePlay: React.FC<GamePlayProps> = ({
                     ) : (
                       <>
                         {/* Custom Answers from question.answers array */}
-                        {currentQuestion.answers?.map(
-                          (answer: string, index: number) => (
-                            <TouchableOpacity
-                              key={index}
-                              onPress={(e) => {
-                                e.stopPropagation();
-                                if (!hasSubmitted) {
-                                  onSelectAnswer(answer);
-                                }
-                              }}
-                              disabled={hasSubmitted}
-                              activeOpacity={0.8}
-                            >
-                              <View className="relative">
-                                <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-xl" />
-                                <View
-                                  className={`relative border-4 border-gray-900 rounded-xl py-4 px-6 ${
-                                    selectedAnswer === answer
-                                      ? "bg-[#ffe4e6]"
-                                      : hasSubmitted
-                                      ? "bg-gray-200"
-                                      : "bg-primary"
-                                  }`}
+                        {getQuestionAnswers(
+                          currentQuestion,
+                          selectedLanguage
+                        ).map((answer: string, index: number) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              if (!hasSubmitted) {
+                                onSelectAnswer(answer);
+                              }
+                            }}
+                            disabled={hasSubmitted}
+                            activeOpacity={0.8}
+                          >
+                            <View className="relative">
+                              <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-xl" />
+                              <View
+                                className={`relative border-4 border-gray-900 rounded-xl py-4 px-6 ${
+                                  selectedAnswer === answer
+                                    ? "bg-[#ffe4e6]"
+                                    : hasSubmitted
+                                    ? "bg-gray-200"
+                                    : "bg-primary"
+                                }`}
+                              >
+                                <Text
+                                  className="text-gray-900 text-lg font-bold"
+                                  style={{
+                                    fontFamily: "MerriweatherSans_700Bold",
+                                  }}
                                 >
-                                  <Text
-                                    className="text-gray-900 text-lg font-bold"
-                                    style={{
-                                      fontFamily: "MerriweatherSans_700Bold",
-                                    }}
-                                  >
-                                    {answer}
-                                  </Text>
-                                </View>
+                                  {answer}
+                                </Text>
                               </View>
-                            </TouchableOpacity>
-                          )
-                        )}
+                            </View>
+                          </TouchableOpacity>
+                        ))}
                       </>
                     )}
                   </View>
