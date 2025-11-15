@@ -465,6 +465,8 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                             placeholder="Enter room code"
                             placeholderTextColor="#9ca3af"
                             autoCapitalize="characters"
+                            returnKeyType="done"
+                            onSubmitEditing={handleJoin}
                             className="px-4 py-3 text-gray-900 text-base"
                             style={
                               {
