@@ -863,7 +863,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
           </View>
 
           {/* Save and Share Buttons (Not in shareable content) */}
-          <View className="mb-3 flex-row gap-3">
+          <View className="my-6 flex-row gap-3">
             {/* Save Button */}
             <TouchableOpacity
               onPress={handleSave}
