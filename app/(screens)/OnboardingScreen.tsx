@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import LoadingScreen from "../(components)/LoadingScreen";
 import Logo from "../(components)/Logo";
 import SettingsModal from "../(components)/SettingsModal";
@@ -34,6 +35,7 @@ const OnboardingPage = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedHeart, setSelectedHeart] = useState<any>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   // Button pulse animation
   const buttonPulseAnim = useRef(new Animated.Value(1)).current;
@@ -647,10 +649,20 @@ const OnboardingPage = () => {
         contentFit="contain"
       />
 
+      {/* Coin Purchase Modal - EN SONDA OLMALI (EN ÜSTTE RENDER EDİLİR) */}
+      <CoinPurchaseModal
+        visible={showPurchaseModal}
+        onClose={() => setShowPurchaseModal(false)}
+      />
+
       {/* Settings Modal */}
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
+        onBuyCoins={() => {
+          setShowSettingsModal(false);
+          setShowPurchaseModal(true);
+        }}
       />
     </View>
   );

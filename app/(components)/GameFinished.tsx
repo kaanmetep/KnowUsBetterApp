@@ -7,11 +7,8 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import * as MediaLibrary from "expo-media-library";
-import * as Sharing from "expo-sharing";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   AppState,
   AppStateStatus,
@@ -21,7 +18,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { captureRef } from "react-native-view-shot";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getQuestionText } from "../utils/questionUtils";
 import Logo from "./Logo";
@@ -54,9 +50,6 @@ const GameFinished: React.FC<GameFinishedProps> = ({
   const isCompletedRef = useRef<boolean>(false);
   const durationRef = useRef<number>(displayDuration);
   const onCompleteRef = useRef(onComplete);
-  const shareableContentRef = useRef<View>(null);
-  const [isSharing, setIsSharing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const countdownTranslateY = useRef(new Animated.Value(0)).current;
   const countdownScale = useRef(new Animated.Value(1)).current;
 
@@ -299,7 +292,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     return () => clearTimeout(initialDelay);
   }, []);
 
-  // Percentage blur animation - completely blurry start, slow reveal over 3-4 seconds
+  // Percentage blur animation - completely blurry start, slow reveal.
   useEffect(() => {
     // Start with maximum blur (opacity 1, intensity 20)
     blurOverlayOpacity.setValue(1);
@@ -334,96 +327,6 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       blurIntensity.removeListener(blurIntensityListener);
     };
   }, [blurOverlayOpacity, blurIntensity]);
-
-  // Handle share functionality
-  const handleShare = async () => {
-    if (!shareableContentRef.current) {
-      return;
-    }
-
-    try {
-      setIsSharing(true);
-
-      // Wait a bit for images to load before capturing
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const uri = await captureRef(shareableContentRef, {
-        format: "png",
-        quality: 1,
-        result: "tmpfile",
-        snapshotContentContainer: false,
-      });
-
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        await Sharing.shareAsync(uri);
-      } else {
-        Alert.alert(
-          "Sharing not available",
-          "Sharing is not available on this device."
-        );
-      }
-    } catch (error: any) {
-      console.error("Error sharing:", error);
-      Alert.alert("Error", "Failed to share image. Please try again.");
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  // Handle save functionality
-  const handleSave = async () => {
-    if (!shareableContentRef.current) {
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-
-      // Request permission
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert(
-          "Permission needed",
-          "Please grant permission to save images to your gallery."
-        );
-        return;
-      }
-
-      // Wait a bit for images to load before capturing
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const uri = await captureRef(shareableContentRef, {
-        format: "png",
-        quality: 1,
-        result: "tmpfile",
-        snapshotContentContainer: false,
-      });
-
-      // Save to media library
-      const asset = await MediaLibrary.createAssetAsync(uri);
-
-      // Try to create album, or add to existing one
-      try {
-        const album = await MediaLibrary.getAlbumAsync("KnowUsBetter");
-        if (album) {
-          await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
-        } else {
-          await MediaLibrary.createAlbumAsync("KnowUsBetter", asset, false);
-        }
-      } catch (error) {
-        // If album creation fails, just save the asset
-        console.log("Album creation failed, saving to gallery:", error);
-      }
-
-      Alert.alert("Success", "Results saved to gallery!");
-    } catch (error: any) {
-      console.error("Error saving:", error);
-      Alert.alert("Error", "Failed to save image. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   if (!fontsLoaded) {
     return null;
@@ -594,39 +497,194 @@ const GameFinished: React.FC<GameFinishedProps> = ({
         </View>
 
         <View className="px-6">
-          {/* Shareable Content - This is what gets captured for sharing */}
-          <View
-            ref={shareableContentRef}
-            collapsable={false}
-            className="bg-primary"
-            style={{ backgroundColor: "#FAFAFA", padding: 6 }}
+          {/*Match Score Card */}
+          <Animated.View
+            className="mb-4 relative"
+            style={{
+              opacity: matchCardOpacity,
+              transform: [
+                { scale: matchCardScale },
+                { translateY: matchCardTranslateY },
+              ],
+            }}
           >
-            {/*Match Score Card */}
+            <View className="relative">
+              <View
+                className="relative rounded-2xl overflow-hidden"
+                style={{
+                  borderWidth: 3,
+                  borderColor: "#000000",
+                  shadowColor: "#000000",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.12,
+                  shadowRadius: 20,
+                  elevation: 6,
+                }}
+              >
+                <LinearGradient
+                  colors={["#fef3f2", "#fff5f7"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                  }}
+                />
+                <View className="relative p-8">
+                  <View className="items-center mb-6">
+                    <View className="relative items-center justify-center">
+                      <View className="relative overflow-hidden rounded-2xl">
+                        <LinearGradient
+                          colors={
+                            resultStyle.gradientColors as [string, string]
+                          }
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={{
+                            position: "absolute",
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                          }}
+                        />
+                        <View className="relative px-10 py-8">
+                          <View className="relative items-center justify-center">
+                            <View className="flex-row items-baseline justify-center gap-2">
+                              <Text
+                                className="text-gray-900 text-7xl font-bold"
+                                style={{
+                                  fontFamily: "MerriweatherSans_700Bold",
+                                }}
+                              >
+                                {percentage}
+                              </Text>
+                              <Text
+                                className="text-gray-900 text-5xl font-bold"
+                                style={{
+                                  fontFamily: "MerriweatherSans_700Bold",
+                                }}
+                              >
+                                %
+                              </Text>
+                            </View>
+                            <Text
+                              className="text-gray-600 text-xs font-semibold mt-3 uppercase tracking-widest"
+                              style={{
+                                fontFamily: "MerriweatherSans_700Bold",
+                                letterSpacing: 3,
+                              }}
+                            >
+                              Match Score
+                            </Text>
+                          </View>
+
+                          <Animated.View
+                            style={{
+                              position: "absolute",
+                              top: -10,
+                              left: -20,
+                              right: -20,
+                              bottom: -10,
+                              opacity: blurOverlayOpacity,
+                            }}
+                            pointerEvents="none"
+                          >
+                            <BlurView
+                              intensity={currentBlurIntensity}
+                              tint="light"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                              }}
+                            />
+                          </Animated.View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="mb-4">
+                    <Text
+                      className="text-center text-red-950 text-base leading-6 italic px-2"
+                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                    >
+                      {resultStyle.romanticQuote}
+                    </Text>
+                  </View>
+
+                  <View className="flex-row items-center justify-center mb-6">
+                    <View className="h-px bg-gray-300 flex-1" />
+                    <View className="mx-3">
+                      <FontAwesome6
+                        name="heart"
+                        size={20}
+                        color={resultStyle.heartColor}
+                      />
+                    </View>
+                    <View className="h-px bg-gray-300 flex-1" />
+                  </View>
+
+                  <View className="bg-white/60 rounded-xl p-4 border-2 border-gray-900/20 mb-6">
+                    <View className="items-center">
+                      <Text
+                        className="text-gray-900 text-lg font-bold mb-1"
+                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                      >
+                        {matchScore} / {totalQuestions} Matches
+                      </Text>
+                      <View className="flex-row items-center gap-2 mt-2">
+                        <View className="relative">
+                          <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                        </View>
+                        <Text
+                          className="text-gray-700 text-sm font-semibold"
+                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                        >
+                          {currentPlayerName} & {opponentPlayerName}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View className="items-center">
+                    <Logo size="mini" />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Completed Rounds Summary */}
+          {completedRounds && completedRounds.length > 0 && (
             <Animated.View
-              className="mb-4 relative"
+              className="mb-3"
               style={{
-                opacity: matchCardOpacity,
+                opacity: roundsCardOpacity,
                 transform: [
-                  { scale: matchCardScale },
-                  { translateY: matchCardTranslateY },
+                  { scale: roundsCardScale },
+                  { translateY: roundsCardTranslateY },
                 ],
               }}
             >
               <View className="relative">
                 <View
-                  className="relative rounded-2xl overflow-hidden"
+                  className="relative rounded-xl p-3 overflow-hidden"
                   style={{
                     borderWidth: 3,
                     borderColor: "#000000",
                     shadowColor: "#000000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.12,
-                    shadowRadius: 20,
-                    elevation: 6,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 12,
+                    elevation: 3,
                   }}
                 >
                   <LinearGradient
-                    colors={["#fef3f2", "#fff5f7"]}
+                    colors={["#f0f9ff", "#f5f3ff"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={{
@@ -637,277 +695,62 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                       bottom: 0,
                     }}
                   />
-                  <View className="relative p-8">
-                    <View className="items-center mb-6">
-                      <View className="relative items-center justify-center">
-                        <View className="relative overflow-hidden rounded-2xl">
-                          <LinearGradient
-                            colors={
-                              resultStyle.gradientColors as [string, string]
-                            }
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{
-                              position: "absolute",
-                              left: 0,
-                              right: 0,
-                              top: 0,
-                              bottom: 0,
-                            }}
-                          />
-                          <View className="relative px-10 py-8">
-                            <View className="relative items-center justify-center">
-                              <View className="flex-row items-baseline justify-center gap-2">
-                                <Text
-                                  className="text-gray-900 text-7xl font-bold"
-                                  style={{
-                                    fontFamily: "MerriweatherSans_700Bold",
-                                  }}
-                                >
-                                  {percentage}
-                                </Text>
-                                <Text
-                                  className="text-gray-900 text-5xl font-bold"
-                                  style={{
-                                    fontFamily: "MerriweatherSans_700Bold",
-                                  }}
-                                >
-                                  %
-                                </Text>
-                              </View>
-                              <Text
-                                className="text-gray-600 text-xs font-semibold mt-3 uppercase tracking-widest"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                  letterSpacing: 3,
-                                }}
-                              >
-                                Match Score
-                              </Text>
-                            </View>
-
-                            <Animated.View
-                              style={{
-                                position: "absolute",
-                                top: -10,
-                                left: -20,
-                                right: -20,
-                                bottom: -10,
-                                opacity: blurOverlayOpacity,
-                              }}
-                              pointerEvents="none"
-                            >
-                              <BlurView
-                                intensity={currentBlurIntensity}
-                                tint="light"
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                }}
-                              />
-                            </Animated.View>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-
-                    <View className="mb-4">
-                      <Text
-                        className="text-center text-red-950 text-base leading-6 italic px-2"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  <View className="relative gap-1.5">
+                    {completedRounds.map((round: any, index: number) => (
+                      <View
+                        key={index}
+                        className="flex-row items-start justify-between gap-2"
                       >
-                        {resultStyle.romanticQuote}
-                      </Text>
-                    </View>
-
-                    <View className="flex-row items-center justify-center mb-6">
-                      <View className="h-px bg-gray-300 flex-1" />
-                      <View className="mx-3">
-                        <FontAwesome6
-                          name="heart"
-                          size={20}
-                          color={resultStyle.heartColor}
-                        />
-                      </View>
-                      <View className="h-px bg-gray-300 flex-1" />
-                    </View>
-
-                    <View className="bg-white/60 rounded-xl p-4 border-2 border-gray-900/20 mb-6">
-                      <View className="items-center">
                         <Text
-                          className="text-gray-900 text-lg font-bold mb-1"
-                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                          className="text-gray-900 text-xs flex-1"
+                          style={{
+                            fontFamily: "MerriweatherSans_400Regular",
+                          }}
+                          numberOfLines={2}
                         >
-                          {matchScore} / {totalQuestions} Matches
+                          {round.question
+                            ? getQuestionText(round.question, selectedLanguage)
+                            : round.questionText || `Question ${index + 1}`}
                         </Text>
-                        <View className="flex-row items-center gap-2 mt-2">
-                          <View className="relative">
-                            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                          </View>
-                          <Text
-                            className="text-gray-700 text-sm font-semibold"
-                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                        <View className="relative flex-shrink-0">
+                          <View
+                            className={`relative rounded-md px-2 py-1 flex-row items-center gap-1 ${
+                              round.isMatched ? "bg-[#ecfdf5]" : "bg-[#fef2f2]"
+                            }`}
+                            style={{
+                              shadowColor: "#000000",
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.06,
+                              shadowRadius: 4,
+                              elevation: 2,
+                            }}
                           >
-                            {currentPlayerName} & {opponentPlayerName}
-                          </Text>
+                            <FontAwesome6
+                              name={
+                                round.isMatched
+                                  ? "heart-circle-check"
+                                  : "heart-circle-xmark"
+                              }
+                              size={12}
+                              color={round.isMatched ? "#16a34a" : "#991b1b"}
+                            />
+                            <Text
+                              className="text-gray-900 text-xs font-bold"
+                              style={{
+                                fontFamily: "MerriweatherSans_700Bold",
+                              }}
+                            >
+                              {round.isMatched ? "Match" : "No Match"}
+                            </Text>
+                          </View>
                         </View>
                       </View>
-                    </View>
-
-                    <View className="items-center">
-                      <Logo size="mini" />
-                    </View>
+                    ))}
                   </View>
                 </View>
               </View>
             </Animated.View>
-
-            {/* Completed Rounds Summary */}
-            {completedRounds && completedRounds.length > 0 && (
-              <Animated.View
-                className="mb-3"
-                style={{
-                  opacity: roundsCardOpacity,
-                  transform: [
-                    { scale: roundsCardScale },
-                    { translateY: roundsCardTranslateY },
-                  ],
-                }}
-              >
-                <View className="relative">
-                  <View
-                    className="relative rounded-xl p-3 overflow-hidden"
-                    style={{
-                      borderWidth: 3,
-                      borderColor: "#000000",
-                      shadowColor: "#000000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.08,
-                      shadowRadius: 12,
-                      elevation: 3,
-                    }}
-                  >
-                    <LinearGradient
-                      colors={["#f0f9ff", "#f5f3ff"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                      }}
-                    />
-                    <View className="relative gap-1.5">
-                      {completedRounds.map((round: any, index: number) => (
-                        <View
-                          key={index}
-                          className="flex-row items-start justify-between gap-2"
-                        >
-                          <Text
-                            className="text-gray-900 text-xs flex-1"
-                            style={{
-                              fontFamily: "MerriweatherSans_400Regular",
-                            }}
-                            numberOfLines={2}
-                          >
-                            {round.question
-                              ? getQuestionText(
-                                  round.question,
-                                  selectedLanguage
-                                )
-                              : round.questionText || `Question ${index + 1}`}
-                          </Text>
-                          <View className="relative flex-shrink-0">
-                            <View
-                              className={`relative rounded-md px-2 py-1 flex-row items-center gap-1 ${
-                                round.isMatched
-                                  ? "bg-[#ecfdf5]"
-                                  : "bg-[#fef2f2]"
-                              }`}
-                              style={{
-                                shadowColor: "#000000",
-                                shadowOffset: { width: 0, height: 1 },
-                                shadowOpacity: 0.06,
-                                shadowRadius: 4,
-                                elevation: 2,
-                              }}
-                            >
-                              <FontAwesome6
-                                name={
-                                  round.isMatched
-                                    ? "heart-circle-check"
-                                    : "heart-circle-xmark"
-                                }
-                                size={12}
-                                color={round.isMatched ? "#16a34a" : "#991b1b"}
-                              />
-                              <Text
-                                className="text-gray-900 text-xs font-bold"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                {round.isMatched ? "Match" : "No Match"}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-              </Animated.View>
-            )}
-          </View>
-
-          {/* Save and Share Buttons (Not in shareable content) */}
-          <View className="my-6 flex-row gap-3">
-            {/* Save Button */}
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={isSaving}
-              className="relative flex-1"
-              activeOpacity={0.8}
-            >
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-              <View
-                className="relative bg-[#e0f2fe] border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-center gap-2"
-                style={{ minHeight: 56 }}
-              >
-                <FontAwesome6 name="floppy-disk" size={18} color="#0369a1" />
-                <Text
-                  className="text-gray-900 text-base font-bold"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {isSaving ? "Saving..." : "Save Results"}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Share Button */}
-            <TouchableOpacity
-              onPress={handleShare}
-              disabled={isSharing}
-              className="relative flex-1"
-              activeOpacity={0.8}
-            >
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-              <View
-                className="relative bg-[#fef3c7] border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-center gap-2"
-                style={{ minHeight: 56 }}
-              >
-                <FontAwesome6 name="share-nodes" size={18} color="#991b1b" />
-                <Text
-                  className="text-gray-900 text-base font-bold"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {isSharing ? "Preparing..." : "Share Results"}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+          )}
         </View>
       </ScrollView>
     </View>

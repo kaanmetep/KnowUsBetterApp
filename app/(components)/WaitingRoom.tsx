@@ -1,3 +1,4 @@
+import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -29,6 +30,7 @@ import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
 import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
+import SettingsModal from "./SettingsModal";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
@@ -55,6 +57,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const { selectedLanguage } = useLanguage();
   const { coins } = useCoins();
@@ -235,7 +238,17 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         onClose={() => setShowPurchaseModal(false)}
       />
 
-      {/* Header Container with Language Selector and Coin Display */}
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onBuyCoins={() => {
+          setShowSettingsModal(false);
+          setShowPurchaseModal(true);
+        }}
+      />
+
+      {/* Header Container with Language Selector, Settings and Coin Display */}
       <View
         className="absolute top-0 left-0 right-0 z-50 bg-primary backdrop-blur-sm  pb-10"
         style={{ minHeight: 100 }}
@@ -245,7 +258,21 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           style="absolute"
           position="top-left"
         />
-        <LanguageSelector position="top-right" />
+        {/* Language Selector & Settings Button Container */}
+        <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
+          <LanguageSelector position="none" />
+          {/* Settings Button */}
+          <View className="relative">
+            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+            <TouchableOpacity
+              onPress={() => setShowSettingsModal(true)}
+              activeOpacity={0.8}
+              className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
+            >
+              <Feather name="settings" size={17} color="black" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       <ScrollView
