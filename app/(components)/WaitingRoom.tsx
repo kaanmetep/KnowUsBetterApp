@@ -15,7 +15,12 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
-import { Category, getCategoryById } from "../services/categoryService";
+import { useLanguage } from "../contexts/LanguageContext";
+import {
+  Category,
+  getCategoryById,
+  getCategoryLabel,
+} from "../services/categoryService";
 import { Room } from "../services/socketService";
 import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
@@ -50,6 +55,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [copied, setCopied] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
+  const { selectedLanguage } = useLanguage();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
@@ -155,8 +161,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const category = room.settings?.category || "just_friends";
   const displayCategoryInfo = categoryInfo || {
     id: category,
-    name: category,
-    label: "Unknown",
+    labels: {},
     color: "#f3f4f6",
     iconName: "handshake",
     iconType: "FontAwesome6" as const,
@@ -305,7 +310,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   className="text-gray-900 font-semibold"
                   style={{ fontFamily: "MerriweatherSans_400Regular" }}
                 >
-                  {displayCategoryInfo.label}
+                  {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
                 </Text>
               </View>
             </View>

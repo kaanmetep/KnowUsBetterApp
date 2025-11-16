@@ -13,7 +13,12 @@ import {
   View,
 } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
-import { Category, getCategories } from "../services/categoryService";
+import { useLanguage } from "../contexts/LanguageContext";
+import {
+  Category,
+  getCategories,
+  getCategoryLabel,
+} from "../services/categoryService";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
 import ButtonLoading from "./ButtonLoading";
@@ -46,6 +51,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const { coins } = useCoins();
+  const { selectedLanguage } = useLanguage();
   const loadingOpacity = useRef(new Animated.Value(0.4)).current;
 
   // Load categories from Supabase
@@ -203,7 +209,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
         className="flex-1"
       >
         <Pressable
-          className="flex-1 bg-black/50 justify-center items-center px-6"
+          className="flex-1 bg-black/50 justify-center items-center px-5"
           onPress={handleClose}
         >
           <Pressable
@@ -545,13 +551,14 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               }}
                             >
                               <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center gap-3 flex-1">
+                                <View className="flex-row items-center flex-1">
                                   {category.iconType ===
                                   "MaterialCommunityIcons" ? (
                                     <MaterialCommunityIcons
                                       name={category.iconName as any}
                                       size={20}
                                       color="black"
+                                      className="ml-[1.5px] -mr-[2px]"
                                     />
                                   ) : (
                                     <FontAwesome6
@@ -561,17 +568,19 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                     />
                                   )}
                                   <Text
-                                    className="text-lg font-semibold text-gray-900"
+                                    className="text-lg font-semibold text-gray-900 ml-[6px]"
                                     style={{
                                       fontFamily: "MerriweatherSans_400Regular",
                                     }}
                                   >
-                                    {category.label}
+                                    {getCategoryLabel(
+                                      category,
+                                      selectedLanguage
+                                    )}
                                   </Text>
                                   {category.isPremium && (
                                     <View className="relative">
-                                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-md" />
-                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5">
+                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5 ml-[2px]">
                                         <Text
                                           className="text-gray-900 text-xs font-bold"
                                           style={{ letterSpacing: -0.2 }}
@@ -590,7 +599,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                   )}
                                 </View>
                                 {selectedCategory === category.id && (
-                                  <View className="w-6 h-6 rounded-full bg-gray-900 items-center justify-center">
+                                  <View className="w-6 h-6 rounded-full bg-gray-900 items-center justify-center -mr-2.5">
                                     <Text className="text-white text-sm font-bold">
                                       ✓
                                     </Text>
