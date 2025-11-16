@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import Svg, { Rect } from "react-native-svg";
+import { useCoins } from "../contexts/CoinContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   Category,
@@ -56,10 +57,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const { selectedLanguage } = useLanguage();
+  const { coins } = useCoins();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
   const dashAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const coinWarningPulseAnim = useRef(new Animated.Value(1)).current;
 
   const participants = room.players || [];
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
@@ -147,6 +150,38 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }
   }, [canStartGame, startButtonGlowAnim]);
 
+  // Coin warning pulse animation
+  useEffect(() => {
+    if (
+      categoryInfo?.isPremium &&
+      categoryInfo.coinsRequired &&
+      coins < categoryInfo.coinsRequired
+    ) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(coinWarningPulseAnim, {
+            toValue: 0.6,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(coinWarningPulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      return () => {
+        pulseAnimation.stop();
+      };
+    } else {
+      coinWarningPulseAnim.setValue(1);
+    }
+  }, [categoryInfo, coins, coinWarningPulseAnim]);
+
   // Load category info from Supabase
   useEffect(() => {
     const loadCategoryInfo = async () => {
@@ -200,15 +235,18 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         onClose={() => setShowPurchaseModal(false)}
       />
 
-      {/* Language Selector */}
-      <LanguageSelector position="top-right" />
-
-      {/* Coin Display and Buy Button */}
-      <CoinBalanceDisplay
-        onBuyCoins={handleBuyCoins}
-        style="absolute"
-        position="top-left"
-      />
+      {/* Header Container with Language Selector and Coin Display */}
+      <View
+        className="absolute top-0 left-0 right-0 z-50 bg-primary backdrop-blur-sm  pb-10"
+        style={{ minHeight: 100 }}
+      >
+        <CoinBalanceDisplay
+          onBuyCoins={handleBuyCoins}
+          style="absolute"
+          position="top-left"
+        />
+        <LanguageSelector position="top-right" />
+      </View>
 
       <ScrollView
         className="flex-1"
@@ -314,6 +352,32 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 </Text>
               </View>
             </View>
+
+            {/* Coin Warning for Premium Categories */}
+            {categoryInfo?.isPremium &&
+              categoryInfo.coinsRequired &&
+              coins < categoryInfo.coinsRequired &&
+              !isStartingGame && (
+                <Animated.View
+                  style={{
+                    opacity: coinWarningPulseAnim,
+                    marginTop: 8,
+                  }}
+                >
+                  <View className="relative">
+                    <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
+                    <View className="relative bg-red-200 border-2 border-red-600 rounded-lg px-2.5 py-1.5 flex-row items-center gap-1.5">
+                      <Text
+                        className="text-red-900 text-xs font-semibold"
+                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                      >
+                        Need {categoryInfo.coinsRequired} coins, you have{" "}
+                        {coins}
+                      </Text>
+                    </View>
+                  </View>
+                </Animated.View>
+              )}
           </View>
 
           {/* Participants Section */}

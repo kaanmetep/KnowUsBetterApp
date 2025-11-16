@@ -432,7 +432,9 @@ const GameRoom = () => {
             } else {
               Alert.alert(
                 "Not Enough Coins",
-                `You need ${coinsRequired} coins to start this game.`
+                `You need ${coinsRequired} ${
+                  coinsRequired === 1 ? "coin" : "coins"
+                } to start this game.`
               );
             }
             return;
