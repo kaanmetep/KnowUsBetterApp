@@ -34,8 +34,7 @@ export interface Player {
   name: string;
   avatar: string;
   isHost: boolean;
-  score: number;
-  answeredQuestions: any[];
+  hasAnswered: boolean; // Has answered current question
 }
 
 export interface Room {
@@ -129,7 +128,11 @@ class SocketService {
 
       // Timeout
       setTimeout(() => {
-        reject(new Error("Timeout: Room not created"));
+        reject(
+          new Error(
+            "Looks like the room couldn’t be created. Could you try again? If it still doesn’t work, just let us know and we’ll fix it right away."
+          )
+        );
       }, 5000);
     });
   }

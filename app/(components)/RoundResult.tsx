@@ -1,8 +1,10 @@
 import { FontAwesome5 } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { Language } from "../contexts/LanguageContext";
+import { getAvatarImage } from "../utils/avatarUtils";
 import { getQuestionText } from "../utils/questionUtils";
 
 interface RoundResultProps {
@@ -90,26 +92,17 @@ const RoundResult: React.FC<RoundResultProps> = ({
                   {/* Player Name Header */}
                   <View className="flex-row items-center gap-2 flex-1 min-w-0">
                     <View className="relative flex-shrink-0">
-                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-md" />
-                      <View
-                        className="relative border border-gray-900 rounded-md p-1.5 overflow-hidden"
-                        style={{ backgroundColor: "#f3e8ff" }}
-                      >
-                        <LinearGradient
-                          colors={["#f3e8ff", "#fce7f3"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                          }}
-                        />
-                        <View className="relative z-10">
-                          <FontAwesome5 name="user" size={12} color="#7c3aed" />
-                        </View>
+                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-10 h-10 items-center justify-center overflow-hidden">
+                        {playerAnswer.avatar &&
+                        getAvatarImage(playerAnswer.avatar) ? (
+                          <Image
+                            source={getAvatarImage(playerAnswer.avatar)}
+                            style={{ width: "100%", height: "100%" }}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <FontAwesome5 name="user" size={14} color="#1f2937" />
+                        )}
                       </View>
                     </View>
                     <Text
