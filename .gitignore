@@ -47,3 +47,5 @@ overview.md
 todo
 *.sql
 .env.local
+
+.env.local

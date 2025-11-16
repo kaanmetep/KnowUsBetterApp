@@ -1,6 +1,10 @@
+import Constants from "expo-constants";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = "http://192.168.1.133:3000";
+// Get backend URL from config, fallback to production URL
+const SOCKET_URL =
+  Constants.expoConfig?.extra?.backendUrl ||
+  "https://knowusbetterapp-backend.onrender.com";
 
 // Category type is now a string (category ID from Supabase)
 // Use categoryService.getCategories() to get available categories

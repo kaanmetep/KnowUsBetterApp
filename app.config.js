@@ -108,6 +108,10 @@ module.exports = {
         process.env.EXPO_PUBLIC_SUPABASE_KEY ||
         process.env.SUPABASE_ANON_KEY ||
         "",
+      backendUrl:
+        process.env.EXPO_PUBLIC_BACKEND_URL ||
+        process.env.BACKEND_URL ||
+        "https://knowusbetterapp-backend.onrender.com",
     },
     runtimeVersion: {
       policy: "appVersion",
