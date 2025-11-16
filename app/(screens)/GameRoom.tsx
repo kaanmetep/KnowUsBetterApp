@@ -100,6 +100,13 @@ const GameRoom = () => {
       if (data.room) {
         setRoom(data.room);
       }
+
+      // Reset all game-related states (especially important if user was in GameFinished screen)
+      setGameFinishedData(null);
+      setRoundResult(null);
+      setNotifications([]);
+
+      // Set new game state
       setGameState("countdown");
       setCurrentQuestion(data.question);
       setTotalQuestions(data.totalQuestions);
@@ -185,7 +192,6 @@ const GameRoom = () => {
       // Reset game state to waiting
       setGameState("waiting");
 
-      // Clear game data
       setCurrentQuestion(null);
       setTotalQuestions(0);
       setCurrentQuestionIndex(0);
@@ -355,6 +361,17 @@ const GameRoom = () => {
     return playerId === mySocketId;
   };
 
+  const resetToWaitingRoom = () => {
+    setGameState("waiting");
+    setGameFinishedData(null);
+    setCurrentQuestion(null);
+    setRoundResult(null);
+    setSelectedAnswer(null);
+    setHasSubmitted(false);
+    setOpponentAnswered(false);
+    setNotifications([]);
+  };
+
   // Handlers
   const handleLeaveRoom = async () => {
     const confirmLeave = async () => {
@@ -508,7 +525,6 @@ const GameRoom = () => {
       <Countdown
         onComplete={() => {
           console.log("✅ Countdown complete, starting game");
-          console.log("📊 Current question exists:", !!currentQuestion);
           setGameState("playing");
         }}
       />
@@ -556,20 +572,7 @@ const GameRoom = () => {
         displayDuration={questionDuration + 5}
         currentPlayerName={currentPlayerName}
         opponentPlayerName={opponentPlayerName}
-        onComplete={() => {
-          console.log(
-            "✅ Game finished display complete, returning to waiting room"
-          );
-          // Reset game state and return to waiting room
-          setGameState("waiting");
-          setGameFinishedData(null);
-          setCurrentQuestion(null);
-          setRoundResult(null);
-          setSelectedAnswer(null);
-          setHasSubmitted(false);
-          setOpponentAnswered(false);
-          setNotifications([]);
-        }}
+        onComplete={resetToWaitingRoom}
       />
     );
   }
