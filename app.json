@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.knowusbetter.app",
       "buildNumber": "3",
-      "associatedDomains": ["applinks:knowusbetter.app"],
+      "associatedDomains": [
+        "applinks:knowusbetter.app"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -38,7 +40,10 @@
               "pathPrefix": "/join"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -67,6 +72,14 @@
           "photosPermission": "Allow KnowUsBetter to save your game results to your photos.",
           "savePhotosPermission": "Allow KnowUsBetter to save your game results to your photos.",
           "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "know-us-better-app",
+          "organization": "knowusbetter-app"
         }
       ]
     ],

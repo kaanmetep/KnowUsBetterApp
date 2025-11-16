@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -7,7 +8,27 @@ import "./globals.css";
 import { AnalyticsService } from "./services/analyticsService";
 import { purchaseService } from "./services/purchaseService";
 
-export default function RootLayout() {
+// Only initialize Sentry in development/production builds (not in Expo Go)
+const isExpoGo = Constants.executionEnvironment === "storeClient";
+let Sentry: any = null;
+
+if (!isExpoGo) {
+  try {
+    Sentry = require("@sentry/react-native");
+    Sentry.init({
+      dsn: "https://b8a5647efe4cca95caa9a4c0cf76eb84@o4510375600521216.ingest.us.sentry.io/4510375610482688",
+      sendDefaultPii: true,
+      enableLogs: true,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1,
+      integrations: [Sentry.mobileReplayIntegration()],
+    });
+  } catch (error) {
+    console.warn("⚠️ Sentry not available:", error);
+  }
+}
+
+function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
@@ -82,3 +103,6 @@ export default function RootLayout() {
     </LanguageProvider>
   );
 }
+
+// Wrap with Sentry only if available (not in Expo Go)
+export default Sentry && Sentry.wrap ? Sentry.wrap(RootLayout) : RootLayout;

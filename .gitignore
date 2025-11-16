@@ -46,3 +46,4 @@ app-example
 overview.md
 todo
 *.sql
+.env.local
