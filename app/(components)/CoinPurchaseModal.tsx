@@ -30,7 +30,6 @@ interface CoinPackage {
   coins: number;
   price: string;
   package: PurchasesPackage | null;
-  popular?: boolean;
 }
 
 const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
@@ -77,21 +76,26 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       }
 
       // Format revenuecat packages
-      const formattedPackages: CoinPackage[] = offering.availablePackages.map(
-        (pkg, index) => {
-          // Extract coin amount from package identifier (e.g. coins_100 -> 100)
-          const coinsMatch = pkg.identifier.match(/(\d+)/);
+      // Only show coins_10 and coins_30 packages
+      const formattedPackages: CoinPackage[] = offering.availablePackages
+        .filter((pkg) => {
+          const productId = pkg.product.identifier;
+          return productId === "coins_10" || productId === "coins_30";
+        })
+        .map((pkg) => {
+          // Extract coin amount from product identifier (coins_10 -> 10, coins_30 -> 30)
+          const productId = pkg.product.identifier;
+          const coinsMatch = productId.match(/(\d+)/);
           const coins = coinsMatch ? parseInt(coinsMatch[1], 10) : 0;
 
           return {
-            identifier: pkg.identifier,
+            identifier: pkg.product.identifier, // Use product identifier (coins_10, coins_30)
             coins,
             price: pkg.product.priceString,
             package: pkg,
-            popular: index === 1, // Make second package popular
           };
-        }
-      );
+        })
+        .sort((a, b) => a.coins - b.coins); // Sort by coin amount ascending
 
       setPackages(formattedPackages);
     } catch (error: any) {
@@ -273,18 +277,12 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                     const isPurchasing = purchasing === pkg.identifier;
                     const isDisabled = purchasing !== null;
 
-                    // Determine gradient colors based on package - more vibrant for Gumroad style
+                    // Determine gradient colors based on package
                     const getGradientColors = (): [string, string, string] => {
-                      if (pkg.popular) {
-                        return ["#fef3c7", "#fde68a", "#fbbf24"]; // Vibrant amber gradient for popular
+                      if (pkg.coins === 30) {
+                        return ["#fee2e2", "#fecaca", "#f87171"]; // Vibrant red gradient for 30 coins
                       }
-                      if (pkg.coins >= 30) {
-                        return ["#fee2e2", "#fecaca", "#f87171"]; // Vibrant red gradient for large packs
-                      }
-                      if (pkg.coins >= 20) {
-                        return ["#dbeafe", "#bfdbfe", "#60a5fa"]; // Vibrant blue gradient for medium packs
-                      }
-                      return ["#ffffff", "#f9fafb", "#f3f4f6"]; // Clean white gradient for small packs
+                      return ["#ffffff", "#f9fafb", "#f3f4f6"]; // Clean white gradient for 10 coins
                     };
 
                     return (
@@ -315,26 +313,6 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                                 justifyContent: "space-between",
                               }}
                             >
-                              {/* Popular Badge - Top Right */}
-                              {pkg.popular && (
-                                <View className="absolute top-2 right-2 z-10">
-                                  <View className="relative">
-                                    <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                                    <View className="relative bg-amber-300 border-2 border-gray-900 rounded-full px-2 py-0.5">
-                                      <Text
-                                        className="text-amber-900 text-[10px] font-bold"
-                                        style={{
-                                          fontFamily:
-                                            "MerriweatherSans_700Bold",
-                                        }}
-                                      >
-                                        ⭐ POPULAR
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              )}
-
                               {/* Left Side - Coin Info */}
                               <View className="flex-1 flex-row items-center gap-3">
                                 {/* Coin Icon */}

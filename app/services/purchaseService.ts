@@ -104,6 +104,48 @@ class PurchaseService {
         });
       }
 
+      // Collect all packages from all offerings, removing duplicates by product identifier
+      const packageMap = new Map<string, PurchasesPackage>();
+
+      // Add packages from current offering
+      if (offerings.current?.availablePackages) {
+        offerings.current.availablePackages.forEach((pkg) => {
+          const productId = pkg.product.identifier;
+          if (!packageMap.has(productId)) {
+            packageMap.set(productId, pkg);
+          }
+        });
+      }
+
+      // Add packages from all other offerings
+      if (offerings.all) {
+        Object.values(offerings.all).forEach((offering) => {
+          if (
+            offering &&
+            offering !== offerings.current &&
+            offering.availablePackages
+          ) {
+            offering.availablePackages.forEach((pkg) => {
+              const productId = pkg.product.identifier;
+              if (!packageMap.has(productId)) {
+                packageMap.set(productId, pkg);
+              }
+            });
+          }
+        });
+      }
+
+      // Convert map to array
+      const allPackages = Array.from(packageMap.values());
+
+      // Create a combined offering with all packages
+      if (allPackages.length > 0 && offerings.current) {
+        return {
+          ...offerings.current,
+          availablePackages: allPackages,
+        };
+      }
+
       return offerings.current;
     } catch (error) {
       console.error("❌ Error fetching offerings:", error);
@@ -203,7 +245,7 @@ class PurchaseService {
       );
       this.currentAppUserId = newAppUserId;
       return newAppUserId;
-    } catch (error) {
+    } catch {
       console.warn(
         "⚠️ Unable to read/write RevenueCat appUserId from AsyncStorage. Falling back to anonymous ID in memory."
       );
