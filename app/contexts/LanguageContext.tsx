@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { AnalyticsService } from "../services/analyticsService";
 import { UserPreferencesService } from "../services/userPreferencesService";
 
 export type Language = "en" | "tr" | "es";
@@ -63,9 +64,14 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
   // Save language preference when it changes
   const handleSetSelectedLanguage = async (language: Language) => {
+    const previousLanguage = selectedLanguage;
     setSelectedLanguage(language);
     try {
       await UserPreferencesService.saveLanguage(language);
+      // Log language change to analytics (only if language actually changed)
+      if (previousLanguage !== language) {
+        await AnalyticsService.logLanguageChange(language);
+      }
     } catch (error) {
       console.warn("⚠️ Failed to save language:", error);
     }

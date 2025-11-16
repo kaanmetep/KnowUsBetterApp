@@ -73,6 +73,17 @@ module.exports = {
           isAccessMediaLocationEnabled: true,
         },
       ],
+      [
+        "@react-native-firebase/app",
+        {
+          android: {
+            googleServicesFile: "./google-services.json",
+          },
+          ios: {
+            googleServicesFile: "./GoogleService-Info.plist",
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

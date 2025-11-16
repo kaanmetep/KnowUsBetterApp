@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "973711850504",
+    "project_id": "knowusbetter-c214e",
+    "storage_bucket": "knowusbetter-c214e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:973711850504:android:07968aa20cab2c5ae565bd",
+        "android_client_info": {
+          "package_name": "com.knowusbetter.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRMxL2HaUyVgYTzpyKHLvIC5_kCWS3gbE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
