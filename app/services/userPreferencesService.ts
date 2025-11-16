@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const USERNAME_STORAGE_KEY = "@KnowUsBetter:username";
 const AVATAR_STORAGE_KEY = "@KnowUsBetter:avatar";
+const LANGUAGE_STORAGE_KEY = "@KnowUsBetter:language";
 
 export class UserPreferencesService {
   /**
@@ -53,6 +54,30 @@ export class UserPreferencesService {
   }
 
   /**
+   * Save language preference to device storage
+   */
+  static async saveLanguage(language: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    } catch (error) {
+      console.warn("⚠️ Failed to save language:", error);
+    }
+  }
+
+  /**
+   * Get language preference from device storage
+   */
+  static async getLanguage(): Promise<string | null> {
+    try {
+      const language = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+      return language;
+    } catch (error) {
+      console.warn("⚠️ Failed to get language:", error);
+      return null;
+    }
+  }
+
+  /**
    * Clear all user preferences
    */
   static async clearAll(): Promise<void> {
@@ -60,6 +85,7 @@ export class UserPreferencesService {
       await AsyncStorage.multiRemove([
         USERNAME_STORAGE_KEY,
         AVATAR_STORAGE_KEY,
+        LANGUAGE_STORAGE_KEY,
       ]);
     } catch (error) {
       console.warn("⚠️ Failed to clear user preferences:", error);

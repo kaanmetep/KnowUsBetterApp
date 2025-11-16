@@ -1,4 +1,11 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { UserPreferencesService } from "../services/userPreferencesService";
 
 export type Language = "en" | "tr" | "es";
 
@@ -33,9 +40,44 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     es: { flag: "🇪🇸", label: "Español" },
   };
 
+  // Load saved language preference on mount
+  useEffect(() => {
+    const loadSavedLanguage = async () => {
+      try {
+        const savedLanguage = await UserPreferencesService.getLanguage();
+        if (
+          savedLanguage &&
+          (savedLanguage === "en" ||
+            savedLanguage === "tr" ||
+            savedLanguage === "es")
+        ) {
+          setSelectedLanguage(savedLanguage as Language);
+        }
+      } catch (error) {
+        console.warn("⚠️ Failed to load saved language:", error);
+      }
+    };
+
+    loadSavedLanguage();
+  }, []);
+
+  // Save language preference when it changes
+  const handleSetSelectedLanguage = async (language: Language) => {
+    setSelectedLanguage(language);
+    try {
+      await UserPreferencesService.saveLanguage(language);
+    } catch (error) {
+      console.warn("⚠️ Failed to save language:", error);
+    }
+  };
+
   return (
     <LanguageContext.Provider
-      value={{ selectedLanguage, setSelectedLanguage, languages }}
+      value={{
+        selectedLanguage,
+        setSelectedLanguage: handleSetSelectedLanguage,
+        languages,
+      }}
     >
       {children}
     </LanguageContext.Provider>
