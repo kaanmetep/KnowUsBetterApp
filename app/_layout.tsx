@@ -1,7 +1,9 @@
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
-import { useEffect } from "react";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import LoadingScreen from "./(components)/LoadingScreen";
 import { CoinProvider } from "./contexts/CoinContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import "./globals.css";
@@ -28,30 +30,46 @@ if (!isExpoGo) {
   }
 }
 
+// Prevent the splash screen from auto-hiding before we're ready
+SplashScreen.preventAutoHideAsync();
+
 function RootLayout() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize RevenueCat
-    purchaseService.initialize().catch((error) => {
-      console.error("Failed to initialize RevenueCat:", error);
-    });
-
-    // Initialize Firebase Analytics and set user ID
-    const initializeAnalytics = async () => {
+    const initializeApp = async () => {
       try {
-        // Set user ID if available
-        const userId = await purchaseService.getAppUserId();
-        if (userId) {
-          await AnalyticsService.setUserId(userId);
+        // Initialize RevenueCat
+        await purchaseService.initialize().catch((error) => {
+          console.error("Failed to initialize RevenueCat:", error);
+        });
+
+        // Initialize Firebase Analytics and set user ID
+        try {
+          // Set user ID if available
+          const userId = await purchaseService.getAppUserId();
+          if (userId) {
+            await AnalyticsService.setUserId(userId);
+          }
+          // Log app open event
+          await AnalyticsService.logEvent("app_open");
+        } catch (error) {
+          console.warn("⚠️ Failed to initialize analytics:", error);
         }
-        // Log app open event
-        await AnalyticsService.logEvent("app_open");
+
+        // Small delay to ensure smooth transition
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
-        console.warn("⚠️ Failed to initialize analytics:", error);
+        console.error("Failed to initialize app:", error);
+      } finally {
+        // Hide splash screen and show app
+        setIsLoading(false);
+        await SplashScreen.hideAsync();
       }
     };
-    initializeAnalytics();
+
+    initializeApp();
 
     // Handle deep linking when app is opened from a link
     const handleDeepLink = (event: { url: string }) => {
@@ -94,6 +112,17 @@ function RootLayout() {
       subscription.remove();
     };
   }, [router]);
+
+  // Show loading screen while initializing
+  if (isLoading) {
+    return (
+      <LanguageProvider>
+        <CoinProvider>
+          <LoadingScreen message="Preparing something special..." />
+        </CoinProvider>
+      </LanguageProvider>
+    );
+  }
 
   return (
     <LanguageProvider>
