@@ -10,12 +10,9 @@ import {
   View,
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import socketService from "../services/socketService";
-import {
-  getQuestionAnswers,
-  getQuestionText,
-  getYesNoText,
-} from "../utils/questionUtils";
+import { getQuestionAnswers, getQuestionText } from "../utils/questionUtils";
 import ChatMessages from "./ChatMessages";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
@@ -61,7 +58,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   currentPlayerId,
 }) => {
   const { selectedLanguage } = useLanguage();
-  const yesNoText = getYesNoText(selectedLanguage);
+  const { t } = useTranslation();
   const [timerKey, setTimerKey] = useState(0); // Key to force timer reset
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -253,7 +250,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                   fontFamily: "MerriweatherSans_700Bold",
                                 }}
                               >
-                                {yesNoText.yes}
+                                {t("gamePlay.yes")}
                               </Text>
                             </View>
                           </View>
@@ -287,7 +284,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                   fontFamily: "MerriweatherSans_700Bold",
                                 }}
                               >
-                                {yesNoText.no}
+                                {t("gamePlay.no")}
                               </Text>
                             </View>
                           </View>
@@ -380,7 +377,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
               ref={chatInputRef}
               value={chatInput}
               onChangeText={setChatInput}
-              placeholder="Send a message..."
+              placeholder={t("gamePlay.chatPlaceholder")}
               placeholderTextColor="#9ca3af"
               maxLength={100}
               returnKeyType="send"

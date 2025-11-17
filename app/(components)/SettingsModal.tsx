@@ -20,6 +20,7 @@ import {
   View,
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { purchaseService } from "../services/purchaseService";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import ContactUsButton from "./ContactUsButton";
@@ -36,6 +37,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onBuyCoins,
 }) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
+  const { t } = useTranslation();
   const [userId, setUserId] = useState<string>("");
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
@@ -56,17 +58,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       setUserId(id);
     } catch (error) {
       console.error("❌ Error loading user ID:", error);
-      setUserId("Unable to load ID");
+      setUserId(t("settings.unableToLoadId"));
     }
   };
 
   const handleCopyUserId = async () => {
     try {
       await Clipboard.setStringAsync(userId);
-      Alert.alert("Copied!", "User ID copied to clipboard");
+      Alert.alert(t("common.copied"), t("settings.userIdCopied"));
     } catch (error) {
       console.error("❌ Error copying user ID:", error);
-      Alert.alert("Error", "Could not copy user ID");
+      Alert.alert(t("common.error"), t("settings.couldNotCopyUserId"));
     }
   };
 
@@ -81,7 +83,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const privacyPolicyUrl = "https://knowusbetter.app/privacy-policy";
     Linking.openURL(privacyPolicyUrl).catch((err) => {
       console.error("❌ Error opening privacy policy:", err);
-      Alert.alert("Error", "Could not open privacy policy link");
+      Alert.alert(t("common.error"), t("settings.couldNotOpenPrivacyPolicy"));
     });
   };
 
@@ -89,7 +91,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     const termsUrl = "https://knowusbetter.app/terms-of-service";
     Linking.openURL(termsUrl).catch((err) => {
       console.error("❌ Error opening terms of service:", err);
-      Alert.alert("Error", "Could not open terms of service link");
+      Alert.alert(t("common.error"), t("settings.couldNotOpenTerms"));
     });
   };
 
@@ -107,7 +109,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
         Linking.openURL(appStoreUrl).catch((err) => {
           console.error("❌ Error opening app store:", err);
-          Alert.alert("Error", "Could not open app store");
+          Alert.alert(t("common.error"), t("settings.couldNotOpenAppStore"));
         });
       }
     } catch (error) {
@@ -119,26 +121,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
       Linking.openURL(appStoreUrl).catch((err) => {
         console.error("❌ Error opening app store:", err);
-        Alert.alert("Error", "Could not open app store");
+        Alert.alert(t("common.error"), t("settings.couldNotOpenAppStore"));
       });
     }
   };
 
   const handleRequestDataDeletion = () => {
     Alert.alert(
-      "Request Data Deletion",
-      "Please contact us and your data will be deleted within 48 hours. If you would like to receive confirmation when your data has been deleted, please mention this in your email.",
+      t("settings.requestDataDeletion"),
+      t("settings.dataDeletionMessage"),
       [
         {
-          text: "Cancel",
+          text: t("common.cancel"),
           style: "cancel",
         },
         {
-          text: "Send Email Now",
+          text: t("settings.sendEmailNow"),
           onPress: async () => {
             try {
               // Get app user ID
-              let appUserId = "Unable to load ID";
+              let appUserId = t("settings.unableToLoadId");
               try {
                 appUserId = await purchaseService.getAppUserId();
               } catch (error) {
@@ -146,7 +148,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               }
 
               const email = "help@knowusbetter.app";
-              const subject = "KnowUsBetter - Data Deletion Request";
+              const subject = t("settings.dataDeletionRequestSubject");
               const body = `Hi KnowUsBetter Team,
 
 I would like to request deletion of my account data.
@@ -174,20 +176,20 @@ User ID: ${userId || appUserId}`;
                   await Clipboard.setStringAsync(email);
                 } else {
                   Alert.alert(
-                    "Contact Us",
-                    `Please send your message to:\n\n${email}`,
+                    t("contact.contactUs"),
+                    t("settings.pleaseSendMessageTo", { email }),
                     [
                       {
-                        text: "Copy Email",
+                        text: t("contact.copyEmail"),
                         onPress: async () => {
                           await Clipboard.setStringAsync(email);
                           Alert.alert(
-                            "Copied!",
-                            "Email address copied to clipboard"
+                            t("common.copied"),
+                            t("contact.emailCopied")
                           );
                         },
                       },
-                      { text: "OK", style: "cancel" },
+                      { text: t("common.ok"), style: "cancel" },
                     ]
                   );
                 }
@@ -195,8 +197,8 @@ User ID: ${userId || appUserId}`;
             } catch (error) {
               console.error("❌ Error opening email:", error);
               Alert.alert(
-                "Error",
-                "Could not open email client. Please email us at: help@knowusbetter.app"
+                t("common.error"),
+                t("settings.couldNotOpenEmailClient")
               );
             }
           },
@@ -234,7 +236,7 @@ User ID: ${userId || appUserId}`;
       >
         <View
           style={{
-            width: "90%",
+            width: "93%",
             maxWidth: 400,
             backgroundColor: "white",
             borderRadius: 20,
@@ -256,7 +258,7 @@ User ID: ${userId || appUserId}`;
                       color: "#1f2937",
                     }}
                   >
-                    Settings
+                    {t("settings.title")}
                   </Text>
                   <TouchableOpacity
                     onPress={onClose}
@@ -294,7 +296,7 @@ User ID: ${userId || appUserId}`;
                             color: "#1f2937",
                           }}
                         >
-                          Select a language
+                          {t("settings.selectLanguage")}
                         </Text>
                         <Feather
                           name={
@@ -376,7 +378,7 @@ User ID: ${userId || appUserId}`;
                               color: "#1f2937",
                             }}
                           >
-                            Privacy Policy
+                            {t("settings.privacyPolicy")}
                           </Text>
                         </View>
                         <Feather
@@ -409,7 +411,7 @@ User ID: ${userId || appUserId}`;
                               color: "#1f2937",
                             }}
                           >
-                            Terms of Service
+                            {t("settings.termsOfService")}
                           </Text>
                         </View>
                         <Feather
@@ -435,7 +437,7 @@ User ID: ${userId || appUserId}`;
                               color: "#1f2937",
                             }}
                           >
-                            Rate App
+                            {t("settings.rateApp")}
                           </Text>
                         </View>
                         <Feather
@@ -468,7 +470,7 @@ User ID: ${userId || appUserId}`;
                               color: "#1f2937",
                             }}
                           >
-                            Request Data Deletion
+                            {t("settings.requestDataDeletion")}
                           </Text>
                         </View>
                         <Feather
@@ -487,7 +489,7 @@ User ID: ${userId || appUserId}`;
                   >
                     <View className="relative">
                       <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-gray-50 border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-center gap-2">
+                      <View className="relative bg-gray-50 border-2 border-gray-900 rounded-lg p-4 flex-col items-center justify-center gap-2">
                         <Text
                           style={{
                             fontFamily: "MerriweatherSans_400Regular",
@@ -496,7 +498,17 @@ User ID: ${userId || appUserId}`;
                             textAlign: "center",
                           }}
                         >
-                          User ID: {userId || "Loading..."}
+                          {t("settings.userId")}
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: "MerriweatherSans_400Regular",
+                            fontSize: 12,
+                            color: "#6b7280",
+                            textAlign: "center",
+                          }}
+                        >
+                          {userId || t("settings.loading")}
                         </Text>
                         <Feather name="copy" size={16} color="#6b7280" />
                       </View>
@@ -515,8 +527,10 @@ User ID: ${userId || appUserId}`;
                           textAlign: "center",
                         }}
                       >
-                        Version {appVersion}
-                        {buildNumber ? ` (Build ${buildNumber})` : ""}
+                        {t("settings.version", { version: appVersion })}
+                        {buildNumber
+                          ? ` (${t("settings.build", { build: buildNumber })})`
+                          : ""}
                       </Text>
                     </View>
                   </View>

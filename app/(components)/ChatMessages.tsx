@@ -2,6 +2,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useEffect, useRef } from "react";
 import { Animated, ScrollView, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { getAvatarImage } from "../utils/avatarUtils";
 
 interface ChatMessage {
@@ -68,6 +69,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
   opponentName,
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { t } = useTranslation();
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -91,7 +93,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2"
           style={{ fontFamily: "MerriweatherSans_700Bold" }}
         >
-          Recent Messages
+          {t("chatMessages.recentMessages")}
         </Text>
       </View>
 
@@ -142,7 +144,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                       fontFamily: "MerriweatherSans_400Regular",
                     }}
                   >
-                    (You)
+                    {t("chatMessages.youTag")}
                   </Text>
                 )}
               </View>
@@ -169,7 +171,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         {/* Waiting Notification */}
         {hasSubmitted && !roundResult && !opponentAnswered && (
           <View className={messages.length > 0 ? "mt-2 mb-2" : "mt-0 mb-2"}>
-            <AnswerNotification text="Waiting for your partner to answer..." />
+            <AnswerNotification text={t("chatMessages.waitingForPartner")} />
           </View>
         )}
 
@@ -177,7 +179,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         {opponentAnswered && !roundResult && opponentName && (
           <View className={messages.length > 0 ? "mt-2 mb-2" : "mt-0 mb-2"}>
             <AnswerNotification
-              text={`${opponentName} has answered the question.`}
+              text={t("chatMessages.opponentAnswered", { name: opponentName })}
             />
           </View>
         )}

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface LogoProps {
   marginTop?: number;
@@ -7,12 +8,14 @@ interface LogoProps {
 }
 
 const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
+  const { t, selectedLanguage } = useTranslation();
   const [msgIndex, setMsgIndex] = useState(0);
-  const messages = [
-    "Test Your Connection Together",
-    "Get to Know the Real You Two",
-    "Answer, Laugh, and Connect",
-  ];
+
+  // Get messages from translations based on selected language
+  const messages = useMemo(() => {
+    return [t("logo.message1"), t("logo.message2"), t("logo.message3")];
+  }, [t, selectedLanguage]);
+
   const opacity = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 

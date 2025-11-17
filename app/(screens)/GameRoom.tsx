@@ -11,7 +11,7 @@ import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { getCategoryCoinsRequired } from "../services/categoryService";
 import socketService, { Room } from "../services/socketService";
 import { getQuestionText } from "../utils/questionUtils";
@@ -20,7 +20,7 @@ const GameRoom = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { spendCoins } = useCoins();
-  const { selectedLanguage } = useLanguage();
+  const { t, selectedLanguage } = useTranslation();
 
   // Only get roomCode from params
   const roomCode = (params.roomCode as string) || "DEMO123";
@@ -56,6 +56,9 @@ const GameRoom = () => {
     MerriweatherSans_400Regular,
     MerriweatherSans_700Bold,
   });
+
+  const getCoinLabel = (count: number) =>
+    count === 1 ? t("gameRoom.coinSingular") : t("gameRoom.coinPlural");
 
   // Socket.io event listeners and cleanup
   useEffect(() => {
@@ -171,15 +174,14 @@ const GameRoom = () => {
       console.log("⚠️ Game cancelled:", data);
 
       // Show alert
+      const cancelMessage = data.message || t("gameRoom.gameCancelledMessage");
       if (Platform.OS === "web") {
-        window.alert(
-          data.message || "Game was cancelled because a player left."
-        );
+        window.alert(cancelMessage);
       } else {
         Alert.alert(
-          "Game Cancelled",
-          data.message || "Game was cancelled because a player left.",
-          [{ text: "OK" }],
+          t("gameRoom.gameCancelledTitle"),
+          cancelMessage,
+          [{ text: t("common.ok") }],
           { cancelable: false }
         );
       }
@@ -215,8 +217,7 @@ const GameRoom = () => {
     // Kicked from room (for the kicked player)
     const handleKickedFromRoom = (data: any) => {
       console.log("🚫 You were kicked from room:", data);
-      const message =
-        data.message || "You were kicked from the room by the host.";
+      const message = data.message || t("gameRoom.kickedMessage");
 
       // First, navigate back
       router.back();
@@ -226,9 +227,14 @@ const GameRoom = () => {
         if (Platform.OS === "web") {
           window.alert(message);
         } else {
-          Alert.alert("Kicked from Room", message, [{ text: "OK" }], {
-            cancelable: false,
-          });
+          Alert.alert(
+            t("gameRoom.kickedTitle"),
+            message,
+            [{ text: t("common.ok") }],
+            {
+              cancelable: false,
+            }
+          );
         }
       }, 100);
     };
@@ -236,26 +242,31 @@ const GameRoom = () => {
     // Room error handler (for kick errors and other room errors)
     const handleRoomError = (error: any) => {
       console.error("❌ Room error:", error);
-      const errorMessage = error?.message || "An error occurred";
+      const errorMessage = error?.message || t("gameRoom.genericError");
       if (Platform.OS === "web") {
         window.alert(errorMessage);
       } else {
-        Alert.alert("Error", errorMessage);
+        Alert.alert(t("gameRoom.errorTitle"), errorMessage);
       }
     };
 
     // Critical error handler (redirects to StartOptionsScreen)
     const handleCriticalError = (error: any) => {
       console.error("🔴 Critical error:", error);
-      const errorMessage = error?.message || "A critical error occurred";
+      const errorMessage = error?.message || t("gameRoom.criticalErrorMessage");
 
       // Show alert first
       if (Platform.OS === "web") {
         window.alert(errorMessage);
       } else {
-        Alert.alert("Error", errorMessage, [{ text: "OK" }], {
-          cancelable: false,
-        });
+        Alert.alert(
+          t("gameRoom.errorTitle"),
+          errorMessage,
+          [{ text: t("common.ok") }],
+          {
+            cancelable: false,
+          }
+        );
       }
 
       // Navigate to StartOptionsScreen
@@ -388,21 +399,19 @@ const GameRoom = () => {
 
     // Web platform uses window.confirm
     if (Platform.OS === "web") {
-      const confirmed = window.confirm(
-        "Are you sure you want to leave this room?"
-      );
+      const confirmed = window.confirm(t("gameRoom.leaveConfirm"));
       if (confirmed) {
         await confirmLeave();
       }
     } else {
       // Mobile platforms use Alert
       Alert.alert(
-        "Leave Room",
-        "Are you sure you want to leave this room?",
+        t("gameRoom.leaveRoomTitle"),
+        t("gameRoom.leaveConfirm"),
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Leave",
+            text: t("gameRoom.leaveButton"),
             style: "destructive",
             onPress: confirmLeave,
           },
@@ -425,16 +434,21 @@ const GameRoom = () => {
           const hasEnoughCoins = await spendCoins(coinsRequired);
           if (!hasEnoughCoins) {
             setIsStartingGame(false);
+            const coinLabel = getCoinLabel(coinsRequired);
             if (Platform.OS === "web") {
               window.alert(
-                `Not enough coins to start the game. Required: ${coinsRequired} coins.`
+                t("gameRoom.notEnoughCoinsWeb", {
+                  coinsRequired,
+                  coinLabel,
+                })
               );
             } else {
               Alert.alert(
-                "Not Enough Coins",
-                `You need ${coinsRequired} ${
-                  coinsRequired === 1 ? "coin" : "coins"
-                } to start this game.`
+                t("gameRoom.notEnoughCoinsTitle"),
+                t("gameRoom.notEnoughCoinsMessage", {
+                  coinsRequired,
+                  coinLabel,
+                })
               );
             }
             return;
@@ -445,10 +459,11 @@ const GameRoom = () => {
         await socketService.startGame(roomCode);
       } catch (error: any) {
         console.error("❌ Error starting game:", error);
+        const message = error?.message || t("gameRoom.failedToStartGame");
         if (Platform.OS === "web") {
-          window.alert(error?.message || "Failed to start game");
+          window.alert(message);
         } else {
-          Alert.alert("Error", error?.message || "Failed to start game");
+          Alert.alert(t("gameRoom.errorTitle"), message);
         }
       } finally {
         setIsStartingGame(false);
@@ -467,14 +482,17 @@ const GameRoom = () => {
 
   const handleKickPlayer = (playerId: string) => {
     const player = room?.players.find((p) => p.id === playerId);
-    const playerName = player?.name || "Player";
+    const playerName = player?.name || t("gameRoom.defaultPlayerName");
 
     // Check if game is active
     if (room?.status === "playing") {
       if (Platform.OS === "web") {
-        window.alert("Cannot kick players during active game");
+        window.alert(t("gameRoom.cannotKickDuringGame"));
       } else {
-        Alert.alert("Error", "Cannot kick players during active game");
+        Alert.alert(
+          t("gameRoom.errorTitle"),
+          t("gameRoom.cannotKickDuringGame")
+        );
       }
       return;
     }
@@ -482,19 +500,19 @@ const GameRoom = () => {
     // Confirmation dialog
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
-        `Are you sure you want to kick ${playerName} from the room?`
+        t("gameRoom.kickConfirm", { playerName })
       );
       if (confirmed) {
         socketService.kickPlayer(roomCode, playerId);
       }
     } else {
       Alert.alert(
-        "Kick Player",
-        `Are you sure you want to kick ${playerName} from the room?`,
+        t("gameRoom.kickPlayerTitle"),
+        t("gameRoom.kickConfirm", { playerName }),
         [
-          { text: "Cancel", style: "cancel" },
+          { text: t("common.cancel"), style: "cancel" },
           {
-            text: "Kick",
+            text: t("gameRoom.kickButton"),
             style: "destructive",
             onPress: () => {
               socketService.kickPlayer(roomCode, playerId);
@@ -561,9 +579,10 @@ const GameRoom = () => {
 
     // Get player names from room
     const currentPlayer = room?.players?.find((p: any) => p.id === mySocketId);
-    const currentPlayerName = currentPlayer?.name || "You";
+    const currentPlayerName = currentPlayer?.name || t("gameRoom.youLabel");
     const opponentPlayer = room?.players?.find((p: any) => p.id !== mySocketId);
-    const opponentPlayerName = opponentPlayer?.name || "Partner";
+    const opponentPlayerName =
+      opponentPlayer?.name || t("gameRoom.partnerLabel");
 
     return (
       <GameFinished

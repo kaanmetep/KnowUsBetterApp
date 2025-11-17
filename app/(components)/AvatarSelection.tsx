@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface AvatarSelectionProps {
   selectedAvatar: string | null;
@@ -48,6 +49,7 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({
   onAvatarSelect,
   theme = "red",
 }) => {
+  const { t } = useTranslation();
   const borderColor = "#9ca3af";
   return (
     <View>
@@ -55,13 +57,13 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({
         className="text-xl font-bold text-gray-900 mb-1"
         style={{ fontFamily: "MerriweatherSans_700Bold" }}
       >
-        Choose Your Avatar
+        {t("createRoom.chooseYourAvatar")}
       </Text>
       <Text
         className="text-sm text-gray-600 mb-4"
         style={{ fontFamily: "MerriweatherSans_400Regular" }}
       >
-        Pick an avatar that represents you
+        {t("createRoom.pickAvatar")}
       </Text>
 
       <View className="flex-row flex-wrap justify-center gap-2">

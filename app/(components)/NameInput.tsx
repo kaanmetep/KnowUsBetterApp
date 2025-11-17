@@ -1,5 +1,6 @@
 import React from "react";
 import { Text, TextInput, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface NameInputProps {
   userName: string;
@@ -16,19 +17,20 @@ const NameInput: React.FC<NameInputProps> = ({
   onUserNameFocus,
   onUserNameBlur,
 }) => {
+  const { t } = useTranslation();
   return (
     <View className="mt-6">
       <Text
         className="text-lg font-bold text-gray-900 mb-1"
         style={{ fontFamily: "MerriweatherSans_700Bold" }}
       >
-        Enter Your Name
+        {t("createRoom.enterYourNameTitle")}
       </Text>
       <Text
         className="text-sm text-gray-600 mb-3"
         style={{ fontFamily: "MerriweatherSans_400Regular" }}
       >
-        Tell us how we should call you
+        {t("createRoom.tellUsHowToCallYou")}
       </Text>
 
       <View className="relative">
@@ -48,7 +50,7 @@ const NameInput: React.FC<NameInputProps> = ({
             onChangeText={onUserNameChange}
             onFocus={onUserNameFocus}
             onBlur={onUserNameBlur}
-            placeholder="Enter your name"
+            placeholder={t("createRoom.enterYourNamePlaceholder")}
             placeholderTextColor="#9ca3af"
             className="px-4 py-3 text-gray-900 text-base"
             style={

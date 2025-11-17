@@ -65,7 +65,12 @@ function RootLayout() {
       } finally {
         // Hide splash screen and show app
         setIsLoading(false);
-        await SplashScreen.hideAsync();
+        try {
+          await SplashScreen.hideAsync();
+        } catch (error) {
+          // Ignore splash screen errors (may not be registered on all platforms)
+          console.warn("⚠️ Could not hide splash screen:", error);
+        }
       }
     };
 

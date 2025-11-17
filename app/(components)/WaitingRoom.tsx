@@ -18,6 +18,7 @@ import {
 import Svg, { Rect } from "react-native-svg";
 import { useCoins } from "../contexts/CoinContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import {
   Category,
   getCategoryById,
@@ -61,6 +62,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { coins } = useCoins();
+  const { t } = useTranslation();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
@@ -218,7 +220,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const handleShareLink = async () => {
     try {
       await Share.share({
-        message: `🎮 Join my KnowUsBetter room!\n\nRoom Code: ${roomCode}\n\nClick to join instantly:\n`,
+        message: t("waitingRoom.shareMessage", { code: roomCode }),
         url: roomLink,
       });
     } catch (error) {
@@ -347,7 +349,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               className="text-center text-gray-600 text-sm mb-3"
               style={{ fontFamily: "MerriweatherSans_400Regular" }}
             >
-              Share this code with your partner
+              {t("waitingRoom.shareCodeWithPartner")}
             </Text>
 
             <View className="relative">
@@ -379,7 +381,9 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         className="text-gray-900 font-semibold"
                         style={{ fontFamily: "MerriweatherSans_700Bold" }}
                       >
-                        {copied ? "Copied!" : "Copy Code"}
+                        {copied
+                          ? t("waitingRoom.copied")
+                          : t("waitingRoom.copyCode")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -455,8 +459,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         className="text-red-900 text-xs font-semibold"
                         style={{ fontFamily: "MerriweatherSans_700Bold" }}
                       >
-                        Need {categoryInfo.coinsRequired} coins, you have{" "}
-                        {coins}
+                        {t("waitingRoom.needCoins", {
+                          required: categoryInfo.coinsRequired,
+                          current: coins,
+                        })}
                       </Text>
                     </View>
                   </View>
@@ -471,7 +477,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 className="text-gray-900 text-lg font-bold"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                Participants ({participants.length})
+                {t("waitingRoom.participants", { count: participants.length })}
               </Text>
               {participants.length < 2 && (
                 <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
@@ -480,7 +486,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       className="text-amber-700 text-xs font-semibold"
                       style={{ fontFamily: "MerriweatherSans_400Regular" }}
                     >
-                      Waiting...
+                      {t("waitingRoom.waiting")}
                     </Text>
                   </View>
                 </Animated.View>
@@ -514,7 +520,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                           )}
                         </View>
                         <View>
-                          <View className=" flex-row justify-between items-center gap-1 ">
+                          <View className="flex-row items-center gap-1">
                             <Text
                               className="text-gray-900 font-semibold text-base"
                               style={{ fontFamily: "MerriweatherSans_700Bold" }}
@@ -528,7 +534,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                                   fontFamily: "MerriweatherSans_400Regular",
                                 }}
                               >
-                                (You)
+                                {t("waitingRoom.you")}
                               </Text>
                             )}
                           </View>
@@ -539,7 +545,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                                 fontFamily: "MerriweatherSans_400Regular",
                               }}
                             >
-                              Room Host
+                              {t("waitingRoom.roomHost")}
                             </Text>
                           )}
                         </View>
@@ -604,7 +610,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         className="text-gray-500 text-sm italic flex-1"
                         style={{ fontFamily: "MerriweatherSans_400Regular" }}
                       >
-                        Waiting for another player...
+                        {t("waitingRoom.waitingForAnotherPlayer")}
                       </Text>
                     </View>
                   </View>
@@ -646,10 +652,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       }}
                     >
                       {isStartingGame
-                        ? "Starting..."
+                        ? t("waitingRoom.starting")
                         : canStartGame
-                        ? "Start Game"
-                        : "Waiting for Players..."}
+                        ? t("waitingRoom.startGame")
+                        : t("waitingRoom.waitingForPlayers")}
                     </Text>
                   </TouchableOpacity>
                 </Animated.View>
@@ -669,7 +675,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 className="text-gray-900 text-center font-semibold"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                Leave Room
+                {t("waitingRoom.leaveRoom")}
               </Text>
             </TouchableOpacity>
           </View>

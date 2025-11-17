@@ -3,6 +3,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { purchaseService } from "../services/purchaseService";
 
 interface ContactUsButtonProps {
@@ -14,12 +15,15 @@ interface ContactUsButtonProps {
 const ContactUsButton: React.FC<ContactUsButtonProps> = ({
   position = "bottom-left",
   style = "default",
-  text = "Contact Us",
+  text,
 }) => {
+  const { t } = useTranslation();
+  const defaultText = t("contact.contactUs");
+
   const handleContactUs = async () => {
     try {
       // Get app user ID
-      let appUserId = "Unable to load ID";
+      let appUserId = t("settings.unableToLoadId");
       try {
         appUserId = await purchaseService.getAppUserId();
       } catch (error) {
@@ -27,18 +31,23 @@ const ContactUsButton: React.FC<ContactUsButtonProps> = ({
       }
 
       const email = "help@knowusbetter.app";
-      const subject = "KnowUsBetter - Support Request";
-      const body = `Hi KnowUsBetter Team,
+      const subject = t("contact.supportRequestSubject");
+      const body = `${t("contact.emailBodyGreeting")}
 
-[Please describe your issue or feedback here]
+${t("contact.emailBodyPlaceholder")}
 
 ---
-App Info:
-Platform: ${Platform.OS}
-Version: ${Platform.Version}
-User ID: ${appUserId}`;
+${t("contact.emailBodyAppInfo")}
+${t("contact.emailBodyPlatform", { platform: Platform.OS })}
+${t("contact.emailBodyVersion", { version: Platform.Version })}
+${t("contact.emailBodyUserId", { userId: appUserId })}`;
 
-      const userInfo = `Platform: ${Platform.OS}\nVersion: ${Platform.Version}\nUser ID: ${appUserId}`;
+      const userInfo = `${t("contact.emailBodyPlatform", {
+        platform: Platform.OS,
+      })}\n${t("contact.emailBodyVersion", { version: Platform.Version })}\n${t(
+        "contact.emailBodyUserId",
+        { userId: appUserId }
+      )}`;
 
       const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(
         subject
@@ -51,32 +60,32 @@ User ID: ${appUserId}`;
         // Fallback: Show email address with user info
         if (Platform.OS === "web") {
           window.alert(
-            `Please send your message to:\n\n${email}\n\n${userInfo}\n\nEmail has been copied to clipboard!`
+            `${t("contact.pleaseSendMessageToWithInfo", {
+              email,
+              userInfo,
+            })}\n\n${t("contact.emailCopiedToClipboard")}`
           );
           await Clipboard.setStringAsync(email);
         } else {
           Alert.alert(
-            "Contact Us",
-            `Please send your message to:\n\n${email}\n\n${userInfo}`,
+            t("contact.contactUs"),
+            t("contact.pleaseSendMessageToWithInfo", { email, userInfo }),
             [
               {
-                text: "Copy Email",
+                text: t("contact.copyEmail"),
                 onPress: async () => {
                   await Clipboard.setStringAsync(email);
-                  Alert.alert("Copied!", "Email address copied to clipboard");
+                  Alert.alert(t("common.copied"), t("contact.emailCopied"));
                 },
               },
-              { text: "OK", style: "cancel" },
+              { text: t("common.ok"), style: "cancel" },
             ]
           );
         }
       }
     } catch (error) {
       console.error("❌ Error opening email:", error);
-      Alert.alert(
-        "Error",
-        "Could not open email client. Please email us at: help@knowusbetter.app"
-      );
+      Alert.alert(t("common.error"), t("settings.couldNotOpenEmailClient"));
     }
   };
 
@@ -106,7 +115,7 @@ User ID: ${appUserId}`;
                 className="text-gray-900 text-xs font-semibold"
                 style={{ letterSpacing: -0.2 }}
               >
-                {text}
+                {text || defaultText}
               </Text>
             </View>
           )}

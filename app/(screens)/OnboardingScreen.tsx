@@ -23,10 +23,12 @@ import Logo from "../(components)/Logo";
 import SettingsModal from "../(components)/SettingsModal";
 import SocialMediaIcons from "../(components)/SocialMediaIcons";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 const OnboardingPage = () => {
   const router = useRouter();
   const { width, height } = Dimensions.get("window");
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
+  const { t } = useTranslation();
   const [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
     MerriweatherSans_700Bold,
@@ -530,7 +532,7 @@ const OnboardingPage = () => {
                     letterSpacing: -0.3,
                   }}
                 >
-                  NO LOGIN REQUIRED
+                  {t("onboarding.noLoginRequired")}
                 </Text>
               </View>
             </View>
@@ -566,7 +568,7 @@ const OnboardingPage = () => {
                     letterSpacing: -0.3,
                   }}
                 >
-                  PLAY WITH YOUR PARTNER
+                  {t("onboarding.playWithPartner")}
                 </Text>
               </View>
             </View>
@@ -602,7 +604,7 @@ const OnboardingPage = () => {
                     letterSpacing: -0.3,
                   }}
                 >
-                  DISCOVER EACH OTHER
+                  {t("onboarding.discoverEachOther")}
                 </Text>
               </View>
             </View>
@@ -629,7 +631,7 @@ const OnboardingPage = () => {
                   className="text-gray-900 text-lg text-center font-bold"
                   style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
-                  Start playing now!
+                  {t("onboarding.startPlayingNow")}
                 </Text>
               </TouchableOpacity>
             </View>

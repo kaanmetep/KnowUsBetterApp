@@ -50,17 +50,3 @@ export const getQuestionAnswers = (
 
   return [];
 };
-
-/**
- * Get Yes/No button text based on selected language
- */
-export const getYesNoText = (
-  selectedLanguage: Language
-): { yes: string; no: string } => {
-  const translations: Record<Language, { yes: string; no: string }> = {
-    en: { yes: "Yes", no: "No" },
-    tr: { yes: "Evet", no: "Hayır" },
-    es: { yes: "Sí", no: "No" },
-  };
-  return translations[selectedLanguage];
-};

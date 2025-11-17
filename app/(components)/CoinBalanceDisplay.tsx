@@ -2,6 +2,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface CoinBalanceDisplayProps {
   onBuyCoins: () => void;
@@ -17,6 +18,7 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
   showBuyButton = true,
 }) => {
   const { coins } = useCoins();
+  const { t } = useTranslation();
 
   const positionClasses = {
     "top-left": "absolute top-20 left-6 z-10",
@@ -64,7 +66,7 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
               className="text-gray-900 font-semibold text-xs"
               style={{ fontFamily: "MerriweatherSans_700Bold" }}
             >
-              Buy Coins
+              {t("coins.buyCoins")}
             </Text>
           </TouchableOpacity>
         </View>

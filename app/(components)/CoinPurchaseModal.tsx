@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { PurchasesPackage } from "react-native-purchases";
 import { useCoins } from "../contexts/CoinContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { purchaseService } from "../services/purchaseService";
 
 interface CoinPurchaseModalProps {
@@ -37,6 +38,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
   onClose,
 }) => {
   const { addCoins, refreshCoins } = useCoins();
+  const { t } = useTranslation();
   const [packages, setPackages] = useState<CoinPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
@@ -67,9 +69,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
 
       if (!offering || !offering.availablePackages.length) {
         console.warn("⚠️ No packages found in RevenueCat");
-        setError(
-          "No packages available. Please configure products in RevenueCat."
-        );
+        setError(t("coins.noPackagesAvailable"));
         setPackages([]);
         setLoading(false);
         return;
@@ -100,7 +100,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       setPackages(formattedPackages);
     } catch (error: any) {
       console.error("❌ Error loading packages:", error);
-      setError("Failed to load packages. Please try again.");
+      setError(t("coins.failedToLoadPackages"));
       setPackages([]);
     } finally {
       setLoading(false);
@@ -109,9 +109,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
 
   const handlePurchase = async (coinPackage: CoinPackage) => {
     if (!coinPackage.package) {
-      setError(
-        "Packages are not configured yet. Please set up RevenueCat products."
-      );
+      setError(t("coins.packagesNotConfigured"));
       return;
     }
 
@@ -138,7 +136,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       if (error.message === "Purchase cancelled by user") {
         setError(null); // If the user cancelled the purchase, don't show an error
       } else {
-        setError(error.message || "Purchase failed. Please try again.");
+        setError(error.message || t("coins.purchaseFailed"));
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } finally {
@@ -158,7 +156,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error("❌ Restore error:", error);
-      setError("Failed to restore purchases. Please try again.");
+      setError(t("coins.failedToRestore"));
     } finally {
       setLoading(false);
     }
@@ -170,7 +168,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
     return (
       <Modal visible={visible} transparent>
         <View className="flex-1 justify-center items-center bg-black/50">
-          <Text style={{ color: "white" }}>Loading...</Text>
+          <Text style={{ color: "white" }}>{t("common.loading")}</Text>
         </View>
       </Modal>
     );
@@ -217,7 +215,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                     letterSpacing: -0.5,
                   }}
                 >
-                  Buy Coins
+                  {t("coins.title")}
                 </Text>
               </View>
               <TouchableOpacity
@@ -247,7 +245,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                       letterSpacing: -0.2,
                     }}
                   >
-                    Loading packages...
+                    {t("coins.loadingPackages")}
                   </Text>
                 </View>
               )}
@@ -345,7 +343,9 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                                       letterSpacing: -0.2,
                                     }}
                                   >
-                                    Coins
+                                    {pkg.coins === 1
+                                      ? t("coins.coin")
+                                      : t("coins.coins")}
                                   </Text>
                                 </View>
                               </View>
@@ -392,7 +392,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                     textDecorationLine: "underline",
                   }}
                 >
-                  Restore Purchases
+                  {t("coins.restorePurchases")}
                 </Text>
               </TouchableOpacity>
 
@@ -405,8 +405,8 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                 }}
               >
                 {Platform.OS === "ios"
-                  ? "Payment will be charged to your Apple ID account"
-                  : "Payment will be charged to your Google Play account"}
+                  ? t("coins.paymentChargedApple")
+                  : t("coins.paymentChargedGoogle")}
               </Text>
             </View>
           </View>

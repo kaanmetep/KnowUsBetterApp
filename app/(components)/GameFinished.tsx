@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { getQuestionText } from "../utils/questionUtils";
 import Logo from "./Logo";
 
@@ -44,6 +45,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
   onComplete,
 }) => {
   const { selectedLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [timeRemaining, setTimeRemaining] = useState(displayDuration);
   const startTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<number | null>(null);
@@ -340,8 +342,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#f87171",
         gradientColors: ["#f87171", "#fee2e2"],
-        romanticQuote:
-          "You two think alike. That's rare. Don't take it for granted.",
+        romanticQuote: t("gameFinished.quotes.perfect"),
         heartColor: "#dc2626",
         borderColor: "#fca5a5",
         shadowColor: "#fee2e2",
@@ -351,8 +352,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#fca5a5",
         gradientColors: ["#fca5a5", "#fee2e2"],
-        romanticQuote:
-          "You're on the same wavelength. That's the foundation of something real.",
+        romanticQuote: t("gameFinished.quotes.great"),
         heartColor: "#ef4444",
         borderColor: "#fecaca",
         shadowColor: "#fef2f2",
@@ -362,8 +362,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#fecaca",
         gradientColors: ["#fecaca", "#fef2f2"],
-        romanticQuote:
-          "You get each other. That's more than most people ever find.",
+        romanticQuote: t("gameFinished.quotes.good"),
         heartColor: "#f87171",
         borderColor: "#fdd5d5",
         shadowColor: "#fef2f2",
@@ -373,8 +372,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#93c5fd",
         gradientColors: ["#93c5fd", "#dbeafe"],
-        romanticQuote:
-          "You've got enough in common to build on. The rest is up to you.",
+        romanticQuote: t("gameFinished.quotes.midHigh"),
         heartColor: "#2563eb",
         borderColor: "#bfdbfe",
         shadowColor: "#eff6ff",
@@ -384,8 +382,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#bfdbfe",
         gradientColors: ["#bfdbfe", "#eff6ff"],
-        romanticQuote:
-          "You're different, but that can work. If you want it to.",
+        romanticQuote: t("gameFinished.quotes.mid"),
         heartColor: "#3b82f6",
         borderColor: "#dbeafe",
         shadowColor: "#f0f9ff",
@@ -395,8 +392,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#e2e8f0",
         gradientColors: ["#e2e8f0", "#f1f5f9"],
-        romanticQuote:
-          "You don't see eye to eye on much. That's okay. Opposites exist for a reason.",
+        romanticQuote: t("gameFinished.quotes.midLow"),
         heartColor: "#64748b",
         borderColor: "#e2e8f0",
         shadowColor: "#f8fafc",
@@ -406,8 +402,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#cbd5e1",
         gradientColors: ["#cbd5e1", "#e2e8f0"],
-        romanticQuote:
-          "You're pretty different. That's fine. Sometimes that's exactly what works.",
+        romanticQuote: t("gameFinished.quotes.low"),
         heartColor: "#475569",
         borderColor: "#cbd5e1",
         shadowColor: "#f1f5f9",
@@ -417,8 +412,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       return {
         bgColor: "#94a3b8",
         gradientColors: ["#94a3b8", "#cbd5e1"],
-        romanticQuote:
-          "You're pretty different. That's fine. Sometimes that's exactly what works.",
+        romanticQuote: t("gameFinished.quotes.veryLow"),
         heartColor: "#334155",
         borderColor: "#94a3b8",
         shadowColor: "#e2e8f0",
@@ -449,7 +443,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                 className="text-gray-900 text-xs font-bold"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                Back to Room
+                {t("gameFinished.backToRoom")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -487,7 +481,9 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                         fontFamily: "MerriweatherSans_700Bold",
                       }}
                     >
-                      Returning to room in {timeRemaining}s
+                      {t("gameFinished.returningCountdown", {
+                        seconds: timeRemaining,
+                      })}
                     </Text>
                   </View>
                 </View>
@@ -578,7 +574,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                                 letterSpacing: 3,
                               }}
                             >
-                              Match Score
+                              {t("gameFinished.matchScoreLabel")}
                             </Text>
                           </View>
 
@@ -634,7 +630,10 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                         className="text-gray-900 text-lg font-bold mb-1"
                         style={{ fontFamily: "MerriweatherSans_700Bold" }}
                       >
-                        {matchScore} / {totalQuestions} Matches
+                        {t("gameFinished.matchesSummary", {
+                          matchScore,
+                          totalQuestions,
+                        })}
                       </Text>
                       <View className="flex-row items-center gap-2 mt-2">
                         <View className="relative">
@@ -710,7 +709,10 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                         >
                           {round.question
                             ? getQuestionText(round.question, selectedLanguage)
-                            : round.questionText || `Question ${index + 1}`}
+                            : round.questionText ||
+                              t("gameFinished.questionNumber", {
+                                index: index + 1,
+                              })}
                         </Text>
                         <View className="relative flex-shrink-0">
                           <View
@@ -740,7 +742,9 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                                 fontFamily: "MerriweatherSans_700Bold",
                               }}
                             >
-                              {round.isMatched ? "Match" : "No Match"}
+                              {round.isMatched
+                                ? t("gameFinished.matchTag")
+                                : t("gameFinished.noMatchTag")}
                             </Text>
                           </View>
                         </View>

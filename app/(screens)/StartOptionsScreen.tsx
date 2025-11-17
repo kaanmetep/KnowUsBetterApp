@@ -28,11 +28,13 @@ import Logo from "../(components)/Logo";
 import SettingsModal from "../(components)/SettingsModal";
 import SocialMediaIcons from "../(components)/SocialMediaIcons";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import socketService from "../services/socketService";
 
 const StartOptionsScreen = () => {
   const router = useRouter();
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
+  const { t } = useTranslation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlayModal, setShowHowToPlayModal] = useState(false);
@@ -202,9 +204,9 @@ const StartOptionsScreen = () => {
     } catch (error: any) {
       console.error("❌ Error creating room:", error);
       Alert.alert(
-        "Oops! 😔",
-        error?.message || "Room could not be created. Please try again.",
-        [{ text: "OK", style: "default" }]
+        t("alerts.oops"),
+        error?.message || t("errors.roomCreateError"),
+        [{ text: t("common.ok"), style: "default" }]
       );
       // Don't re-throw - error is already handled, re-throwing causes "Uncaught (in promise)"
     } finally {
@@ -242,16 +244,14 @@ const StartOptionsScreen = () => {
       console.error("❌ Error joining room:", error);
 
       // Extract error message
-      let errorMessage =
-        "The room code you entered doesn't exist. Please check the code and try again.";
+      let errorMessage = t("errors.roomNotFoundMessage");
       if (typeof error === "string") {
         // If error is just "Room not found" or similar, use our friendly message
         if (
           error.toLowerCase().includes("room") &&
           error.toLowerCase().includes("not found")
         ) {
-          errorMessage =
-            "The room code you entered doesn't exist. Please check the code and try again.";
+          errorMessage = t("errors.roomNotFoundMessage");
         } else {
           errorMessage = error;
         }
@@ -261,7 +261,7 @@ const StartOptionsScreen = () => {
           error.message.toLowerCase().includes("room") &&
           error.message.toLowerCase().includes("not found")
         ) {
-          errorMessage = "The room code you entered doesn't exist.";
+          errorMessage = t("errors.roomNotFoundMessage");
         } else {
           errorMessage = error.message;
         }
@@ -271,9 +271,9 @@ const StartOptionsScreen = () => {
 
       // Show alert - modal will remain open and user can try again
       Alert.alert(
-        "Room Not Found",
+        t("errors.roomNotFound"),
         errorMessage,
-        [{ text: "OK", style: "default" }],
+        [{ text: t("common.ok"), style: "default" }],
         { cancelable: true }
       );
       // Re-throw error so JoinExistingRoom component knows the join failed
@@ -433,7 +433,7 @@ const StartOptionsScreen = () => {
                 className="text-gray-900 text-xl font-bold text-center"
                 style={{ letterSpacing: -0.3 }}
               >
-                Create New Room
+                {t("startScreen.createNewRoom")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -478,7 +478,7 @@ const StartOptionsScreen = () => {
                 className="text-gray-900 text-xl font-bold text-center"
                 style={{ letterSpacing: -0.3 }}
               >
-                Join Existing Room
+                {t("startScreen.joinExistingRoom")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -519,7 +519,7 @@ const StartOptionsScreen = () => {
                 className="text-gray-900 text-sm font-semibold"
                 style={{ letterSpacing: -0.2 }}
               >
-                Learn How to Play
+                {t("startScreen.learnHowToPlay")}
               </Text>
             </LinearGradient>
           </TouchableOpacity>

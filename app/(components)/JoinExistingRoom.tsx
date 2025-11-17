@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
 import ButtonLoading from "./ButtonLoading";
@@ -30,6 +31,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   onClose,
   onJoinRoom,
 }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
@@ -242,7 +244,9 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        {isStep1Valid ? "Continue →" : "Select an Avatar"}
+                        {isStep1Valid
+                          ? t("joinRoom.continue")
+                          : t("joinRoom.selectAvatar")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -348,7 +352,9 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                           className="text-gray-900 text-lg text-center font-bold"
                           style={{ letterSpacing: -0.3 }}
                         >
-                          {isStep2Valid ? "Continue →" : "Enter Your Name"}
+                          {isStep2Valid
+                            ? t("joinRoom.continue")
+                            : t("joinRoom.enterYourName")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -427,14 +433,14 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                       className="text-2xl font-bold text-gray-900 text-center mb-2"
                       style={{ fontFamily: "MerriweatherSans_700Bold" }}
                     >
-                      Enter Room Code
+                      {t("joinRoom.enterRoomCode")}
                     </Text>
 
                     <Text
                       className="text-sm text-gray-600 text-center mb-6"
                       style={{ fontFamily: "MerriweatherSans_400Regular" }}
                     >
-                      Ask your partner for the room code
+                      {t("joinRoom.askPartnerForCode")}
                     </Text>
 
                     {/* Room Code Input */}
@@ -443,7 +449,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                         className="text-sm font-semibold text-gray-900 mb-2"
                         style={{ fontFamily: "MerriweatherSans_400Regular" }}
                       >
-                        Room Code
+                        {t("joinRoom.roomCode")}
                       </Text>
                       <View className="relative">
                         {/* Shadow */}
@@ -466,7 +472,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                             }}
                             onFocus={() => setRoomCodeFocused(true)}
                             onBlur={() => setRoomCodeFocused(false)}
-                            placeholder="Enter room code"
+                            placeholder={t("joinRoom.enterRoomCodePlaceholder")}
                             placeholderTextColor="#9ca3af"
                             autoCapitalize="characters"
                             returnKeyType="done"
@@ -503,10 +509,10 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                           style={{ letterSpacing: -0.3 }}
                         >
                           {isJoining
-                            ? "Joining..."
+                            ? t("joinRoom.joining")
                             : isStep3Valid
-                            ? "Join Room"
-                            : "Enter Room Code"}
+                            ? t("joinRoom.joinRoom")
+                            : t("joinRoom.enterRoomCodeButton")}
                         </Text>
                       </TouchableOpacity>
                     </View>

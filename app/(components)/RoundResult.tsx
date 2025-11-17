@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { Language } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { getAvatarImage } from "../utils/avatarUtils";
 import { getQuestionText } from "../utils/questionUtils";
 
@@ -24,6 +25,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
 }) => {
   const isLastQuestion = currentQuestionIndex + 1 === totalQuestions;
   const progressAnim = useRef(new Animated.Value(100)).current;
+  const { t } = useTranslation();
 
   // Animate progress bar when round result appears
   useEffect(() => {
@@ -66,7 +68,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
                   className="text-xs font-bold text-black uppercase tracking-wider mt-[1px] -ml-1"
                   style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
-                  Question
+                  {t("roundResult.questionLabel")}
                 </Text>
               </View>
               <Text
@@ -191,8 +193,8 @@ const RoundResult: React.FC<RoundResultProps> = ({
             style={{ fontFamily: "MerriweatherSans_400Regular" }}
           >
             {isLastQuestion
-              ? "Loading results..."
-              : "Next question in a moment..."}
+              ? t("roundResult.loadingResults")
+              : t("roundResult.nextQuestionSoon")}
           </Text>
         </View>
       </View>

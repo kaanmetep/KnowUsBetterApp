@@ -1,6 +1,6 @@
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface LearnHowToPlayProps {
   visible: boolean;
@@ -18,37 +19,42 @@ interface LearnHowToPlayProps {
 
 type Step = 1 | 2 | 3;
 
-const steps = [
-  {
-    id: 1,
-    iconName: "user-group",
-    iconType: "FontAwesome6",
-    title: "Create or Join a Room",
-    description: "Create a room or join your friend's room.",
-  },
-  {
-    id: 2,
-    iconName: "question-circle",
-    iconType: "FontAwesome5",
-    title: "Answer Questions",
-    description: "Answer questions to get to know your partner better.",
-  },
-  {
-    id: 3,
-    iconName: "heart",
-    iconType: "FontAwesome5",
-    title: "Check Your Match",
-    description: "See your match percentage with your partner!",
-  },
-];
-
 const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
   visible,
   onClose,
 }) => {
+  const { t, selectedLanguage } = useTranslation();
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Get steps from translations based on selected language
+  const steps = useMemo(
+    () => [
+      {
+        id: 1,
+        iconName: "user-group",
+        iconType: "FontAwesome6",
+        title: t("learnHowToPlay.step1Title"),
+        description: t("learnHowToPlay.step1Description"),
+      },
+      {
+        id: 2,
+        iconName: "question-circle",
+        iconType: "FontAwesome5",
+        title: t("learnHowToPlay.step2Title"),
+        description: t("learnHowToPlay.step2Description"),
+      },
+      {
+        id: 3,
+        iconName: "heart",
+        iconType: "FontAwesome5",
+        title: t("learnHowToPlay.step3Title"),
+        description: t("learnHowToPlay.step3Description"),
+      },
+    ],
+    [t, selectedLanguage]
+  );
 
   const handleClose = () => {
     setCurrentStep(1);
@@ -176,7 +182,7 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
                 className="text-2xl font-bold text-gray-900 text-center mb-6"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                How to Play
+                {t("learnHowToPlay.title")}
               </Text>
 
               {/* Animated Card Content */}
@@ -231,7 +237,7 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
                       className="text-gray-900 font-semibold"
                       style={{ fontFamily: "MerriweatherSans_700Bold" }}
                     >
-                      Step {currentStep} of 3
+                      {t("learnHowToPlay.stepCounter", { step: currentStep })}
                     </Text>
                   </View>
                 </View>
@@ -263,7 +269,7 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
                         }`}
                         style={{ fontFamily: "MerriweatherSans_700Bold" }}
                       >
-                        Previous
+                        {t("learnHowToPlay.previous")}
                       </Text>
                     </View>
                   </View>
@@ -281,7 +287,9 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
                         className="text-gray-900 font-semibold"
                         style={{ fontFamily: "MerriweatherSans_700Bold" }}
                       >
-                        {currentStep === 3 ? "Got it!" : "Next"}
+                        {currentStep === 3
+                          ? t("learnHowToPlay.gotIt")
+                          : t("learnHowToPlay.next")}
                       </Text>
                       {currentStep !== 3 && (
                         <Ionicons

@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useTranslation } from "../hooks/useTranslation";
 import {
   Category,
   getCategories,
@@ -52,6 +53,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const { coins } = useCoins();
   const { selectedLanguage } = useLanguage();
+  const { t } = useTranslation();
   const loadingOpacity = useRef(new Animated.Value(0.4)).current;
 
   // Load categories from Supabase
@@ -303,7 +305,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         className="text-gray-900 text-lg text-center font-bold"
                         style={{ letterSpacing: -0.3 }}
                       >
-                        {isStep1Valid ? "Continue →" : "Select an Avatar"}
+                        {isStep1Valid
+                          ? t("createRoom.continue")
+                          : t("createRoom.selectAvatar")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -409,7 +413,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                           className="text-gray-900 text-lg text-center font-bold"
                           style={{ letterSpacing: -0.3 }}
                         >
-                          {isStep2Valid ? "Continue →" : "Enter Your Name"}
+                          {isStep2Valid
+                            ? t("createRoom.continue")
+                            : t("createRoom.enterYourName")}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -483,14 +489,14 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     className="text-2xl font-bold text-gray-900 text-center mb-2"
                     style={{ fontFamily: "MerriweatherSans_700Bold" }}
                   >
-                    Choose Your Vibe
+                    {t("createRoom.chooseYourVibe")}
                   </Text>
 
                   <Text
                     className="text-sm text-gray-600 text-center mb-6"
                     style={{ fontFamily: "MerriweatherSans_400Regular" }}
                   >
-                    Pick the category that fits your relationship
+                    {t("createRoom.pickCategory")}
                   </Text>
 
                   {/* Categories */}
@@ -504,7 +510,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             opacity: loadingOpacity,
                           }}
                         >
-                          Loading categories...
+                          {t("createRoom.loadingCategories")}
                         </Animated.Text>
                       </View>
                     ) : categories.length === 0 ? (
@@ -513,18 +519,18 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                           className="text-gray-600"
                           style={{ fontFamily: "MerriweatherSans_400Regular" }}
                         >
-                          {`No categories available : (`}
+                          {t("createRoom.noCategoriesAvailable")}
                         </Text>
                         <Text
                           className="text-gray-500 text-sm text-center mt-4"
                           style={{ fontFamily: "MerriweatherSans_400Regular" }}
                         >
-                          {`You can try later, or you can help us by reporting this issue. We might give you free coins for your help !`}
+                          {t("createRoom.noCategoriesMessage")}
                         </Text>
                         <View className="mt-4">
                           <ContactUsButton
                             position="none"
-                            text="Report Issue"
+                            text={t("createRoom.reportIssue")}
                           />
                         </View>
                       </View>
@@ -579,8 +585,8 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                     )}
                                   </Text>
                                   {category.isPremium && (
-                                    <View className="relative">
-                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5 ml-[2px]">
+                                    <View className="relative ml-[4px]">
+                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5">
                                         <Text
                                           className="text-gray-900 text-xs font-bold"
                                           style={{ letterSpacing: -0.2 }}
@@ -591,7 +597,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                             color="#991b1b"
                                           />{" "}
                                           <Text>
-                                            {category.coinsRequired} Coin
+                                            {category.coinsRequired}{" "}
+                                            {category.coinsRequired === 1
+                                              ? t("coins.coin")
+                                              : t("coins.coins")}
                                           </Text>
                                         </Text>
                                       </View>
@@ -622,7 +631,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       >
                         <FontAwesome6 name="coins" size={16} color="#991b1b" />
                         {"   "}
-                        <Text>You have: {coins} coins</Text>
+                        <Text>{t("coins.youHave", { coins })}</Text>
                       </Text>
                     </View>
                   </View>
@@ -640,7 +649,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             fontFamily: "MerriweatherSans_400Regular",
                           }}
                         >
-                          Buy Coins
+                          {t("coins.buyCoins")}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -665,10 +674,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         style={{ letterSpacing: -0.3 }}
                       >
                         {isCreating
-                          ? "Creating..."
+                          ? t("createRoom.creating")
                           : isStep3Valid
-                          ? "Create Room"
-                          : "Select a Category"}
+                          ? t("createRoom.createRoom")
+                          : t("createRoom.selectCategory")}
                       </Text>
                     </TouchableOpacity>
                   </View>
