@@ -1,4 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Keyboard,
@@ -11,6 +13,11 @@ import {
 } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTranslation } from "../hooks/useTranslation";
+import {
+  Category,
+  getCategoryById,
+  getCategoryLabel,
+} from "../services/categoryService";
 import socketService from "../services/socketService";
 import { getQuestionAnswers, getQuestionText } from "../utils/questionUtils";
 import ChatMessages from "./ChatMessages";
@@ -40,6 +47,7 @@ interface GamePlayProps {
   onSelectAnswer: (answer: string) => void;
   roomCode: string;
   currentPlayerId?: string;
+  categoryId?: string;
 }
 
 const GamePlay: React.FC<GamePlayProps> = ({
@@ -56,6 +64,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onSelectAnswer,
   roomCode,
   currentPlayerId,
+  categoryId,
 }) => {
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -65,6 +74,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const chatInputRef = useRef<TextInput>(null);
+  const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
 
   // Reset timer when question changes
   useEffect(() => {
@@ -114,6 +124,45 @@ const GamePlay: React.FC<GamePlayProps> = ({
       keyboardDidHideListener.remove();
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCategoryInfo = async () => {
+      if (!categoryId) {
+        if (isMounted) {
+          setCategoryInfo(null);
+        }
+        return;
+      }
+      try {
+        const info = await getCategoryById(categoryId);
+        if (isMounted) {
+          setCategoryInfo(info);
+        }
+      } catch (error) {
+        console.error("❌ Failed to load category info:", error);
+        if (isMounted) {
+          setCategoryInfo(null);
+        }
+      }
+    };
+
+    loadCategoryInfo();
+    return () => {
+      isMounted = false;
+    };
+  }, [categoryId]);
+
+  const displayCategoryInfo = categoryInfo || {
+    id: categoryId || "just_friends",
+    labels: {},
+    color: "#f3f4f6",
+    iconName: "heart",
+    iconType: "FontAwesome6" as const,
+    coinsRequired: 0,
+    isPremium: false,
+    orderIndex: 0,
+  };
 
   // Send chat message
   const handleSendMessage = () => {
@@ -165,7 +214,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
               >
                 <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-8 min-h-[320px]">
                   {/* Progress Bar and Timer in top bar */}
-                  <View className="flex-row items-center justify-between mb-6">
+                  <View className="flex-row items-center justify-between mb-6 gap-3">
                     {/* Timer - Left Side */}
                     <View style={{ width: 52, height: 52 }}>
                       <View key={timerKey}>
@@ -191,6 +240,44 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             }
                           }}
                         />
+                      </View>
+                    </View>
+
+                    {/* Category Badge */}
+                    <View className="flex-1 items-center justify-center">
+                      <View className="relative opacity-80 ml-3">
+                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
+                        <View
+                          className="relative border-2 border-gray-900 rounded-full px-2.5 py-1 flex-row items-center justify-center gap-1"
+                          style={{ backgroundColor: displayCategoryInfo.color }}
+                        >
+                          {displayCategoryInfo.iconType ===
+                          "MaterialCommunityIcons" ? (
+                            <MaterialCommunityIcons
+                              name={displayCategoryInfo.iconName as any}
+                              size={12}
+                              color="#4b5563"
+                            />
+                          ) : (
+                            <FontAwesome6
+                              name={displayCategoryInfo.iconName as any}
+                              size={12}
+                              color="#4b5563"
+                            />
+                          )}
+                          <Text
+                            className="text-gray-500 text-[10px] font-semibold"
+                            style={{
+                              fontFamily: "MerriweatherSans_400Regular",
+                            }}
+                            numberOfLines={1}
+                          >
+                            {getCategoryLabel(
+                              displayCategoryInfo,
+                              selectedLanguage
+                            )}
+                          </Text>
+                        </View>
                       </View>
                     </View>
 

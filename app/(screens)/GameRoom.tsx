@@ -569,6 +569,7 @@ const GameRoom = () => {
         onSelectAnswer={handleSelectAnswer}
         roomCode={roomCode}
         currentPlayerId={socketService.getSocketId()}
+        categoryId={room?.settings?.category}
       />
     );
   }
