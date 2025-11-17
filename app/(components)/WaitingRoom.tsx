@@ -28,7 +28,6 @@ import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
-import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
 import SettingsModal from "./SettingsModal";
 
@@ -59,7 +58,8 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
-  const { selectedLanguage } = useLanguage();
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { coins } = useCoins();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const dashOffsetAnim = useRef(new Animated.Value(0)).current;
@@ -248,30 +248,86 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         }}
       />
 
-      {/* Header Container with Language Selector, Settings and Coin Display */}
-      <View
-        className="absolute top-0 left-0 right-0 z-50 bg-primary backdrop-blur-sm  pb-10"
-        style={{ minHeight: 100 }}
-      >
-        <CoinBalanceDisplay
-          onBuyCoins={handleBuyCoins}
-          style="absolute"
-          position="top-left"
-        />
-        {/* Language Selector & Settings Button Container */}
-        <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
-          <LanguageSelector position="none" />
-          {/* Settings Button */}
-          <View className="relative">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-            <TouchableOpacity
-              onPress={() => setShowSettingsModal(true)}
-              activeOpacity={0.8}
-              className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
+      {/* Coin Balance Display */}
+      <CoinBalanceDisplay
+        onBuyCoins={handleBuyCoins}
+        style="absolute"
+        position="top-left"
+      />
+
+      {/* Language Selector & Settings Button Container */}
+      <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
+        {/* Inline Language Selector */}
+        <View className="relative">
+          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+          <TouchableOpacity
+            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+            activeOpacity={0.8}
+            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
+          >
+            <Text style={{ fontSize: 18 }}>
+              {languages[selectedLanguage].flag}
+            </Text>
+            <Text
+              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
+              className="text-gray-900"
             >
-              <Feather name="settings" size={17} color="black" />
-            </TouchableOpacity>
-          </View>
+              {selectedLanguage.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Dropdown Menu */}
+          {isLanguageMenuOpen && (
+            <View className="absolute top-[52px] right-0 w-[140px]">
+              <View className="relative">
+                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
+                  {(
+                    Object.keys(languages) as Array<keyof typeof languages>
+                  ).map((lang, index) => (
+                    <TouchableOpacity
+                      key={lang}
+                      onPress={() => {
+                        setSelectedLanguage(lang);
+                        setIsLanguageMenuOpen(false);
+                      }}
+                      activeOpacity={0.8}
+                      className={`flex-row items-center gap-1 px-3 py-3 ${
+                        index !== Object.keys(languages).length - 1
+                          ? "border-b-2 border-gray-900"
+                          : ""
+                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
+                    >
+                      <Text style={{ fontSize: 16 }}>
+                        {languages[lang].flag}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                          fontSize: 13,
+                        }}
+                        className="text-gray-900"
+                      >
+                        {languages[lang].label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Settings Button */}
+        <View className="relative">
+          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+          <TouchableOpacity
+            onPress={() => setShowSettingsModal(true)}
+            activeOpacity={0.8}
+            className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
+          >
+            <Feather name="settings" size={17} color="black" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -280,7 +336,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View className="items-center mt-16 mb-4">
+        <View className="items-center mt-20 mb-4">
           <Logo size="small" />
         </View>
 
@@ -329,7 +385,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   </View>
 
                   {/* Share Link Button */}
-                  <View className="relative">
+                  {/* <View className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
                     <TouchableOpacity
                       onPress={handleShareLink}
@@ -345,6 +401,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       </Text>
                     </TouchableOpacity>
                   </View>
+                  */}
                 </View>
               </View>
             </View>
@@ -430,7 +487,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               )}
             </View>
 
-            <View className="gap-3">
+            <View className="gap-2.5">
               {participants.map((participant) => {
                 const isCurrentUser = isMe(participant.id);
                 const canKick = isHost && !isCurrentUser && onKickPlayer;
@@ -438,9 +495,9 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 return (
                   <View key={participant.id} className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4 flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-3">
-                        <View className="w-14 h-14 rounded-full items-center justify-center border  overflow-hidden">
+                    <View className="relative bg-white border-2 border-gray-900 rounded-xl p-3 flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-2.5">
+                        <View className="w-12 h-12 rounded-full items-center justify-center border  overflow-hidden">
                           {participant.avatar &&
                           getAvatarImage(participant.avatar) ? (
                             <Image
@@ -451,7 +508,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                           ) : (
                             <FontAwesome5
                               name="user"
-                              size={16}
+                              size={14}
                               color="#991b1b"
                             />
                           )}
@@ -459,7 +516,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         <View>
                           <View className=" flex-row justify-between items-center gap-1 ">
                             <Text
-                              className="text-gray-900 font-semibold text-lg"
+                              className="text-gray-900 font-semibold text-base"
                               style={{ fontFamily: "MerriweatherSans_700Bold" }}
                             >
                               {participant.name}
@@ -490,15 +547,15 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       {canKick && (
                         <TouchableOpacity
                           onPress={() => onKickPlayer(participant.id)}
-                          className="p-2"
+                          className="p-1.5"
                           activeOpacity={0.7}
                         >
                           <View className="relative">
                             <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
-                            <View className="relative bg-red-100 border border-gray-900 rounded-lg p-1.5">
+                            <View className="relative bg-red-100 border border-gray-900 rounded-lg p-1">
                               <MaterialCommunityIcons
                                 name="account-remove"
-                                size={18}
+                                size={16}
                                 color="#991b1b"
                               />
                             </View>

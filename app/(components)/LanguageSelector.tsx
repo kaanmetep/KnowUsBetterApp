@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { useLanguage } from "../contexts/LanguageContext";
 
 interface LanguageSelectorProps {
-  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
+  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "none";
 }
 
 const LanguageSelector = ({
@@ -17,6 +17,7 @@ const LanguageSelector = ({
     "top-left": "absolute top-20 left-6 z-50",
     "bottom-right": "absolute bottom-20 right-6 z-50",
     "bottom-left": "absolute bottom-20 left-6 z-50",
+    none: "",
   };
 
   const dropdownPositionClasses = {
@@ -24,6 +25,7 @@ const LanguageSelector = ({
     "top-left": "absolute top-[52px] left-0 w-[140px]",
     "bottom-right": "absolute bottom-[52px] right-0 w-[140px]",
     "bottom-left": "absolute bottom-[52px] left-0 w-[140px]",
+    none: "",
   };
 
   return (
