@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTranslation } from "../hooks/useTranslation";
 
 interface CountdownProps {
   onComplete: () => void;
@@ -18,9 +19,11 @@ interface CountdownProps {
 const Countdown: React.FC<CountdownProps> = ({
   onComplete,
   duration = 3,
-  customText = "Get Ready...",
+  customText,
   showFullScreen = true,
 }) => {
+  const { t } = useTranslation();
+  const displayText = customText || t("countdown.getReady");
   const [currentNumber, setCurrentNumber] = useState(duration);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -240,7 +243,7 @@ const Countdown: React.FC<CountdownProps> = ({
               fontFamily: "MerriweatherSans_400Regular",
             }}
           >
-            {customText}
+            {displayText}
           </Text>
         </Animated.View>
       </View>

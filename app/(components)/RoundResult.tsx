@@ -118,36 +118,61 @@ const RoundResult: React.FC<RoundResultProps> = ({
                       {playerAnswer.playerName}
                     </Text>
                   </View>
-                  {/* Answer - Fixed width */}
-                  <View
-                    className="relative flex-shrink-0"
-                    style={{ width: 80 }}
-                  >
+                  {/* Answer - Full width */}
+                  <View className="relative flex-1 min-w-0">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
                     <View
                       className={`relative border-2 border-gray-900 rounded-lg py-2.5 px-3 overflow-hidden ${
-                        playerAnswer.answer.toLowerCase() === "yes"
+                        typeof playerAnswer.answer === "string" &&
+                        playerAnswer.answer.toLowerCase().trim() === "yes"
                           ? "bg-green-100"
-                          : playerAnswer.answer.toLowerCase() === "no"
+                          : typeof playerAnswer.answer === "string" &&
+                            playerAnswer.answer.toLowerCase().trim() === "no"
                           ? "bg-red-200"
                           : ""
                       }`}
                     >
-                      {playerAnswer.answer.toLowerCase() !== "yes" &&
-                        playerAnswer.answer.toLowerCase() !== "no" && (
-                          <LinearGradient
-                            colors={["#fff1f2", "#ffe4e6"]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={{
-                              position: "absolute",
-                              left: 0,
-                              right: 0,
-                              top: 0,
-                              bottom: 0,
-                            }}
-                          />
-                        )}
+                      {(() => {
+                        // Show gradient only for non-yes/no answers (custom answers or MultiLanguageAnswer objects)
+                        if (!playerAnswer.answer) return null;
+                        if (typeof playerAnswer.answer === "object") {
+                          // It's a MultiLanguageAnswer object, show gradient
+                          return (
+                            <LinearGradient
+                              colors={["#fff1f2", "#ffe4e6"]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                              }}
+                            />
+                          );
+                        }
+                        // It's a string, check if it's yes/no
+                        const answerString = String(playerAnswer.answer);
+                        const answerLower = answerString.toLowerCase().trim();
+                        if (answerLower !== "yes" && answerLower !== "no") {
+                          return (
+                            <LinearGradient
+                              colors={["#fff1f2", "#ffe4e6"]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                              }}
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
                       <View className="flex-row items-center justify-center relative z-10">
                         <Text
                           className="text-sm font-bold text-gray-900"
@@ -157,8 +182,52 @@ const RoundResult: React.FC<RoundResultProps> = ({
                             fontSize: 14,
                           }}
                         >
-                          {playerAnswer.answer[0].toUpperCase() +
-                            playerAnswer.answer.slice(1).toLowerCase()}
+                          {(() => {
+                            if (!playerAnswer.answer) {
+                              return "";
+                            }
+
+                            // Check if answer is a MultiLanguageAnswer object
+                            if (
+                              typeof playerAnswer.answer === "object" &&
+                              playerAnswer.answer !== null &&
+                              !Array.isArray(playerAnswer.answer)
+                            ) {
+                              // It's a MultiLanguageAnswer object, get the answer for selected language
+                              const langKey =
+                                selectedLanguage as keyof typeof playerAnswer.answer;
+                              const translatedAnswer =
+                                playerAnswer.answer[langKey] ||
+                                playerAnswer.answer.en ||
+                                "";
+                              // Capitalize first letter
+                              return (
+                                translatedAnswer[0]?.toUpperCase() +
+                                translatedAnswer.slice(1).toLowerCase()
+                              );
+                            }
+
+                            // It's a string answer
+                            const answerString = String(playerAnswer.answer);
+                            if (answerString.trim() === "") {
+                              return "";
+                            }
+                            const answerLower = answerString
+                              .toLowerCase()
+                              .trim();
+                            // Only translate yes/no answers, keep custom answers as-is
+                            if (answerLower === "yes") {
+                              return t("gamePlay.yes");
+                            }
+                            if (answerLower === "no") {
+                              return t("gamePlay.no");
+                            }
+                            // Custom answers - show as received (already translated)
+                            return (
+                              answerString[0].toUpperCase() +
+                              answerString.slice(1).toLowerCase()
+                            );
+                          })()}
                         </Text>
                       </View>
                     </View>

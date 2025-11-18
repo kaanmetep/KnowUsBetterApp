@@ -196,6 +196,9 @@
     "loadingResults": "Loading results...",
     "nextQuestionSoon": "Next question in a moment..."
   },
+  "countdown": {
+    "getReady": "Get Ready..."
+  },
   "gameFinished": {
     "backToRoom": "Back to Room",
     "returningCountdown": "Returning to room in {{seconds}}s",

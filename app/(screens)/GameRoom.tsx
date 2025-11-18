@@ -134,7 +134,19 @@ const GameRoom = () => {
 
     // Round completed
     const handleRoundCompleted = (data: any) => {
-      console.log("🎯 Round completed:", data);
+      if (data.playerAnswers) {
+        data.playerAnswers.forEach((playerAnswer: any, index: number) => {
+          console.log(`🎯 Player Answer ${index}:`, {
+            playerName: playerAnswer.playerName,
+            answer: playerAnswer.answer,
+            answerType: typeof playerAnswer.answer,
+            answerKeys:
+              typeof playerAnswer.answer === "object"
+                ? Object.keys(playerAnswer.answer)
+                : "N/A",
+          });
+        });
+      }
       // Show round results for 5 seconds (backend handles the timing)
       setRoundResult(data);
       setNotifications([]); // Clear notifications when showing round result

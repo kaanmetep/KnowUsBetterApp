@@ -196,6 +196,9 @@
     "loadingResults": "Sonuçlar yükleniyor...",
     "nextQuestionSoon": "Bir sonraki soru az sonra..."
   },
+  "countdown": {
+    "getReady": "Hazır olun..."
+  },
   "gameFinished": {
     "backToRoom": "Odaya Dön",
     "returningCountdown": "{{seconds}} sn içinde odaya dönülüyor",

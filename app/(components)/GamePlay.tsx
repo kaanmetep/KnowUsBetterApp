@@ -245,7 +245,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
                     {/* Category Badge */}
                     <View className="flex-1 items-center justify-center">
-                      <View className="relative opacity-80 ml-3">
+                      <View className="relative opacity-95 ml-3">
                         <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
                         <View
                           className="relative border-2 border-gray-900 rounded-full px-2.5 py-1 flex-row items-center justify-center gap-1"
@@ -256,17 +256,17 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             <MaterialCommunityIcons
                               name={displayCategoryInfo.iconName as any}
                               size={12}
-                              color="#4b5563"
+                              color="#1f2937"
                             />
                           ) : (
                             <FontAwesome6
                               name={displayCategoryInfo.iconName as any}
                               size={12}
-                              color="#4b5563"
+                              color="#1f2937"
                             />
                           )}
                           <Text
-                            className="text-gray-500 text-[10px] font-semibold"
+                            className="text-gray-800 text-[10px] font-semibold"
                             style={{
                               fontFamily: "MerriweatherSans_400Regular",
                             }}

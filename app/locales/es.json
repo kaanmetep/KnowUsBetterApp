@@ -196,6 +196,9 @@
     "loadingResults": "Cargando resultados...",
     "nextQuestionSoon": "Próxima pregunta en un momento..."
   },
+  "countdown": {
+    "getReady": "Prepárense..."
+  },
   "gameFinished": {
     "backToRoom": "Volver a la sala",
     "returningCountdown": "Regresando a la sala en {{seconds}}s",

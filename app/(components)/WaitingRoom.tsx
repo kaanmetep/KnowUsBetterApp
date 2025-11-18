@@ -441,8 +441,9 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               </View>
             </View>
 
-            {/* Coin Warning for Premium Categories */}
-            {categoryInfo?.isPremium &&
+            {/* Coin Warning for Premium Categories - Only show to host */}
+            {isHost &&
+              categoryInfo?.isPremium &&
               categoryInfo.coinsRequired &&
               coins < categoryInfo.coinsRequired &&
               !isStartingGame && (
