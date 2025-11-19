@@ -10,7 +10,8 @@
     "edit": "Edit",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "copied": "Copied!"
   },
   "startScreen": {
     "createNewRoom": "Create New Room",

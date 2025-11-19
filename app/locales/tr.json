@@ -10,7 +10,8 @@
     "edit": "Düzenle",
     "loading": "Yükleniyor...",
     "error": "Hata",
-    "success": "Başarılı"
+    "success": "Başarılı",
+    "copied": "Kopyalandı!"
   },
   "startScreen": {
     "createNewRoom": "Yeni Oda Oluştur",
