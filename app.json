@@ -12,9 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.knowusbetter.app",
       "buildNumber": "3",
-      "associatedDomains": [
-        "applinks:knowusbetter.app"
-      ],
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "associatedDomains": ["applinks:knowusbetter.app"],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -40,10 +39,7 @@
               "pathPrefix": "/join"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },

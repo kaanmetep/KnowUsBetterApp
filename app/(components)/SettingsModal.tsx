@@ -310,9 +310,7 @@ User ID: ${userId || appUserId}`;
                       {isLanguageMenuOpen && (
                         <View className="border-t-2 border-gray-900">
                           {(
-                            Object.keys(languages) as Array<
-                              keyof typeof languages
-                            >
+                            Object.keys(languages) as (keyof typeof languages)[]
                           ).map((lang, index) => (
                             <TouchableOpacity
                               key={lang}
@@ -424,7 +422,7 @@ User ID: ${userId || appUserId}`;
                   </TouchableOpacity>
 
                   {/* Rate App */}
-                  <TouchableOpacity onPress={handleRateApp} activeOpacity={0.8}>
+                  {/* <TouchableOpacity onPress={handleRateApp} activeOpacity={0.8}>
                     <View className="relative">
                       <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
                       <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-between">

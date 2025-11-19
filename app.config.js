@@ -14,6 +14,7 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: "com.knowusbetter.app",
       buildNumber: "3",
+      googleServicesFile: "./GoogleService-Info.plist",
       associatedDomains: ["applinks:knowusbetter.app"],
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
