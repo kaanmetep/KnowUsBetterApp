@@ -124,6 +124,8 @@
     "restorePurchases": "Restore Purchases",
     "paymentChargedApple": "Payment will be charged to your Apple ID account",
     "paymentChargedGoogle": "Payment will be charged to your Google Play account",
+    "deviceSpecific": "Coins are device-specific and cannot be transferred to other devices.",
+    "deviceSpecificSupport": "However, if you need to transfer your coins to another device, please contact our support team and we'll be happy to help you.",
     "youHave": "You have: {{coins}} coins"
   },
   "createRoom": {

@@ -403,6 +403,28 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                   ? t("coins.paymentChargedApple")
                   : t("coins.paymentChargedGoogle")}
               </Text>
+
+              {/* Device Specific Info */}
+              <Text
+                className="text-center text-gray-500 text-xs mt-2"
+                style={{
+                  fontFamily: "MerriweatherSans_400Regular",
+                  lineHeight: 16,
+                }}
+              >
+                {t("coins.deviceSpecific")}
+              </Text>
+
+              {/* Support Info */}
+              <Text
+                className="text-center text-gray-500 text-xs mt-1"
+                style={{
+                  fontFamily: "MerriweatherSans_400Regular",
+                  lineHeight: 16,
+                }}
+              >
+                {t("coins.deviceSpecificSupport")}
+              </Text>
             </View>
           </View>
         </Pressable>

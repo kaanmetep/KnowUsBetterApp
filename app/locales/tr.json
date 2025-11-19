@@ -124,6 +124,8 @@
     "restorePurchases": "Satın Alımları Geri Yükle",
     "paymentChargedApple": "Ödeme Apple ID hesabınızdan tahsil edilecektir",
     "paymentChargedGoogle": "Ödeme Google Play hesabınızdan tahsil edilecektir",
+    "deviceSpecific": "Coinler cihaza özeldir ve başka cihazlara aktarılamaz.",
+    "deviceSpecificSupport": "Ancak coinlerinizi başka bir cihaza aktarmak isterseniz, lütfen destek ekibimizle iletişime geçin, size yardımcı olmaktan memnuniyet duyarız.",
     "youHave": "Sahip olduğunuz: {{coins}} coins"
   },
   "createRoom": {
