@@ -190,8 +190,6 @@ const StartOptionsScreen = () => {
       // Send request to create room to backend
       const result = await socketService.createRoom(userName, avatar, category);
       // result -> { roomCode: string; player: room.players[0]; category: string }
-
-      console.log("✅ Room is created:", result);
       setShowCreateModal(false);
 
       // Redirect to GameRoom (only roomCode needed, rest comes from backend)
@@ -221,7 +219,6 @@ const StartOptionsScreen = () => {
   ): Promise<void> => {
     try {
       setIsLoading(true);
-      console.log("👥 Joining room...", { userName, roomCode, avatar });
 
       // Send request to join room to backend
       const result = await socketService.joinRoom(
@@ -230,7 +227,6 @@ const StartOptionsScreen = () => {
         avatar
       );
 
-      console.log("✅ Joined room:", result);
       setShowJoinModal(false);
 
       // Redirect to GameRoom (only roomCode needed, rest comes from backend)
@@ -317,36 +313,36 @@ const StartOptionsScreen = () => {
               <View className="relative">
                 <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
                 <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
-                  {(
-                    Object.keys(languages) as Array<keyof typeof languages>
-                  ).map((lang, index) => (
-                    <TouchableOpacity
-                      key={lang}
-                      onPress={() => {
-                        setSelectedLanguage(lang);
-                        setIsLanguageMenuOpen(false);
-                      }}
-                      activeOpacity={0.8}
-                      className={`flex-row items-center gap-1 px-3 py-3 ${
-                        index !== Object.keys(languages).length - 1
-                          ? "border-b-2 border-gray-900"
-                          : ""
-                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
-                    >
-                      <Text style={{ fontSize: 16 }}>
-                        {languages[lang].flag}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: "MerriweatherSans_400Regular",
-                          fontSize: 13,
+                  {(Object.keys(languages) as (keyof typeof languages)[]).map(
+                    (lang, index) => (
+                      <TouchableOpacity
+                        key={lang}
+                        onPress={() => {
+                          setSelectedLanguage(lang);
+                          setIsLanguageMenuOpen(false);
                         }}
-                        className="text-gray-900"
+                        activeOpacity={0.8}
+                        className={`flex-row items-center gap-1 px-3 py-3 ${
+                          index !== Object.keys(languages).length - 1
+                            ? "border-b-2 border-gray-900"
+                            : ""
+                        } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
                       >
-                        {languages[lang].label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text style={{ fontSize: 16 }}>
+                          {languages[lang].flag}
+                        </Text>
+                        <Text
+                          style={{
+                            fontFamily: "MerriweatherSans_400Regular",
+                            fontSize: 13,
+                          }}
+                          className="text-gray-900"
+                        >
+                          {languages[lang].label}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  )}
                 </View>
               </View>
             </View>

@@ -14,7 +14,6 @@ import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { getCategoryCoinsRequired } from "../services/categoryService";
 import socketService, { Room } from "../services/socketService";
-import { getQuestionText } from "../utils/questionUtils";
 
 const GameRoom = () => {
   const router = useRouter();
@@ -62,13 +61,10 @@ const GameRoom = () => {
 
   // Socket.io event listeners and cleanup
   useEffect(() => {
-    console.log("🎮 GameRoom mounted - roomCode:", roomCode);
-
     // Load current room data on mount
     const loadRoomData = async () => {
       try {
         const roomData = await socketService.getRoom(roomCode);
-        console.log("📋 Current room data loaded:", roomData);
         setRoom(roomData);
       } catch (error) {
         console.error("❌ Failed to load room data:", error);
@@ -79,7 +75,6 @@ const GameRoom = () => {
 
     // New player joined
     const handlePlayerJoined = (data: any) => {
-      console.log("👥 New player joined:", data);
       if (data.room) {
         setRoom(data.room);
       }
@@ -87,7 +82,6 @@ const GameRoom = () => {
 
     // Player left
     const handlePlayerLeft = (data: any) => {
-      console.log("🚪 Player left:", data);
       if (data.room) {
         setRoom(data.room);
       }
@@ -95,11 +89,6 @@ const GameRoom = () => {
 
     // Game started
     const handleGameStarted = (data: any) => {
-      console.log("🎮 Game started!", data);
-      console.log("📊 Current question:", data.question);
-      console.log("📊 Total questions:", data.totalQuestions);
-      console.log("⏱️ Question duration:", data.duration);
-
       if (data.room) {
         setRoom(data.room);
       }
@@ -119,13 +108,10 @@ const GameRoom = () => {
       setHasSubmitted(false);
       setOpponentAnswered(false);
       setOpponentName(null);
-
-      console.log("✅ State updated - gameState should be 'countdown'");
     };
 
     // Player answered
     const handlePlayerAnswered = (data: any) => {
-      console.log("✅ Player answered:", data);
       setOpponentAnswered(true);
       if (data.playerName) {
         setOpponentName(data.playerName);
@@ -135,17 +121,7 @@ const GameRoom = () => {
     // Round completed
     const handleRoundCompleted = (data: any) => {
       if (data.playerAnswers) {
-        data.playerAnswers.forEach((playerAnswer: any, index: number) => {
-          console.log(`🎯 Player Answer ${index}:`, {
-            playerName: playerAnswer.playerName,
-            answer: playerAnswer.answer,
-            answerType: typeof playerAnswer.answer,
-            answerKeys:
-              typeof playerAnswer.answer === "object"
-                ? Object.keys(playerAnswer.answer)
-                : "N/A",
-          });
-        });
+        data.playerAnswers.forEach((playerAnswer: any, index: number) => {});
       }
       // Show round results for 5 seconds (backend handles the timing)
       setRoundResult(data);
@@ -155,7 +131,6 @@ const GameRoom = () => {
 
     // Next question
     const handleNextQuestion = (data: any) => {
-      console.log("➡️ Next question:", data);
       setCurrentQuestion(data.question);
       setCurrentQuestionIndex(data.currentQuestionIndex);
       if (data.duration) {
@@ -171,7 +146,6 @@ const GameRoom = () => {
 
     // Game finished
     const handleGameFinished = (data: any) => {
-      console.log("🏁 Game finished!", data);
       setGameState("finished");
       setGameFinishedData({
         matchScore: data.matchScore,
@@ -183,8 +157,6 @@ const GameRoom = () => {
 
     // Game cancelled (player left during game)
     const handleGameCancelled = (data: any) => {
-      console.log("⚠️ Game cancelled:", data);
-
       // Show alert
       const cancelMessage = data.message || t("gameRoom.gameCancelledMessage");
       if (Platform.OS === "web") {
@@ -220,7 +192,6 @@ const GameRoom = () => {
 
     // Player kicked (for remaining players)
     const handlePlayerKicked = (data: any) => {
-      console.log("🚫 Player kicked:", data);
       if (data.room) {
         setRoom(data.room);
       }
@@ -228,7 +199,6 @@ const GameRoom = () => {
 
     // Kicked from room (for the kicked player)
     const handleKickedFromRoom = (data: any) => {
-      console.log("🚫 You were kicked from room:", data);
       const message = data.message || t("gameRoom.kickedMessage");
 
       // First, navigate back
@@ -253,7 +223,6 @@ const GameRoom = () => {
 
     // Room error handler (for kick errors and other room errors)
     const handleRoomError = (error: any) => {
-      console.error("❌ Room error:", error);
       const errorMessage = error?.message || t("gameRoom.genericError");
       if (Platform.OS === "web") {
         window.alert(errorMessage);
@@ -264,7 +233,6 @@ const GameRoom = () => {
 
     // Critical error handler (redirects to StartOptionsScreen)
     const handleCriticalError = (error: any) => {
-      console.error("🔴 Critical error:", error);
       const errorMessage = error?.message || t("gameRoom.criticalErrorMessage");
 
       // Show alert first
@@ -307,13 +275,6 @@ const GameRoom = () => {
       } else if (nextAppState === "active") {
         // App came to foreground - always check room status regardless of time
         if (backgroundTimeRef.current !== null) {
-          const timeInBackground = Date.now() - backgroundTimeRef.current;
-          console.log(
-            "📱 App resumed after",
-            timeInBackground,
-            "ms - checking room status"
-          );
-
           try {
             // Check if user is still in the room
             const roomData = await socketService.getRoom(roomCode);
@@ -325,9 +286,6 @@ const GameRoom = () => {
             );
 
             if (!isUserInRoom) {
-              console.log(
-                "🚪 User is not in room anymore - redirecting to StartOptionsScreen"
-              );
               // User was removed from room, redirect to StartOptionsScreen
               router.replace("/StartOptionsScreen");
             } else {
@@ -335,7 +293,6 @@ const GameRoom = () => {
               setRoom(roomData);
             }
           } catch (error) {
-            console.error("❌ Error checking room status:", error);
             // If we can't check room status, assume user was removed
             router.replace("/StartOptionsScreen");
           }
@@ -352,12 +309,8 @@ const GameRoom = () => {
 
     // Cleanup - remove event listeners and leave room when component unmounts
     return () => {
-      console.log("🧹 GameRoom cleanup - leaving room");
-
       // Leave room when navigating away
-      socketService.leaveRoom(roomCode).catch((error) => {
-        console.error("❌ Error leaving room during cleanup:", error);
-      });
+      socketService.leaveRoom(roomCode).catch((error) => {});
 
       // Remove event listeners
       socketService.offPlayerJoined(handlePlayerJoined);
@@ -400,7 +353,6 @@ const GameRoom = () => {
     const confirmLeave = async () => {
       try {
         await socketService.leaveRoom(roomCode);
-        console.log("✅ Successfully left the room");
         router.back();
       } catch (error) {
         console.error("❌ Error leaving room:", error);
@@ -466,8 +418,6 @@ const GameRoom = () => {
             return;
           }
         }
-
-        console.log("🎮 Starting game");
         await socketService.startGame(roomCode);
       } catch (error: any) {
         console.error("❌ Error starting game:", error);
@@ -486,7 +436,6 @@ const GameRoom = () => {
   const handleSelectAnswer = (answer: string) => {
     if (!hasSubmitted && currentQuestion) {
       setSelectedAnswer(answer);
-      console.log("📝 Submitting answer:", answer);
       socketService.submitAnswer(currentQuestion.id, answer);
       setHasSubmitted(true);
     }
@@ -541,22 +490,11 @@ const GameRoom = () => {
     return null;
   }
 
-  // Debug render logic
-  console.log("🔍 Render check:", {
-    gameState,
-    hasQuestion: !!currentQuestion,
-    questionText: currentQuestion
-      ? getQuestionText(currentQuestion, selectedLanguage)
-      : undefined,
-  });
-
   // Render countdown screen
   if (gameState === "countdown") {
-    console.log("⏱️ Rendering Countdown component");
     return (
       <Countdown
         onComplete={() => {
-          console.log("✅ Countdown complete, starting game");
           setGameState("playing");
         }}
       />
@@ -565,7 +503,6 @@ const GameRoom = () => {
 
   // Render game play screen
   if (gameState === "playing" && currentQuestion) {
-    console.log("🎮 Rendering GamePlay component");
     return (
       <GamePlay
         currentQuestion={currentQuestion}
@@ -588,8 +525,6 @@ const GameRoom = () => {
 
   // Render game finished screen
   if (gameState === "finished" && gameFinishedData) {
-    console.log("🏁 Rendering GameFinished component");
-
     // Get player names from room
     const currentPlayer = room?.players?.find((p: any) => p.id === mySocketId);
     const currentPlayerName = currentPlayer?.name || t("gameRoom.youLabel");
@@ -612,9 +547,6 @@ const GameRoom = () => {
   }
 
   // Render waiting room
-  console.log("⏳ Rendering WaitingRoom component");
-  console.log("🔍 gameState:", gameState);
-  console.log("🔍 currentQuestion:", currentQuestion);
   return (
     <WaitingRoom
       room={room}

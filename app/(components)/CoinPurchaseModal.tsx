@@ -62,11 +62,6 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
 
       const offering = await purchaseService.getOfferings();
 
-      console.log(
-        "📦 Packages count:",
-        offering?.availablePackages.length || 0
-      );
-
       if (!offering || !offering.availablePackages.length) {
         console.warn("⚠️ No packages found in RevenueCat");
         setError(t("coins.noPackagesAvailable"));

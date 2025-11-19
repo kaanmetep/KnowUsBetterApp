@@ -23,15 +23,10 @@ export class AnalyticsService {
    */
   static async logEvent(eventName: string, params?: Record<string, any>) {
     if (!this.isAvailable()) {
-      console.log(
-        `📊 Analytics Event (web/skipped): ${eventName}`,
-        params || {}
-      );
       return;
     }
     try {
       await analytics().logEvent(eventName, params);
-      console.log(`📊 Analytics Event: ${eventName}`, params || {});
     } catch (error) {
       console.warn("⚠️ Failed to log analytics event:", error);
     }
@@ -44,7 +39,6 @@ export class AnalyticsService {
     if (!this.isAvailable()) return;
     try {
       await analytics().setUserProperty(name, value);
-      console.log(`📊 User Property Set: ${name} = ${value}`);
     } catch (error) {
       console.warn("⚠️ Failed to set user property:", error);
     }
@@ -57,7 +51,6 @@ export class AnalyticsService {
     if (!this.isAvailable()) return;
     try {
       await analytics().setUserId(userId);
-      console.log(`📊 User ID Set: ${userId}`);
     } catch (error) {
       console.warn("⚠️ Failed to set user ID:", error);
     }
@@ -70,7 +63,6 @@ export class AnalyticsService {
     if (!this.isAvailable()) return;
     try {
       await analytics().resetAnalyticsData();
-      console.log("📊 Analytics data reset");
     } catch (error) {
       console.warn("⚠️ Failed to reset analytics data:", error);
     }
@@ -83,9 +75,6 @@ export class AnalyticsService {
     if (!this.isAvailable()) return;
     try {
       await analytics().setAnalyticsCollectionEnabled(enabled);
-      console.log(
-        `📊 Analytics collection ${enabled ? "enabled" : "disabled"}`
-      );
     } catch (error) {
       console.warn("⚠️ Failed to set analytics collection:", error);
     }

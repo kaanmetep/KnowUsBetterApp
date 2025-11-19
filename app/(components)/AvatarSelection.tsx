@@ -67,78 +67,94 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({
       </Text>
 
       <View className="flex-row flex-wrap justify-center gap-2">
-        {avatars.map((avatar) => {
-          const scaleAnim = useRef(new Animated.Value(1)).current;
-          const isSelected = selectedAvatar === avatar.id;
-
-          useEffect(() => {
-            Animated.spring(scaleAnim, {
-              toValue: isSelected ? 1.1 : 1,
-              useNativeDriver: true,
-              tension: 50,
-              friction: 7,
-            }).start();
-          }, [isSelected]);
-
-          return (
-            <TouchableOpacity
-              key={avatar.id}
-              onPress={() => onAvatarSelect(avatar.id)}
-              activeOpacity={0.8}
-            >
-              <Animated.View
-                className="relative"
-                style={{
-                  transform: [{ scale: scaleAnim }],
-                }}
-              >
-                {selectedAvatar === avatar.id && (
-                  <View
-                    className="absolute rounded-full"
-                    style={{
-                      top: -3,
-                      left: -3,
-                      right: -3,
-                      bottom: -3,
-                      backgroundColor: borderColor,
-                      opacity: 0.15,
-                    }}
-                  />
-                )}
-                <View
-                  className="relative rounded-full overflow-hidden"
-                  style={{
-                    backgroundColor: "#ffffff",
-                    padding: 4,
-                    borderWidth: 2.5,
-                    borderColor:
-                      selectedAvatar === avatar.id
-                        ? borderColor
-                        : "transparent",
-                    shadowColor:
-                      selectedAvatar === avatar.id ? borderColor : "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: selectedAvatar === avatar.id ? 4 : 1,
-                    },
-                    shadowOpacity: selectedAvatar === avatar.id ? 0.25 : 0.1,
-                    shadowRadius: selectedAvatar === avatar.id ? 6 : 2,
-                    elevation: selectedAvatar === avatar.id ? 6 : 2,
-                  }}
-                >
-                  <Image
-                    source={avatar.path}
-                    style={{ width: 75, height: 75 }}
-                    contentFit="contain"
-                  />
-                </View>
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
+        {avatars.map((avatar) => (
+          <AvatarOption
+            key={avatar.id}
+            avatarId={avatar.id}
+            imageSource={avatar.path}
+            isSelected={selectedAvatar === avatar.id}
+            onPress={onAvatarSelect}
+            borderColor={borderColor}
+          />
+        ))}
       </View>
     </View>
   );
 };
 
 export default AvatarSelection;
+
+interface AvatarOptionProps {
+  avatarId: string;
+  imageSource: ReturnType<typeof require>;
+  isSelected: boolean;
+  onPress: (avatarId: string) => void;
+  borderColor: string;
+}
+
+const AvatarOption: React.FC<AvatarOptionProps> = ({
+  avatarId,
+  imageSource,
+  isSelected,
+  onPress,
+  borderColor,
+}) => {
+  const scaleAnim = useRef(new Animated.Value(1));
+
+  useEffect(() => {
+    Animated.spring(scaleAnim.current, {
+      toValue: isSelected ? 1.1 : 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, [isSelected]);
+
+  return (
+    <TouchableOpacity onPress={() => onPress(avatarId)} activeOpacity={0.8}>
+      <Animated.View
+        className="relative"
+        style={{
+          transform: [{ scale: scaleAnim.current }],
+        }}
+      >
+        {isSelected && (
+          <View
+            className="absolute rounded-full"
+            style={{
+              top: -3,
+              left: -3,
+              right: -3,
+              bottom: -3,
+              backgroundColor: borderColor,
+              opacity: 0.15,
+            }}
+          />
+        )}
+        <View
+          className="relative rounded-full overflow-hidden"
+          style={{
+            backgroundColor: "#ffffff",
+            padding: 4,
+            borderWidth: 2.5,
+            borderColor: isSelected ? borderColor : "transparent",
+            shadowColor: isSelected ? borderColor : "#000",
+            shadowOffset: {
+              width: 0,
+              height: isSelected ? 4 : 1,
+            },
+            shadowOpacity: isSelected ? 0.25 : 0.1,
+            shadowRadius: isSelected ? 6 : 2,
+            elevation: isSelected ? 6 : 2,
+          }}
+        >
+          <Image
+            source={imageSource}
+            style={{ width: 75, height: 75 }}
+            contentFit="contain"
+          />
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};

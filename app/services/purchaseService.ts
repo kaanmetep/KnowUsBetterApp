@@ -28,13 +28,11 @@ class PurchaseService {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log("✅ PurchaseService already initialized");
       return;
     }
 
     // RevenueCat doesn't work on web
     if (Platform.OS === "web") {
-      console.log("⚠️ RevenueCat is not supported on web platform");
       return;
     }
 
@@ -69,7 +67,6 @@ class PurchaseService {
 
       this.isInitialized = true;
       this.getOfferings();
-      console.log(`✅ RevenueCat initialized successfully for ${Platform.OS}`);
     } catch (error) {
       console.error("❌ Error initializing RevenueCat:", error);
       throw error;
@@ -87,21 +84,9 @@ class PurchaseService {
       }
 
       const offerings = await Purchases.getOfferings();
-      console.log("📦 All offerings:", JSON.stringify(offerings, null, 2));
-      console.log("📦 Current offering:", offerings.current?.identifier);
-      console.log(
-        "📦 Available packages:",
-        offerings.current?.availablePackages.length || 0
-      );
 
       if (offerings.current?.availablePackages) {
-        offerings.current.availablePackages.forEach((pkg, index) => {
-          console.log(`📦 Package ${index + 1}:`, {
-            identifier: pkg.identifier,
-            productId: pkg.product.identifier,
-            price: pkg.product.priceString,
-          });
-        });
+        offerings.current.availablePackages.forEach((pkg, index) => {});
       }
 
       // Collect all packages from all offerings, removing duplicates by product identifier
@@ -192,7 +177,6 @@ class PurchaseService {
       }
 
       const customerInfo = await Purchases.restorePurchases();
-      console.log("✅ Purchases restored:", customerInfo);
       return customerInfo;
     } catch (error) {
       console.error("❌ Error restoring purchases:", error);

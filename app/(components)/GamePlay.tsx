@@ -85,7 +85,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
   // Chat message handler
   useEffect(() => {
     const handleChatMessage = (data: ChatMessage) => {
-      console.log("💬 Chat message received:", data);
       setChatMessages((prev) => [...prev, data]);
     };
 

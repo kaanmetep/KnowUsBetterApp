@@ -57,8 +57,6 @@ class SocketService {
 
   connect() {
     if (!this.socket) {
-      console.log("🔌 Connecting to socket...");
-
       this.socket = io(SOCKET_URL, {
         transports: ["websocket", "polling"],
         reconnection: true,
@@ -69,8 +67,6 @@ class SocketService {
 
       this.socket.on("connect", async () => {
         this.isConnected = true;
-        console.log("✅ Connected to socket:", this.socket?.id);
-
         // When socket connection is established, register the user with the backend
         // To be able to send coin updates from the backend via webhook to this socket
         try {
@@ -78,7 +74,6 @@ class SocketService {
           const appUserId = await purchaseService.getAppUserId();
           if (appUserId && this.socket) {
             this.socket.emit("register-user", appUserId);
-            console.log("📝 Registered user with socket:", appUserId);
           }
         } catch (error) {
           console.warn("⚠️ Failed to register user with socket:", error);
@@ -87,7 +82,6 @@ class SocketService {
 
       this.socket.on("disconnect", (reason) => {
         this.isConnected = false;
-        console.log("❌ Disconnected from socket:", reason);
       });
 
       this.socket.on("connect_error", (error) => {
@@ -114,14 +108,9 @@ class SocketService {
         return;
       }
 
-      console.log(
-        `🏠 Creating room with ${playerName} and avatar is: ${avatar} and category is: ${category}...`
-      );
-
       this.socket.emit("create-room", { playerName, avatar, category });
 
       this.socket.once("room-created", (data) => {
-        console.log("✅ Room is created:", data);
         resolve(data);
       });
 
@@ -153,12 +142,9 @@ class SocketService {
         return;
       }
 
-      console.log("👥 Joining room...", { roomCode, playerName, avatar });
-
       this.socket.emit("join-room", { roomCode, playerName, avatar });
 
       this.socket.once("room-joined", (data) => {
-        console.log("✅ Joined room:", data);
         resolve(data);
       });
 
@@ -206,12 +192,9 @@ class SocketService {
         return;
       }
 
-      console.log("🚪 Leaving room...", { roomCode });
-
       this.socket.emit("leave-room", { roomCode });
 
       this.socket.once("room-left", () => {
-        console.log("✅ Left room successfully");
         resolve();
       });
 
@@ -235,12 +218,9 @@ class SocketService {
         return;
       }
 
-      console.log("🎮 Starting game...", { roomCode });
-
       this.socket.emit("start-game", { roomCode });
 
       this.socket.once("game-started", () => {
-        console.log("✅ Game started successfully");
         resolve();
       });
 
@@ -263,7 +243,6 @@ class SocketService {
       return;
     }
 
-    console.log("📝 Submitting answer...", { questionId, answer });
     this.socket.emit("submit-answer", { questionId, answer });
   }
 
@@ -274,7 +253,6 @@ class SocketService {
       return;
     }
 
-    console.log("🚫 Kicking player...", { roomCode, targetPlayerId });
     this.socket.emit("kick-player", { roomCode, targetPlayerId });
   }
 
@@ -437,7 +415,6 @@ class SocketService {
   // Close connection
   disconnect() {
     if (this.socket) {
-      console.log("🔌 Closing socket connection...");
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
@@ -450,7 +427,6 @@ class SocketService {
       console.error("❌ Socket not connected");
       return;
     }
-    console.log("💬 Sending message:", { roomCode, message });
     this.socket.emit("send-message", { roomCode, message });
   }
 
@@ -494,7 +470,6 @@ class SocketService {
       console.error("❌ Socket not connected");
       return;
     }
-    console.log("💰 Spending coins via backend:", data);
     this.socket.emit("spend-coins", data);
   }
 

@@ -56,9 +56,6 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       // Only update coins if it's the current user
       if (data.appUserId === appUserId) {
         if (data.success) {
-          console.log(
-            `✅ Coins updated via webhook. New balance: ${data.newBalance}`
-          );
           // Update balance with the new balance received from the backend
           setCoins(data.newBalance);
           // Save to local storage (DATABASE is already updated by the backend)
@@ -87,9 +84,6 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       // Only update coins if it's the current user
       if (data.appUserId === appUserId) {
         if (data.success) {
-          console.log(
-            `✅ Coins spent via backend. New balance: ${data.newBalance}`
-          );
           // Update balance with the new balance received from the backend
           setCoins(data.newBalance);
           // Save to local storage (Supabase is already updated by the backend)
@@ -169,8 +163,6 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
     } catch (error) {
       console.warn("⚠️ Failed to save coins locally:", error);
     }
-
-    console.log(`✅ Added ${amount} coins (optimistic). Total: ${newCoins}`);
   };
 
   /**
@@ -234,10 +226,6 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         amount: amount,
         transactionType: "game_start",
       });
-
-      console.log(
-        `✅ Spent ${amount} coins (optimistic). Previous: ${realBalance}, Remaining: ${newCoins}`
-      );
       return true;
     } catch (error) {
       console.error("❌ Error spending coins:", error);
