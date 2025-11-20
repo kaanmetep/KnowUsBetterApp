@@ -499,12 +499,6 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
 
                     <View className="mb-6">
                       <Text
-                        className="text-gray-700 text-sm text-center mb-2"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                      >
-                        {t("joinRoom.liveConnectionNotice")}
-                      </Text>
-                      <Text
                         className="text-gray-500 text-xs text-center"
                         style={{ fontFamily: "MerriweatherSans_400Regular" }}
                       >

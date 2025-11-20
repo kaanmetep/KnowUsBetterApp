@@ -176,9 +176,28 @@ const GameRoom = () => {
     };
 
     // Game started
-    const handleGameStarted = (data: any) => {
+    const handleGameStarted = async (data: any) => {
       if (data.room) {
         setRoom(data.room);
+
+        // Load category info immediately when game starts
+        const categoryId = data.room?.settings?.category;
+        if (categoryId) {
+          try {
+            const categoryData = await getCategoryById(categoryId);
+            setCategoryDisplayName(
+              getCategoryLabel(categoryData, selectedLanguage)
+            );
+            setCategoryColor(categoryData?.color || null);
+          } catch (error) {
+            console.error("❌ Failed to load category info:", error);
+            setCategoryDisplayName(null);
+            setCategoryColor(null);
+          }
+        } else {
+          setCategoryDisplayName(null);
+          setCategoryColor(null);
+        }
       }
 
       // Reset all game-related states (especially important if user was in GameFinished screen)
@@ -455,21 +474,35 @@ const GameRoom = () => {
       }
     };
 
+    // Check if game is in progress (playing, countdown, or finished state)
+    const isGameInProgress = gameState !== "waiting";
+
+    // Determine title and message based on game state
+    const title = isGameInProgress
+      ? t("gamePlay.leaveGameTitle")
+      : t("gameRoom.leaveRoomTitle");
+    const message = isGameInProgress
+      ? t("gamePlay.leaveGameWarning")
+      : t("gameRoom.leaveConfirm");
+    const confirmButtonText = isGameInProgress
+      ? t("gamePlay.leaveRoomButton")
+      : t("gameRoom.leaveButton");
+
     // Web platform uses window.confirm
     if (Platform.OS === "web") {
-      const confirmed = window.confirm(t("gameRoom.leaveConfirm"));
+      const confirmed = window.confirm(message);
       if (confirmed) {
         await confirmLeave();
       }
     } else {
       // Mobile platforms use Alert
       Alert.alert(
-        t("gameRoom.leaveRoomTitle"),
-        t("gameRoom.leaveConfirm"),
+        title,
+        message,
         [
           { text: t("common.cancel"), style: "cancel" },
           {
-            text: t("gameRoom.leaveButton"),
+            text: confirmButtonText,
             style: "destructive",
             onPress: confirmLeave,
           },
@@ -591,13 +624,9 @@ const GameRoom = () => {
 
   // Render countdown screen
   if (gameState === "countdown") {
-    const opponentPlayer = room?.players?.find((p: any) => p.id !== mySocketId);
-    const opponentDisplayName =
-      opponentPlayer?.name || t("gameRoom.partnerLabel");
     return (
       <Countdown
         onComplete={handleCountdownComplete}
-        opponentName={opponentDisplayName}
         onCancel={handleLeaveRoom}
         categoryName={categoryDisplayName || undefined}
         categoryColor={categoryColor || undefined}
@@ -620,6 +649,7 @@ const GameRoom = () => {
         notifications={notifications}
         roundResult={roundResult}
         onSelectAnswer={handleSelectAnswer}
+        onLeaveRoom={handleLeaveRoom}
         roomCode={roomCode}
         currentPlayerId={socketService.getSocketId()}
         categoryId={room?.settings?.category}

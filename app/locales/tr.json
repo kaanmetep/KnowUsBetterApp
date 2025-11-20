@@ -70,7 +70,13 @@
     "yourAnswer": "Cevabınız",
     "yes": "Evet",
     "no": "Hayır",
-    "chatPlaceholder": "Bir mesaj gönder..."
+    "waitingForPartner": "Partnerinizin cevap vermesini bekliyoruz...",
+    "opponentAnswered": "{{name}} soruyu yanıtladı.",
+    "leaveButton": "Ayrıl",
+    "leaveRoomButton": "Odadan Ayrıl",
+    "leaveGameTitle": "Oyundan Ayrıl",
+    "leaveGameWarning": "Odadan ayrılırsan oyun iptal olur ve harcadığın coinler iade edilmez.",
+    "categoryLabel": "Kategori"
   },
   "errors": {
     "roomNotFound": "Oda Bulunamadı",
@@ -172,7 +178,6 @@
     "joining": "Katılıyor...",
     "joinRoom": "Odaya Katıl",
     "enterRoomCodeButton": "Oda Kodunu Girin",
-    "liveConnectionNotice": "Ev sahibi oyunu başlattığında, bu odadaki kişiyle anında canlı sohbete bağlanırsın.",
     "termsNoticePrefix": "KnowUsBetter'ı kullanan herkes ",
     "termsOfUseLink": "Kullanım Şartları'nı",
     "termsNoticeSuffix": " kabul etmiş sayılır."
@@ -204,15 +209,7 @@
     "startGame": "Oyunu Başlat",
     "waitingForPlayers": "Oyuncular Bekleniyor...",
     "leaveRoom": "Odadan Ayrıl",
-    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n",
-    "safetyCardTitle": "Ev sahibin seni sohbete bağlayacak",
-    "safetyCardBody": "Ev sahibi Başlat'a bastığında onlarla canlı sohbete geçeceksin."
-  },
-  "chatMessages": {
-    "recentMessages": "Son Mesajlar",
-    "youTag": "(Siz)",
-    "waitingForPartner": "Partnerinizin cevap vermesini bekliyoruz...",
-    "opponentAnswered": "{{name}} soruyu yanıtladı."
+    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n"
   },
   "roundResult": {
     "questionLabel": "Soru",
@@ -221,11 +218,6 @@
   },
   "countdown": {
     "getReady": "Hazır olun...",
-    "preChatWarningTitleWithName": "{{name}} ile sohbet bağlantısı kuruluyor",
-    "preChatWarningTitle": "Partnerinizle sohbet bağlantısı kuruluyor",
-    "preChatWarningBody": "Bilgilerini gözden geçirin ve yalnızca güvende hissediyorsanız devam edin. Bu eşleşmeyi atlamak için şimdi ayrılabilirsiniz.",
-    "preChatLeaveDescription": "Ayrılmak bu eşleşmeyi iptal eder.",
-    "preChatLeaveButton": "Oyun başlamadan ayrıl",
     "categoryLabel": "Kategori: {{category}}"
   },
   "gameFinished": {

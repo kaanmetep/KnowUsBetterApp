@@ -70,7 +70,13 @@
     "yourAnswer": "Your Answer",
     "yes": "Yes",
     "no": "No",
-    "chatPlaceholder": "Send a message..."
+    "waitingForPartner": "Waiting for your partner to answer...",
+    "opponentAnswered": "{{name}} has answered the question.",
+    "leaveButton": "Leave",
+    "leaveRoomButton": "Leave Room",
+    "leaveGameTitle": "Leave Game",
+    "leaveGameWarning": "If you leave the room, the game will be cancelled and your spent coins will not be refunded.",
+    "categoryLabel": "Category"
   },
   "errors": {
     "roomNotFound": "Room Not Found",
@@ -172,7 +178,6 @@
     "joining": "Joining...",
     "joinRoom": "Join Room",
     "enterRoomCodeButton": "Enter Room Code",
-    "liveConnectionNotice": "Once your host starts the game, you’ll be connected to a live chat instantly with that room.",
     "termsNoticePrefix": "By using KnowUsBetter you agree to the ",
     "termsOfUseLink": "Terms of Use",
     "termsNoticeSuffix": "."
@@ -204,15 +209,7 @@
     "startGame": "Start Game",
     "waitingForPlayers": "Waiting for Players...",
     "leaveRoom": "Leave Room",
-    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n",
-    "safetyCardTitle": "Your host will connect you to chat",
-    "safetyCardBody": "When the host taps Start, you’ll join a live chat with them."
-  },
-  "chatMessages": {
-    "recentMessages": "Recent Messages",
-    "youTag": "(You)",
-    "waitingForPartner": "Waiting for your partner to answer...",
-    "opponentAnswered": "{{name}} has answered the question."
+    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n"
   },
   "roundResult": {
     "questionLabel": "Question",
@@ -221,11 +218,6 @@
   },
   "countdown": {
     "getReady": "Get Ready...",
-    "preChatWarningTitleWithName": "Connecting to chat with {{name}}",
-    "preChatWarningTitle": "Connecting to chat with your partner",
-    "preChatWarningBody": "Review their info and only continue if you feel safe. You can leave now to skip this match.",
-    "preChatLeaveDescription": "Leaving will cancel this game.",
-    "preChatLeaveButton": "Leave before game starts",
     "categoryLabel": "Category: {{category}}"
   },
   "gameFinished": {

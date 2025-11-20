@@ -41,7 +41,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
     }
   }, [roundResult, progressAnim]);
   return (
-    <View className="relative mb-2">
+    <View className="relative mb-2 mt-6">
       <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
       <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6 overflow-hidden">
         {/* Subtle Background Pattern */}
@@ -90,9 +90,9 @@ const RoundResult: React.FC<RoundResultProps> = ({
             (playerAnswer: any, index: number) => (
               <View key={index} className="relative">
                 <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                <View className=" flex-row gap-3 relative bg-white border-2 border-gray-900 rounded-xl p-4 items-center">
+                <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4">
                   {/* Player Name Header */}
-                  <View className="flex-row items-center gap-2 flex-1 min-w-0">
+                  <View className="flex-row items-center gap-2 mb-3">
                     <View className="relative flex-shrink-0">
                       <View className="relative bg-white border-2 border-gray-900 rounded-full w-10 h-10 items-center justify-center overflow-hidden">
                         {playerAnswer.avatar &&
@@ -118,8 +118,8 @@ const RoundResult: React.FC<RoundResultProps> = ({
                       {playerAnswer.playerName}
                     </Text>
                   </View>
-                  {/* Answer - Full width */}
-                  <View className="relative flex-1 min-w-0">
+                  {/* Answer - Below player name */}
+                  <View className="relative">
                     <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
                     <View
                       className={`relative border-2 border-gray-900 rounded-lg py-2.5 px-3 overflow-hidden ${

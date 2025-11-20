@@ -421,46 +421,6 @@ class SocketService {
     }
   }
 
-  // Chat functions
-  sendMessage(roomCode: string, message: string): void {
-    if (!this.socket) {
-      console.error("❌ Socket not connected");
-      return;
-    }
-    this.socket.emit("send-message", { roomCode, message });
-  }
-
-  onChatMessage(
-    callback: (data: {
-      playerId: string;
-      playerName: string;
-      avatar: string;
-      message: string;
-      timestamp: number;
-    }) => void
-  ): void {
-    if (!this.socket) {
-      console.error("❌ Socket not connected");
-      return;
-    }
-    this.socket.on("chat-message", callback);
-  }
-
-  offChatMessage(
-    callback: (data: {
-      playerId: string;
-      playerName: string;
-      avatar: string;
-      message: string;
-      timestamp: number;
-    }) => void
-  ): void {
-    if (!this.socket) {
-      return;
-    }
-    this.socket.off("chat-message", callback);
-  }
-
   spendCoins(data: {
     appUserId: string;
     amount: number;

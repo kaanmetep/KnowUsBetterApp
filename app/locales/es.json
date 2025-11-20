@@ -70,7 +70,13 @@
     "yourAnswer": "Tu Respuesta",
     "yes": "Sí",
     "no": "No",
-    "chatPlaceholder": "Envía un mensaje..."
+    "waitingForPartner": "Esperando a que tu pareja responda...",
+    "opponentAnswered": "{{name}} ha respondido la pregunta.",
+    "leaveButton": "Salir",
+    "leaveRoomButton": "Salir de la Sala",
+    "leaveGameTitle": "Salir del Juego",
+    "leaveGameWarning": "Si sales de la sala, el juego se cancelará y las coins gastadas no serán reembolsadas.",
+    "categoryLabel": "Categoría"
   },
   "errors": {
     "roomNotFound": "Sala No Encontrada",
@@ -172,7 +178,6 @@
     "joining": "Uniéndose...",
     "joinRoom": "Unirse a la Sala",
     "enterRoomCodeButton": "Ingresa el Código de la Sala",
-    "liveConnectionNotice": "Cuando el anfitrión inicie el juego, te conectarás de inmediato a un chat en vivo con esa sala.",
     "termsNoticePrefix": "Al usar KnowUsBetter aceptas los ",
     "termsOfUseLink": "Términos de Uso",
     "termsNoticeSuffix": "."
@@ -204,15 +209,7 @@
     "startGame": "Iniciar Juego",
     "waitingForPlayers": "Esperando Jugadores...",
     "leaveRoom": "Salir de la Sala",
-    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n",
-    "safetyCardTitle": "Tu anfitrión te conectará al chat",
-    "safetyCardBody": "Cuando el anfitrión pulse Iniciar, entrarás de inmediato a un chat en vivo con esa persona."
-  },
-  "chatMessages": {
-    "recentMessages": "Mensajes Recientes",
-    "youTag": "(Tú)",
-    "waitingForPartner": "Esperando a que tu pareja responda...",
-    "opponentAnswered": "{{name}} ha respondido la pregunta."
+    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n"
   },
   "roundResult": {
     "questionLabel": "Pregunta",
@@ -221,11 +218,6 @@
   },
   "countdown": {
     "getReady": "Prepárense...",
-    "preChatWarningTitleWithName": "Te conectarás al chat con {{name}}",
-    "preChatWarningTitle": "Te conectarás al chat con tu pareja",
-    "preChatWarningBody": "Revisa su información y continúa solo si te sientes seguro. Puedes salir ahora para saltar esta coincidencia.",
-    "preChatLeaveDescription": "Al salir se cancelará esta partida.",
-    "preChatLeaveButton": "Salir antes de que comience el juego",
     "categoryLabel": "Categoría: {{category}}"
   },
   "gameFinished": {

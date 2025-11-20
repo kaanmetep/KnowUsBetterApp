@@ -29,6 +29,7 @@ import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
+import Logo from "./Logo";
 import SettingsModal from "./SettingsModal";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
@@ -337,7 +338,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View className="px-6 mt-20">
+        <View className="mt-20">
+          <Logo size="small" />
+        </View>
+        <View className="px-6 mt-6">
           {/* Room Code Section */}
           <View className="mb-6">
             <Text
@@ -464,36 +468,6 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   </View>
                 </Animated.View>
               )}
-          </View>
-
-          {/* Pre-chat Safety Notice */}
-          <View className="mb-6">
-            <View className="relative">
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-2xl" />
-              <View className="relative bg-white border-2 border-gray-900 rounded-2xl p-4 flex-row gap-3">
-                <View className="w-12 h-12 rounded-xl bg-[#fff7ed] border-2 border-gray-900 items-center justify-center">
-                  <Ionicons
-                    name="chatbubble-outline"
-                    size={24}
-                    color="#ea580c"
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text
-                    className="text-gray-900 font-bold text-base mb-1"
-                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                  >
-                    {t("waitingRoom.safetyCardTitle")}
-                  </Text>
-                  <Text
-                    className="text-gray-700 text-sm"
-                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                  >
-                    {t("waitingRoom.safetyCardBody")}
-                  </Text>
-                </View>
-              </View>
-            </View>
           </View>
 
           {/* Participants Section */}
