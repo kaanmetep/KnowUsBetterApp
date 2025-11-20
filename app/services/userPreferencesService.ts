@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const USERNAME_STORAGE_KEY = "@KnowUsBetter:username";
 const AVATAR_STORAGE_KEY = "@KnowUsBetter:avatar";
 const LANGUAGE_STORAGE_KEY = "@KnowUsBetter:language";
+const TERMS_ACCEPTED_KEY = "@KnowUsBetter:termsAccepted";
 
 export class UserPreferencesService {
   /**
@@ -86,9 +87,37 @@ export class UserPreferencesService {
         USERNAME_STORAGE_KEY,
         AVATAR_STORAGE_KEY,
         LANGUAGE_STORAGE_KEY,
+        TERMS_ACCEPTED_KEY,
       ]);
     } catch (error) {
       console.warn("⚠️ Failed to clear user preferences:", error);
+    }
+  }
+
+  /**
+   * Save terms acceptance status to device storage
+   */
+  static async setTermsAccepted(isAccepted: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(
+        TERMS_ACCEPTED_KEY,
+        JSON.stringify(isAccepted)
+      );
+    } catch (error) {
+      console.warn("⚠️ Failed to save terms acceptance:", error);
+    }
+  }
+
+  /**
+   * Get terms acceptance status from device storage
+   */
+  static async hasAcceptedTerms(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(TERMS_ACCEPTED_KEY);
+      return value ? JSON.parse(value) === true : false;
+    } catch (error) {
+      console.warn("⚠️ Failed to read terms acceptance:", error);
+      return false;
     }
   }
 }

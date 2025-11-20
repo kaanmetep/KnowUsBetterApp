@@ -10,9 +10,14 @@ import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
+  BackHandler,
   Dimensions,
   Easing,
+  Linking,
+  Modal,
+  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -24,6 +29,7 @@ import SettingsModal from "../(components)/SettingsModal";
 import SocialMediaIcons from "../(components)/SocialMediaIcons";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTranslation } from "../hooks/useTranslation";
+import { UserPreferencesService } from "../services/userPreferencesService";
 const OnboardingPage = () => {
   const router = useRouter();
   const { width, height } = Dimensions.get("window");
@@ -39,6 +45,8 @@ const OnboardingPage = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [hasDeclinedTerms, setHasDeclinedTerms] = useState(false);
   // Button pulse animation
   const buttonPulseAnim = useRef(new Animated.Value(1)).current;
   // Heart transition animation
@@ -81,6 +89,17 @@ const OnboardingPage = () => {
   }, [width, height]);
 
   // Button pulse animation
+  useEffect(() => {
+    const checkTermsAcceptance = async () => {
+      const accepted = await UserPreferencesService.hasAcceptedTerms();
+      if (!accepted) {
+        setShowTermsModal(true);
+      }
+    };
+
+    checkTermsAcceptance();
+  }, []);
+
   useEffect(() => {
     // Start pulse animation
     const pulseAnimation = Animated.loop(
@@ -345,6 +364,34 @@ const OnboardingPage = () => {
         useNativeDriver: true,
       }),
     ]).start();
+  };
+
+  const handleAcceptTerms = async () => {
+    await UserPreferencesService.setTermsAccepted(true);
+    setShowTermsModal(false);
+    setHasDeclinedTerms(false);
+  };
+
+  const handleDeclineTerms = async () => {
+    await UserPreferencesService.setTermsAccepted(false);
+    setHasDeclinedTerms(true);
+    Alert.alert(
+      t("onboarding.termsDeclinedTitle"),
+      t("onboarding.termsDeclinedMessage")
+    );
+
+    if (Platform.OS === "android") {
+      BackHandler.exitApp();
+    }
+  };
+
+  const handleOpenLink = (url: string) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert(
+        t("onboarding.termsLinkErrorTitle"),
+        t("onboarding.termsLinkErrorMessage")
+      );
+    });
   };
 
   if (!fontsLoaded) {
@@ -666,6 +713,95 @@ const OnboardingPage = () => {
           setShowPurchaseModal(true);
         }}
       />
+
+      <Modal
+        visible={showTermsModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View className="flex-1 bg-black/70 items-center justify-center px-6">
+          <View className="w-full bg-white border-2 border-gray-900 rounded-2xl p-6 max-w-md">
+            <Text
+              className="text-gray-900 text-lg mb-4"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              {t("onboarding.termsModalTitle")}
+            </Text>
+            <Text
+              className="text-gray-900 mb-4"
+              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+            >
+              {t("onboarding.termsModalIntroPrefix")}
+              <Text
+                className="text-pink-600 underline"
+                onPress={() =>
+                  handleOpenLink("https://knowusbetter.app/terms-of-service")
+                }
+              >
+                {t("onboarding.termsOfUseLink")}
+              </Text>
+              {t("onboarding.termsModalIntroSeparator")}
+              <Text
+                className="text-pink-600 underline"
+                onPress={() =>
+                  handleOpenLink("https://knowusbetter.app/privacy-policy")
+                }
+              >
+                {t("onboarding.privacyPolicyLink")}
+              </Text>
+              {t("onboarding.termsModalIntroSuffix")}
+            </Text>
+            <Text
+              className="text-gray-900 mb-6"
+              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+            >
+              {t("onboarding.termsModalConductWarning")}
+            </Text>
+            {hasDeclinedTerms && (
+              <Text
+                className="text-red-600 mb-4"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              >
+                {t("onboarding.termsModalDeclineNotice")}
+              </Text>
+            )}
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                <TouchableOpacity
+                  onPress={handleDeclineTerms}
+                  activeOpacity={0.85}
+                  className="relative bg-white border-2 border-gray-900 rounded-xl py-3"
+                >
+                  <Text
+                    className="text-center text-gray-900 font-bold"
+                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  >
+                    {t("onboarding.declineButton")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View className="flex-1">
+                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                <TouchableOpacity
+                  onPress={handleAcceptTerms}
+                  activeOpacity={0.85}
+                  className="relative border-2 border-gray-900 rounded-xl py-3"
+                  style={{ backgroundColor: "#ff9f50" }}
+                >
+                  <Text
+                    className="text-center text-white font-bold"
+                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  >
+                    {t("onboarding.acceptButton")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

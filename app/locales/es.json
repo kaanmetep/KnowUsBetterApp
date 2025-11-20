@@ -22,7 +22,21 @@
     "noLoginRequired": "NO SE REQUIERE INICIO DE SESIÓN",
     "playWithPartner": "JUEGA CON TU PAREJA",
     "discoverEachOther": "DESCÚBRANSE EL UNO AL OTRO",
-    "startPlayingNow": "¡Comienza a jugar ahora!"
+    "startPlayingNow": "¡Comienza a jugar ahora!",
+    "termsModalTitle": "Términos y Políticas",
+    "termsModalIntroPrefix": "Al usar KnowUsBetter, aceptas nuestros ",
+    "termsModalIntroSeparator": " y ",
+    "termsModalIntroSuffix": ".",
+    "termsOfUseLink": "Términos de Uso",
+    "privacyPolicyLink": "Política de Privacidad",
+    "termsModalConductWarning": "No toleramos contenido objetable ni comportamientos abusivos. Los usuarios que participen en acoso, discurso de odio, amenazas, contenido sexual o cualquier conducta inapropiada serán expulsados de la plataforma.",
+    "termsModalDeclineNotice": "Debes aceptar los términos para seguir usando la app.",
+    "declineButton": "Rechazar",
+    "acceptButton": "Acepto",
+    "termsDeclinedTitle": "Acceso denegado",
+    "termsDeclinedMessage": "Necesitas aceptar los Términos de Uso para seguir usando KnowUsBetter.",
+    "termsLinkErrorTitle": "Error de enlace",
+    "termsLinkErrorMessage": "No pudimos abrir este enlace en este momento."
   },
   "gameRoom": {
     "waitingForPlayers": "Esperando jugadores...",
@@ -157,7 +171,11 @@
     "enterRoomCodePlaceholder": "Ingresa el código de la sala",
     "joining": "Uniéndose...",
     "joinRoom": "Unirse a la Sala",
-    "enterRoomCodeButton": "Ingresa el Código de la Sala"
+    "enterRoomCodeButton": "Ingresa el Código de la Sala",
+    "liveConnectionNotice": "Cuando el anfitrión inicie el juego, te conectarás de inmediato a un chat en vivo con esa sala.",
+    "termsNoticePrefix": "Al usar KnowUsBetter aceptas los ",
+    "termsOfUseLink": "Términos de Uso",
+    "termsNoticeSuffix": "."
   },
   "learnHowToPlay": {
     "title": "Cómo Jugar",
@@ -186,7 +204,9 @@
     "startGame": "Iniciar Juego",
     "waitingForPlayers": "Esperando Jugadores...",
     "leaveRoom": "Salir de la Sala",
-    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n"
+    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n",
+    "safetyCardTitle": "Tu anfitrión te conectará al chat",
+    "safetyCardBody": "Cuando el anfitrión pulse Iniciar, entrarás de inmediato a un chat en vivo con esa persona."
   },
   "chatMessages": {
     "recentMessages": "Mensajes Recientes",
@@ -200,7 +220,13 @@
     "nextQuestionSoon": "Próxima pregunta en un momento..."
   },
   "countdown": {
-    "getReady": "Prepárense..."
+    "getReady": "Prepárense...",
+    "preChatWarningTitleWithName": "Te conectarás al chat con {{name}}",
+    "preChatWarningTitle": "Te conectarás al chat con tu pareja",
+    "preChatWarningBody": "Revisa su información y continúa solo si te sientes seguro. Puedes salir ahora para saltar esta coincidencia.",
+    "preChatLeaveDescription": "Al salir se cancelará esta partida.",
+    "preChatLeaveButton": "Salir antes de que comience el juego",
+    "categoryLabel": "Categoría: {{category}}"
   },
   "gameFinished": {
     "backToRoom": "Volver a la sala",

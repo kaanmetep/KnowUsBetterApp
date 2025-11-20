@@ -29,7 +29,6 @@ import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
-import Logo from "./Logo";
 import SettingsModal from "./SettingsModal";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
@@ -71,7 +70,8 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 
   const participants = room.players || [];
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
-  const canStartGame = participants.length >= 2;
+  const hasEnoughPlayers = participants.length >= 2;
+  const canStartGame = hasEnoughPlayers;
 
   // Waiting animation - pulse
   useEffect(() => {
@@ -337,12 +337,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {/* Header */}
-        <View className="items-center mt-20 mb-4">
-          <Logo size="small" />
-        </View>
-
-        <View className="px-6">
+        <View className="px-6 mt-20">
           {/* Room Code Section */}
           <View className="mb-6">
             <Text
@@ -469,6 +464,36 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   </View>
                 </Animated.View>
               )}
+          </View>
+
+          {/* Pre-chat Safety Notice */}
+          <View className="mb-6">
+            <View className="relative">
+              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-2xl" />
+              <View className="relative bg-white border-2 border-gray-900 rounded-2xl p-4 flex-row gap-3">
+                <View className="w-12 h-12 rounded-xl bg-[#fff7ed] border-2 border-gray-900 items-center justify-center">
+                  <Ionicons
+                    name="chatbubble-outline"
+                    size={24}
+                    color="#ea580c"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className="text-gray-900 font-bold text-base mb-1"
+                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  >
+                    {t("waitingRoom.safetyCardTitle")}
+                  </Text>
+                  <Text
+                    className="text-gray-700 text-sm"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  >
+                    {t("waitingRoom.safetyCardBody")}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
 
           {/* Participants Section */}
@@ -640,7 +665,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 >
                   <TouchableOpacity
                     onPress={onStartGame}
-                    disabled={!canStartGame || isStartingGame}
+                    disabled={!hasEnoughPlayers || isStartingGame}
                     className="py-[18px] px-8 flex-row items-center justify-center gap-2"
                     activeOpacity={0.8}
                   >
@@ -654,7 +679,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                     >
                       {isStartingGame
                         ? t("waitingRoom.starting")
-                        : canStartGame
+                        : hasEnoughPlayers
                         ? t("waitingRoom.startGame")
                         : t("waitingRoom.waitingForPlayers")}
                     </Text>

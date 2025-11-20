@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -137,6 +138,12 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = roomCode.trim().length > 0;
+
+  const handleOpenTerms = () => {
+    Linking.openURL("https://knowusbetter.app/terms-of-service").catch(
+      () => {}
+    );
+  };
 
   return (
     <Modal
@@ -444,7 +451,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                     </Text>
 
                     {/* Room Code Input */}
-                    <View className="mb-6">
+                    <View className="mb-3">
                       <Text
                         className="text-sm font-semibold text-gray-900 mb-2"
                         style={{ fontFamily: "MerriweatherSans_400Regular" }}
@@ -488,6 +495,28 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                           />
                         </View>
                       </View>
+                    </View>
+
+                    <View className="mb-6">
+                      <Text
+                        className="text-gray-700 text-sm text-center mb-2"
+                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      >
+                        {t("joinRoom.liveConnectionNotice")}
+                      </Text>
+                      <Text
+                        className="text-gray-500 text-xs text-center"
+                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      >
+                        {t("joinRoom.termsNoticePrefix")}
+                        <Text
+                          className="text-pink-600 underline"
+                          onPress={handleOpenTerms}
+                        >
+                          {t("joinRoom.termsOfUseLink")}
+                        </Text>
+                        {t("joinRoom.termsNoticeSuffix")}
+                      </Text>
                     </View>
 
                     {/* Join Button */}

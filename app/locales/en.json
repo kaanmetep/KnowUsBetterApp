@@ -22,7 +22,21 @@
     "noLoginRequired": "NO LOGIN REQUIRED",
     "playWithPartner": "PLAY WITH YOUR PARTNER",
     "discoverEachOther": "DISCOVER EACH OTHER",
-    "startPlayingNow": "Start playing now!"
+    "startPlayingNow": "Start playing now!",
+    "termsModalTitle": "Terms & Policies",
+    "termsModalIntroPrefix": "By using KnowUsBetter, you agree to our ",
+    "termsModalIntroSeparator": " and ",
+    "termsModalIntroSuffix": ".",
+    "termsOfUseLink": "Terms of Use",
+    "privacyPolicyLink": "Privacy Policy",
+    "termsModalConductWarning": "We do not tolerate objectionable content or abusive behavior. Users who engage in harassment, hate speech, threats, sexual content, or any inappropriate behavior will be removed from the platform.",
+    "termsModalDeclineNotice": "You must accept the terms to continue using the app.",
+    "declineButton": "Decline",
+    "acceptButton": "I Agree",
+    "termsDeclinedTitle": "Access denied",
+    "termsDeclinedMessage": "You need to accept the Terms of Use to keep using KnowUsBetter.",
+    "termsLinkErrorTitle": "Link error",
+    "termsLinkErrorMessage": "We couldn't open this link right now."
   },
   "gameRoom": {
     "waitingForPlayers": "Waiting for players...",
@@ -157,7 +171,11 @@
     "enterRoomCodePlaceholder": "Enter room code",
     "joining": "Joining...",
     "joinRoom": "Join Room",
-    "enterRoomCodeButton": "Enter Room Code"
+    "enterRoomCodeButton": "Enter Room Code",
+    "liveConnectionNotice": "Once your host starts the game, you’ll be connected to a live chat instantly with that room.",
+    "termsNoticePrefix": "By using KnowUsBetter you agree to the ",
+    "termsOfUseLink": "Terms of Use",
+    "termsNoticeSuffix": "."
   },
   "learnHowToPlay": {
     "title": "How to Play",
@@ -186,7 +204,9 @@
     "startGame": "Start Game",
     "waitingForPlayers": "Waiting for Players...",
     "leaveRoom": "Leave Room",
-    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n"
+    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n",
+    "safetyCardTitle": "Your host will connect you to chat",
+    "safetyCardBody": "When the host taps Start, you’ll join a live chat with them."
   },
   "chatMessages": {
     "recentMessages": "Recent Messages",
@@ -200,7 +220,13 @@
     "nextQuestionSoon": "Next question in a moment..."
   },
   "countdown": {
-    "getReady": "Get Ready..."
+    "getReady": "Get Ready...",
+    "preChatWarningTitleWithName": "Connecting to chat with {{name}}",
+    "preChatWarningTitle": "Connecting to chat with your partner",
+    "preChatWarningBody": "Review their info and only continue if you feel safe. You can leave now to skip this match.",
+    "preChatLeaveDescription": "Leaving will cancel this game.",
+    "preChatLeaveButton": "Leave before game starts",
+    "categoryLabel": "Category: {{category}}"
   },
   "gameFinished": {
     "backToRoom": "Back to Room",

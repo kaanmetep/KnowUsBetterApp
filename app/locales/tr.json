@@ -22,7 +22,21 @@
     "noLoginRequired": "GİRİŞ GEREKTİRMEZ",
     "playWithPartner": "EŞİNİZLE OYNAYIN",
     "discoverEachOther": "BİRBİRİNİZİ KEŞFEDİN",
-    "startPlayingNow": "Hemen oynamaya başlayın!"
+    "startPlayingNow": "Hemen oynamaya başlayın!",
+    "termsModalTitle": "Kullanım Şartları ve Politikalar",
+    "termsModalIntroPrefix": "KnowUsBetter'ı kullanarak ",
+    "termsModalIntroSeparator": " ve ",
+    "termsModalIntroSuffix": " kabul etmiş olursunuz.",
+    "termsOfUseLink": "Kullanım Şartlarımızı",
+    "privacyPolicyLink": "Gizlilik Politikamızı",
+    "termsModalConductWarning": "Uygunsuz içerik veya kötüye kullanıma asla tolerans göstermiyoruz. Taciz, nefret söylemi, tehdit, cinsel içerik veya herhangi bir uygunsuz davranış sergileyen kullanıcılar platformdan uzaklaştırılır.",
+    "termsModalDeclineNotice": "Uygulamayı kullanmaya devam etmek için şartları kabul etmelisiniz.",
+    "declineButton": "Kabul Etmiyorum",
+    "acceptButton": "Kabul Ediyorum",
+    "termsDeclinedTitle": "Erişim engellendi",
+    "termsDeclinedMessage": "KnowUsBetter'ı kullanmaya devam etmek için Kullanım Şartlarını kabul etmeniz gerekiyor.",
+    "termsLinkErrorTitle": "Bağlantı hatası",
+    "termsLinkErrorMessage": "Bu bağlantı şu anda açılamadı."
   },
   "gameRoom": {
     "waitingForPlayers": "Oyuncular bekleniyor...",
@@ -157,7 +171,11 @@
     "enterRoomCodePlaceholder": "Oda kodunu girin",
     "joining": "Katılıyor...",
     "joinRoom": "Odaya Katıl",
-    "enterRoomCodeButton": "Oda Kodunu Girin"
+    "enterRoomCodeButton": "Oda Kodunu Girin",
+    "liveConnectionNotice": "Ev sahibi oyunu başlattığında, bu odadaki kişiyle anında canlı sohbete bağlanırsın.",
+    "termsNoticePrefix": "KnowUsBetter'ı kullanan herkes ",
+    "termsOfUseLink": "Kullanım Şartları'nı",
+    "termsNoticeSuffix": " kabul etmiş sayılır."
   },
   "learnHowToPlay": {
     "title": "Nasıl Oynanır",
@@ -186,7 +204,9 @@
     "startGame": "Oyunu Başlat",
     "waitingForPlayers": "Oyuncular Bekleniyor...",
     "leaveRoom": "Odadan Ayrıl",
-    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n"
+    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n",
+    "safetyCardTitle": "Ev sahibin seni sohbete bağlayacak",
+    "safetyCardBody": "Ev sahibi Başlat'a bastığında onlarla canlı sohbete geçeceksin."
   },
   "chatMessages": {
     "recentMessages": "Son Mesajlar",
@@ -200,7 +220,13 @@
     "nextQuestionSoon": "Bir sonraki soru az sonra..."
   },
   "countdown": {
-    "getReady": "Hazır olun..."
+    "getReady": "Hazır olun...",
+    "preChatWarningTitleWithName": "{{name}} ile sohbet bağlantısı kuruluyor",
+    "preChatWarningTitle": "Partnerinizle sohbet bağlantısı kuruluyor",
+    "preChatWarningBody": "Bilgilerini gözden geçirin ve yalnızca güvende hissediyorsanız devam edin. Bu eşleşmeyi atlamak için şimdi ayrılabilirsiniz.",
+    "preChatLeaveDescription": "Ayrılmak bu eşleşmeyi iptal eder.",
+    "preChatLeaveButton": "Oyun başlamadan ayrıl",
+    "categoryLabel": "Kategori: {{category}}"
   },
   "gameFinished": {
     "backToRoom": "Odaya Dön",

@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -5,6 +6,7 @@ import {
   AppStateStatus,
   Easing,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
@@ -14,13 +16,21 @@ interface CountdownProps {
   duration?: number; // Duration in seconds, default is 3
   customText?: string; // Custom text to display, default is "Get Ready..."
   showFullScreen?: boolean; // Whether to show full screen countdown or inline, default is true
+  onCancel?: () => void; // Optional callback to cancel before chat starts
+  opponentName?: string; // Name of the person you'll be matched with
+  categoryName?: string; // Name of the category being played
+  categoryColor?: string; // Background color to show for the category pill
 }
 
 const Countdown: React.FC<CountdownProps> = ({
   onComplete,
-  duration = 3,
+  duration = 10,
   customText,
   showFullScreen = true,
+  onCancel,
+  opponentName,
+  categoryName,
+  categoryColor,
 }) => {
   const { t } = useTranslation();
   const displayText = customText || t("countdown.getReady");
@@ -184,6 +194,10 @@ const Countdown: React.FC<CountdownProps> = ({
     const borderWidth = 6;
     const borderRadius = 32;
 
+    const warningTitle = opponentName
+      ? t("countdown.preChatWarningTitleWithName", { name: opponentName })
+      : t("countdown.preChatWarningTitle");
+
     return (
       <View className={containerStyle}>
         {/* Animated Number with Neobrutalist Style - Square */}
@@ -235,7 +249,7 @@ const Countdown: React.FC<CountdownProps> = ({
           style={{
             opacity: opacityAnim,
           }}
-          className="mt-12"
+          className="mt-12 px-8"
         >
           <Text
             className="text-gray-600 text-2xl text-center"
@@ -246,6 +260,88 @@ const Countdown: React.FC<CountdownProps> = ({
             {displayText}
           </Text>
         </Animated.View>
+
+        {/* Safety Warning */}
+        <View className="mt-10 w-full px-6 max-w-2xl">
+          <View className="relative">
+            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-2xl" />
+            <View className="relative bg-white border-2 border-gray-900 rounded-2xl p-5">
+              <View className="flex-row gap-3">
+                <View className="w-12 h-12 rounded-xl bg-[#fff7ed] border-2 border-gray-900 items-center justify-center">
+                  <Ionicons
+                    name="chatbubble-ellipses"
+                    size={24}
+                    color="#ea580c"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text
+                    className="text-gray-900 text-lg font-bold mb-1"
+                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  >
+                    {warningTitle}
+                  </Text>
+                  <Text
+                    className="text-gray-800 text-sm"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  >
+                    {t("countdown.preChatWarningBody")}
+                  </Text>
+                </View>
+              </View>
+
+              {categoryName && (
+                <View className="mt-4 items-start">
+                  <View className="relative inline-flex">
+                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
+                    <View
+                      className="relative border-2 border-gray-900 rounded-full px-4 py-1 flex-row items-center gap-2"
+                      style={{ backgroundColor: categoryColor || "#ffe4e6" }}
+                    >
+                      <Ionicons name="pricetag" size={14} color="#1f2937" />
+                      <Text
+                        className="text-gray-900 text-sm font-semibold"
+                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      >
+                        {t("countdown.categoryLabel", {
+                          category: categoryName,
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {onCancel && (
+                <>
+                  <Text
+                    className="text-gray-600 text-sm mt-4"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  >
+                    {t("countdown.preChatLeaveDescription")}
+                  </Text>
+                  <View className="mt-4">
+                    <View className="relative">
+                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
+                      <TouchableOpacity
+                        onPress={onCancel}
+                        activeOpacity={0.85}
+                        className="relative bg-white border-2 border-gray-900 rounded-xl py-3 px-6"
+                      >
+                        <Text
+                          className="text-gray-900 text-center font-semibold"
+                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                        >
+                          {t("countdown.preChatLeaveButton")}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </View>
       </View>
     );
   }

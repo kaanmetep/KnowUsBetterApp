@@ -12,7 +12,13 @@ import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
-import { getCategoryCoinsRequired } from "../services/categoryService";
+import {
+  getCategoryById,
+  getCategoryCoinsRequired,
+  getCategoryLabel,
+} from "../services/categoryService";
+import { CoinStorageService } from "../services/coinStorageService";
+import { purchaseService } from "../services/purchaseService";
 import socketService, { Room } from "../services/socketService";
 
 const GameRoom = () => {
@@ -47,6 +53,11 @@ const GameRoom = () => {
     completedRounds: any[];
   } | null>(null);
   const [isStartingGame, setIsStartingGame] = useState(false);
+  const [coinsPendingSpend, setCoinsPendingSpend] = useState(0);
+  const [categoryDisplayName, setCategoryDisplayName] = useState<string | null>(
+    null
+  );
+  const [categoryColor, setCategoryColor] = useState<string | null>(null);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -58,6 +69,83 @@ const GameRoom = () => {
 
   const getCoinLabel = (count: number) =>
     count === 1 ? t("gameRoom.coinSingular") : t("gameRoom.coinPlural");
+
+  useEffect(() => {
+    const categoryId = room?.settings?.category;
+    if (!categoryId) {
+      setCategoryDisplayName(null);
+      setCategoryColor(null);
+      return;
+    }
+
+    let isMounted = true;
+    const loadCategoryLabel = async () => {
+      const categoryData = await getCategoryById(categoryId);
+      if (isMounted) {
+        setCategoryDisplayName(
+          getCategoryLabel(categoryData, selectedLanguage)
+        );
+        setCategoryColor(categoryData?.color || null);
+      }
+    };
+    loadCategoryLabel();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [room?.settings?.category, selectedLanguage]);
+
+  const ensureUserHasCoins = async (amount: number): Promise<boolean> => {
+    if (amount <= 0) {
+      return true;
+    }
+
+    try {
+      const appUserId = await purchaseService.getAppUserId();
+      if (!appUserId) {
+        throw new Error("Missing app user id");
+      }
+
+      const balance = await CoinStorageService.fetchBalanceFromSupabase(
+        appUserId
+      );
+
+      if (balance === null) {
+        throw new Error("Unable to read balance");
+      }
+
+      if (balance < amount) {
+        const coinLabel = getCoinLabel(amount);
+        if (Platform.OS === "web") {
+          window.alert(
+            t("gameRoom.notEnoughCoinsWeb", {
+              coinsRequired: amount,
+              coinLabel,
+            })
+          );
+        } else {
+          Alert.alert(
+            t("gameRoom.notEnoughCoinsTitle"),
+            t("gameRoom.notEnoughCoinsMessage", {
+              coinsRequired: amount,
+              coinLabel,
+            })
+          );
+        }
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to verify coin balance:", error);
+      if (Platform.OS === "web") {
+        window.alert(t("gameRoom.failedToStartGame"));
+      } else {
+        Alert.alert(t("gameRoom.errorTitle"), t("gameRoom.failedToStartGame"));
+      }
+      return false;
+    }
+  };
 
   // Socket.io event listeners and cleanup
   useEffect(() => {
@@ -188,6 +276,9 @@ const GameRoom = () => {
       setNotifications([]);
       setRoundResult(null);
       setGameFinishedData(null);
+      setCoinsPendingSpend(0);
+      setCategoryDisplayName(null);
+      setCategoryColor(null);
     };
 
     // Player kicked (for remaining players)
@@ -346,6 +437,9 @@ const GameRoom = () => {
     setHasSubmitted(false);
     setOpponentAnswered(false);
     setNotifications([]);
+    setCoinsPendingSpend(0);
+    setCategoryDisplayName(null);
+    setCategoryColor(null);
   };
 
   // Handlers
@@ -390,34 +484,17 @@ const GameRoom = () => {
     if (canStartGame && !isStartingGame) {
       setIsStartingGame(true);
       try {
-        // Deduct coins when starting the game
+        // Determine coins needed and verify balance up front
         const category = room?.settings?.category || "just_friends";
         const coinsRequired = await getCategoryCoinsRequired(category);
 
-        if (coinsRequired > 0) {
-          const hasEnoughCoins = await spendCoins(coinsRequired);
-          if (!hasEnoughCoins) {
-            setIsStartingGame(false);
-            const coinLabel = getCoinLabel(coinsRequired);
-            if (Platform.OS === "web") {
-              window.alert(
-                t("gameRoom.notEnoughCoinsWeb", {
-                  coinsRequired,
-                  coinLabel,
-                })
-              );
-            } else {
-              Alert.alert(
-                t("gameRoom.notEnoughCoinsTitle"),
-                t("gameRoom.notEnoughCoinsMessage", {
-                  coinsRequired,
-                  coinLabel,
-                })
-              );
-            }
-            return;
-          }
+        if (!(await ensureUserHasCoins(coinsRequired))) {
+          setIsStartingGame(false);
+          setCoinsPendingSpend(0);
+          return;
         }
+
+        setCoinsPendingSpend(coinsRequired > 0 ? coinsRequired : 0);
         await socketService.startGame(roomCode);
       } catch (error: any) {
         console.error("❌ Error starting game:", error);
@@ -485,6 +562,28 @@ const GameRoom = () => {
     }
   };
 
+  const handleCountdownComplete = async () => {
+    if (coinsPendingSpend > 0) {
+      const success = await spendCoins(coinsPendingSpend);
+      if (!success) {
+        const coinLabel = getCoinLabel(coinsPendingSpend);
+        const message = t("gameRoom.notEnoughCoinsMessage", {
+          coinsRequired: coinsPendingSpend,
+          coinLabel,
+        });
+        if (Platform.OS === "web") {
+          window.alert(message);
+        } else {
+          Alert.alert(t("gameRoom.errorTitle"), message);
+        }
+        resetToWaitingRoom();
+        return;
+      }
+    }
+    setCoinsPendingSpend(0);
+    setGameState("playing");
+  };
+
   // Loading state
   if (!fontsLoaded || !room) {
     return null;
@@ -492,11 +591,16 @@ const GameRoom = () => {
 
   // Render countdown screen
   if (gameState === "countdown") {
+    const opponentPlayer = room?.players?.find((p: any) => p.id !== mySocketId);
+    const opponentDisplayName =
+      opponentPlayer?.name || t("gameRoom.partnerLabel");
     return (
       <Countdown
-        onComplete={() => {
-          setGameState("playing");
-        }}
+        onComplete={handleCountdownComplete}
+        opponentName={opponentDisplayName}
+        onCancel={handleLeaveRoom}
+        categoryName={categoryDisplayName || undefined}
+        categoryColor={categoryColor || undefined}
       />
     );
   }
