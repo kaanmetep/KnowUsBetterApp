@@ -190,24 +190,71 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         return false;
       }
 
-      // CRITICAL FIX: Ensure appUserId is available before spending
-      // Get appUserId directly to avoid React state update timing issues
-      let id = appUserId;
-      if (!id) {
-        // If appUserId is not set in context, load coins first to ensure context is synchronized
-        // This ensures webhook listener is active and context is properly initialized
-        await loadCoins();
-        // Get appUserId directly from purchaseService to avoid React state update delay
-        id = await purchaseService.getAppUserId();
-      }
-
-      if (!id) {
-        console.error("❌ Unable to get appUserId");
+      // CRITICAL FIX: Always get fresh appUserId from purchaseService, NEVER trust state.
+      // State might be stale/old, especially right after app startup or coin purchase
+      // This ensures we always use the correct, current appUserId
+      const currentAppUserId = await purchaseService.getAppUserId();
+      if (!currentAppUserId) {
+        console.error(
+          "❌ Unable to get current appUserId from purchaseService"
+        );
         return false;
       }
 
+      // CRITICAL: If appUserId from service is different from state, update state and reload
+      if (currentAppUserId !== appUserId) {
+        setAppUserId(currentAppUserId);
+        // Reload coins with correct appUserId to ensure webhook listener is active
+        await loadCoins();
+      }
+
+      // Use the fresh, correct appUserId from service (NOT from state)
+      const id = currentAppUserId;
+
+      // CRITICAL FIX: If context state has more coins than expected, refresh first
+      // This handles the case where coins were just purchased and webhook might have updated Supabase
+      // but we want to make sure we have the latest balance before spending
+      if (coins >= amount) {
+        // Refresh from Supabase first to ensure we have the latest balance
+        await refreshCoins();
+      }
+
       // Fetch real balance from Supabase ONLY (no device fallback for security)
-      const realBalance = await CoinStorageService.fetchBalanceFromSupabase(id);
+      // Try up to 5 times with increasing delays in case of temporary Supabase sync issues
+      // This handles the case where coins were just purchased and backend webhook hasn't updated Supabase yet
+      let realBalance: number | null = null;
+      const maxRetries = 5;
+      const retryDelays = [500, 1000, 2000, 3000, 5000]; // Increasing delays
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        realBalance = await CoinStorageService.fetchBalanceFromSupabase(id);
+
+        // If we got a valid balance and it's enough, break
+        if (
+          realBalance !== null &&
+          realBalance !== undefined &&
+          !Number.isNaN(realBalance) &&
+          realBalance >= amount
+        ) {
+          break;
+        }
+
+        // If this is not the last attempt and we got null/NaN, wait and retry
+        if (attempt < maxRetries && realBalance === null) {
+          const delay = retryDelays[attempt - 1] || 1000;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+
+        // If balance is valid but insufficient, break (don't retry)
+        if (
+          realBalance !== null &&
+          realBalance !== undefined &&
+          !Number.isNaN(realBalance)
+        ) {
+          break;
+        }
+      }
 
       if (
         realBalance === null ||
@@ -215,15 +262,15 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         Number.isNaN(realBalance)
       ) {
         console.error(
-          "❌ Unable to fetch balance from Supabase. Cannot proceed with spending coins."
+          `❌ Unable to fetch balance from Supabase after ${maxRetries} attempts. Cannot proceed with spending coins.`
         );
         return false;
       }
 
       // Check if user has enough coins
       if (realBalance < amount) {
-        console.warn(
-          `⚠️ Not enough coins. Required: ${amount}, Available: ${realBalance}`
+        console.error(
+          `❌ Not enough coins. Required: ${amount}, Available: ${realBalance}, Context state: ${coins}, appUserId: ${id}`
         );
         // Update local state with real balance (in case it was out of sync)
         setCoins(realBalance);

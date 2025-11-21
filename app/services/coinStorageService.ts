@@ -51,7 +51,9 @@ export class CoinStorageService {
       .maybeSingle();
 
     if (error) {
-      console.warn(`⚠️ Supabase coin fetch failed: ${error.message}`);
+      console.error(
+        `❌ Supabase query error: ${error.message}, appUserId: ${appUserId}`
+      );
       return null;
     }
 
