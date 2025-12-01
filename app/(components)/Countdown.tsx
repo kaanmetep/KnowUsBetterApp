@@ -1,4 +1,4 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -13,22 +13,20 @@ import { useTranslation } from "../hooks/useTranslation";
 
 interface CountdownProps {
   onComplete: () => void;
-  duration?: number; // Duration in seconds, default is 3
-  customText?: string; // Custom text to display, default is "Get Ready..."
-  showFullScreen?: boolean; // Whether to show full screen countdown or inline, default is true
-  onCancel?: () => void; // Optional callback to cancel before game starts
-  categoryName?: string; // Name of the category being played
-  categoryColor?: string; // Background color to show for the category pill
+  duration?: number;
+  customText?: string;
+  showFullScreen?: boolean;
+  onCancel?: () => void;
+  categoryName?: string;
 }
 
 const Countdown: React.FC<CountdownProps> = ({
   onComplete,
-  duration = 5,
+  duration = 3,
   customText,
   showFullScreen = true,
   onCancel,
   categoryName,
-  categoryColor,
 }) => {
   const { t } = useTranslation();
   const displayText = customText || t("countdown.getReady");
@@ -46,30 +44,25 @@ const Countdown: React.FC<CountdownProps> = ({
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // Initialize with duration and start timer
+  // Initialize and Logic
   useEffect(() => {
     setCurrentNumber(duration);
     durationRef.current = duration;
     startTimeRef.current = Date.now();
     isCompletedRef.current = false;
 
-    // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
 
-    // Don't start timer if duration is 0 or less
     if (duration <= 0) {
       onCompleteRef.current();
       return;
     }
 
-    // Function to update timer based on real elapsed time
     const updateTimer = () => {
-      if (isCompletedRef.current) {
-        return;
-      }
+      if (isCompletedRef.current) return;
 
       const now = Date.now();
       const elapsedMs = now - startTimeRef.current;
@@ -77,10 +70,7 @@ const Countdown: React.FC<CountdownProps> = ({
       const remaining = Math.max(0, durationRef.current - elapsedSeconds);
 
       setCurrentNumber((prev) => {
-        // Only update if the number actually changed
-        if (prev !== remaining) {
-          return remaining;
-        }
+        if (prev !== remaining) return remaining;
         return prev;
       });
 
@@ -96,25 +86,17 @@ const Countdown: React.FC<CountdownProps> = ({
       }
     };
 
-    // Update timer immediately to ensure correct initial value
     updateTimer();
 
-    // Start countdown timer - uses real elapsed time instead of intervals
-    // This ensures timer continues even if app goes to background
     timerRef.current = setInterval(() => {
       updateTimer();
-    }, 100); // Check every 100ms
+    }, 100);
 
-    // Handle AppState changes - update timer immediately when app comes to foreground
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (nextAppState === "active" && !isCompletedRef.current) {
-        // App came to foreground - immediately update timer with real elapsed time
         updateTimer();
-        // Also update after a small delay to ensure accuracy
         setTimeout(() => {
-          if (!isCompletedRef.current) {
-            updateTimer();
-          }
+          if (!isCompletedRef.current) updateTimer();
         }, 50);
       }
     };
@@ -131,28 +113,22 @@ const Countdown: React.FC<CountdownProps> = ({
       }
       subscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration]);
 
-  // Animate number when it changes
+  // Animation Logic
   useEffect(() => {
-    // Don't animate if number is 0 or less
-    if (currentNumber <= 0) {
-      return;
-    }
+    if (currentNumber <= 0) return;
 
     const animateNumber = () => {
-      // Reset animations
       scaleAnim.setValue(0);
       opacityAnim.setValue(0);
 
-      // Animate: start small, grow big, then shrink slightly
       Animated.parallel([
         Animated.sequence([
           Animated.timing(scaleAnim, {
-            toValue: 1.3,
+            toValue: 1.1,
             duration: 300,
-            easing: Easing.out(Easing.back(2)),
+            easing: Easing.out(Easing.back(1.5)),
             useNativeDriver: true,
           }),
           Animated.timing(scaleAnim, {
@@ -168,10 +144,10 @@ const Countdown: React.FC<CountdownProps> = ({
             duration: 200,
             useNativeDriver: true,
           }),
-          Animated.delay(300),
+          Animated.delay(400),
           Animated.timing(opacityAnim, {
-            toValue: 0,
-            duration: 300,
+            toValue: 0.8,
+            duration: 200,
             useNativeDriver: true,
           }),
         ]),
@@ -185,152 +161,115 @@ const Countdown: React.FC<CountdownProps> = ({
     ? "flex-1 bg-white items-center justify-center"
     : "items-center justify-center";
 
-  // Full screen style (game start countdown)
+  // --- FULL SCREEN RENDER (Game Start) ---
   if (showFullScreen) {
-    const numberSize = 120;
-    const containerSize = 192;
-    const borderWidth = 6;
-    const borderRadius = 32;
+    const numberSize = 100;
+    const containerSize = 180;
 
     return (
       <View className={containerStyle}>
-        {/* Animated Number with Neobrutalist Style - Square */}
+        {/* Soft UI Background Pulse */}
         <Animated.View
           style={{
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim,
           }}
         >
-          <View className="relative">
-            {/* Shadow */}
-            <View
-              className="absolute bg-gray-900"
+          {/* Main Floating Circle */}
+          <View
+            className="bg-white items-center justify-center shadow-2xl shadow-blue-200/50"
+            style={{
+              width: containerSize,
+              height: containerSize,
+              borderRadius: containerSize / 2,
+              borderWidth: 8,
+              borderColor: "#eff6ff", // Very subtle blue ring
+            }}
+          >
+            <Text
+              className="text-slate-800 font-bold"
               style={{
-                top: 8,
-                left: 8,
-                right: -8,
-                bottom: -8,
-                borderRadius: borderRadius + 2,
-              }}
-            />
-
-            {/* Number Container - Square */}
-            <View
-              className="relative bg-[#ffe4e6] border-gray-900 items-center justify-center"
-              style={{
-                width: containerSize,
-                height: containerSize,
-                borderWidth: borderWidth,
-                borderRadius: borderRadius,
+                fontFamily: "MerriweatherSans_700Bold",
+                fontSize: numberSize,
+                lineHeight: numberSize,
+                textAlign: "center",
+                includeFontPadding: false,
               }}
             >
-              <Text
-                className="text-gray-900 font-bold"
-                style={{
-                  fontFamily: "MerriweatherSans_700Bold",
-                  fontSize: numberSize,
-                  lineHeight: numberSize,
-                }}
-              >
-                {currentNumber}
-              </Text>
-            </View>
+              {currentNumber}
+            </Text>
           </View>
         </Animated.View>
 
         {/* Bottom Text */}
         <Animated.View
-          style={{
-            opacity: opacityAnim,
-          }}
-          className="mt-12 px-8"
+          style={{ opacity: opacityAnim }}
+          className="mt-10 px-8 items-center"
         >
           <Text
-            className="text-gray-600 text-2xl text-center"
-            style={{
-              fontFamily: "MerriweatherSans_400Regular",
-            }}
+            className="text-slate-400 text-2xl text-center font-medium"
+            style={{ fontFamily: "MerriweatherSans_400Regular" }}
           >
             {displayText}
           </Text>
         </Animated.View>
 
-        {/* Category Badge (if provided) */}
+        {/* Category Pill */}
         {categoryName && (
-          <View className="mt-6 w-full px-6 max-w-2xl items-center">
-            <View className="relative">
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
-              <View
-                className="relative border-2 border-gray-900 rounded-full px-4 py-1 flex-row items-center gap-2"
-                style={{ backgroundColor: categoryColor || "#ffe4e6" }}
+          <View className="mt-8">
+            <View className="bg-slate-50 rounded-full px-6 py-3 border border-slate-100 shadow-sm flex-row items-center gap-2">
+              <FontAwesome6 name="tag" size={14} color="#64748B" />
+              <Text
+                className="text-slate-600 text-sm font-bold uppercase tracking-wide"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                <Ionicons name="pricetag" size={14} color="#1f2937" />
-                <Text
-                  className="text-gray-900 text-sm font-semibold"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                >
-                  {t("countdown.categoryLabel", {
-                    category: categoryName,
-                  })}
-                </Text>
-              </View>
+                {t("countdown.categoryLabel", { category: categoryName })}
+              </Text>
             </View>
           </View>
         )}
 
-        {/* Cancel Button (if provided) */}
+        {/* Cancel Button */}
         {onCancel && (
-          <View className="mt-6 items-center">
-            <View className="relative">
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-              <TouchableOpacity
-                onPress={onCancel}
-                activeOpacity={0.85}
-                className="relative bg-red-300 border-2 border-gray-900 rounded-lg py-3 px-8 min-w-[140px]"
+          <View className="mt-8">
+            <TouchableOpacity
+              onPress={onCancel}
+              activeOpacity={0.7}
+              className="px-8 py-3 rounded-2xl bg-red-50 border border-red-100"
+            >
+              <Text
+                className="text-red-500 text-center font-bold"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                <Text
-                  className="text-gray-600 text-center font-semibold"
-                  style={{
-                    fontFamily: "MerriweatherSans_700Bold",
-                    fontSize: 15,
-                  }}
-                >
-                  {t("common.cancel")}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {t("common.cancel")}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
     );
   }
 
-  // Inline style (question timer) - Simple and clean, matching socials design
+  // --- INLINE RENDER (Top Left Timer) ---
   return (
     <View className={containerStyle}>
       <Animated.View
         style={{
           transform: [{ scale: scaleAnim }],
-          opacity: opacityAnim,
         }}
       >
-        <View className="relative">
-          {/* Shadow - subtle like socials */}
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-
-          {/* Number Container - Simple white with border, matching socials style */}
-          <View className="relative bg-white border-2 border-gray-900 rounded-lg w-14 h-14 items-center justify-center">
-            <Text
-              className="text-gray-900 font-bold"
-              style={{
-                fontFamily: "MerriweatherSans_700Bold",
-                fontSize: 28,
-                lineHeight: 28,
-              }}
-            >
-              {currentNumber}
-            </Text>
-          </View>
+        {/* Circle */}
+        <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-md shadow-slate-200/50 border border-slate-100">
+          <Text
+            className={`font-bold text-lg ${
+              currentNumber <= 3 ? "text-red-500" : "text-blue-500"
+            }`}
+            style={{
+              fontFamily: "MerriweatherSans_700Bold",
+            }}
+          >
+            {currentNumber}
+          </Text>
         </View>
       </Animated.View>
     </View>

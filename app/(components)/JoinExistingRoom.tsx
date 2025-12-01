@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -13,7 +14,7 @@ import {
 import { useTranslation } from "../hooks/useTranslation";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
-import ButtonLoading from "./ButtonLoading";
+import ModalButton from "./ModalButton";
 import NameInput from "./NameInput";
 
 interface JoinExistingRoomProps {
@@ -40,7 +41,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const [roomCodeFocused, setRoomCodeFocused] = useState<boolean>(false);
   const [isJoining, setIsJoining] = useState<boolean>(false);
 
-  // Load saved preferences when modal opens
+  // Load saved preferences
   useEffect(() => {
     if (visible) {
       loadSavedPreferences();
@@ -63,20 +64,19 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
     }
   };
 
-  // Save avatar when it changes
+  // Save avatar
   useEffect(() => {
     if (selectedAvatar) {
       UserPreferencesService.saveAvatar(selectedAvatar);
     }
   }, [selectedAvatar]);
 
-  // Save username when it changes (debounced)
+  // Save username
   useEffect(() => {
     if (userName.trim().length > 0) {
       const timeoutId = setTimeout(() => {
         UserPreferencesService.saveUsername(userName.trim());
-      }, 500); // Save after 500ms of no typing
-
+      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [userName]);
@@ -125,8 +125,6 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
         setUserName("");
         setRoomCode("");
       } catch (error) {
-        // Error is already handled in StartOptionsScreen (Alert shown)
-        // Don't reset step or form - keep user on step 3 so they can try again
         console.error("Error joining room:", error);
       } finally {
         setIsJoining(false);
@@ -137,6 +135,34 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = roomCode.trim().length > 0;
+
+  const StepIndicator = ({ currentStep }: { currentStep: number }) => (
+    <View className="flex-row justify-center gap-2 mb-6">
+      {[1, 2, 3].map((s) => {
+        let bgClass = "bg-gray-100";
+        if (s === currentStep) bgClass = "bg-blue-400";
+        else if (s < currentStep) bgClass = "bg-blue-200";
+
+        return (
+          <TouchableOpacity
+            key={s}
+            onPress={() => {
+              if (s === 1) setStep(1);
+              if (s === 2 && isStep1Valid) setStep(2);
+              if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
+            }}
+            disabled={
+              (s === 2 && !isStep1Valid) ||
+              (s === 3 && (!isStep1Valid || !isStep2Valid))
+            }
+            activeOpacity={0.8}
+          >
+            <View className={`w-8 h-1.5 rounded-full ${bgClass}`} />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <Modal
@@ -150,107 +176,60 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
         className="flex-1"
       >
         <Pressable
-          className="flex-1 bg-black/50 justify-center items-center px-6"
+          className="flex-1 bg-black/40 justify-center items-center px-5 backdrop-blur-sm"
           onPress={handleClose}
         >
           <Pressable
-            className="w-full max-w-[400px]"
+            className="w-full max-w-[400px] bg-white rounded-[32px] p-6"
             onPress={(e) => e.stopPropagation()}
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 5,
+            }}
           >
+            {/* Header / Navigation Buttons */}
+            <View className="flex-row justify-between items-center absolute top-4 left-4 right-4 z-20">
+              <View>
+                {step > 1 && (
+                  <TouchableOpacity
+                    onPress={handleBack}
+                    className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center border border-gray-100"
+                  >
+                    <Ionicons name="arrow-back" size={20} color="#374151" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <TouchableOpacity
+                onPress={handleClose}
+                className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center border border-gray-100"
+              >
+                <Ionicons name="close" size={20} color="#374151" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="h-8" />
+
             {/* STEP 1: Avatar Selection */}
             {step === 1 && (
-              <View className="relative">
-                {/* Shadow */}
-                <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
-
-                {/* Modal Content */}
-                <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                  {/* Close Button */}
-                  <TouchableOpacity
-                    onPress={handleClose}
-                    className="absolute top-4 right-4 z-10"
-                  >
-                    <View className="relative">
-                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                        <Text className="text-gray-900 text-lg font-bold">
-                          ×
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Step Indicator */}
-                  <View className="flex-row justify-center gap-2 mb-4">
-                    <TouchableOpacity
-                      onPress={() => setStep(1)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="w-8 h-2 rounded-full bg-[#dbeafe] border-2 border-gray-900" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isStep1Valid) {
-                          setStep(2);
-                        }
-                      }}
-                      activeOpacity={0.8}
-                      disabled={!isStep1Valid}
-                    >
-                      <View
-                        className={`w-8 h-2 rounded-full ${
-                          isStep1Valid ? "bg-gray-300" : "bg-gray-200"
-                        } border-gray-900`}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isStep1Valid && isStep2Valid) {
-                          setStep(3);
-                        }
-                      }}
-                      activeOpacity={0.8}
-                      disabled={!isStep1Valid || !isStep2Valid}
-                    >
-                      <View
-                        className={`w-8 h-2 rounded-full ${
-                          isStep1Valid && isStep2Valid
-                            ? "bg-gray-300"
-                            : "bg-gray-200"
-                        } border-gray-900`}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <AvatarSelection
-                    selectedAvatar={selectedAvatar}
-                    onAvatarSelect={setSelectedAvatar}
-                    theme="blue"
-                  />
-
-                  {/* Continue Button */}
-                  <View className="relative mt-6">
-                    <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                    <TouchableOpacity
-                      onPress={handleContinueFromStep1}
-                      disabled={!isStep1Valid}
-                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
-                      style={{
-                        backgroundColor: isStep1Valid ? "#dbeafe" : "#d1d5db",
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text
-                        className="text-gray-900 text-lg text-center font-bold"
-                        style={{ letterSpacing: -0.3 }}
-                      >
-                        {isStep1Valid
-                          ? t("joinRoom.continue")
-                          : t("joinRoom.selectAvatar")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+              <View>
+                <StepIndicator currentStep={1} />
+                <AvatarSelection
+                  selectedAvatar={selectedAvatar}
+                  onAvatarSelect={setSelectedAvatar}
+                  theme="blue"
+                />
+                <ModalButton
+                  onPress={handleContinueFromStep1}
+                  disabled={!isStep1Valid}
+                  text={t("joinRoom.continue")}
+                  disabledText={t("joinRoom.selectAvatar")}
+                  variant="blue"
+                  className="mt-8"
+                />
               </View>
             )}
 
@@ -261,105 +240,26 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <View className="relative">
-                  {/* Shadow */}
-                  <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
+                <StepIndicator currentStep={2} />
 
-                  {/* Modal Content */}
-                  <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                    {/* Close Button */}
-                    <TouchableOpacity
-                      onPress={handleClose}
-                      className="absolute top-4 right-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ×
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-
-                    {/* Back Button */}
-                    <TouchableOpacity
-                      onPress={handleBack}
-                      className="absolute top-4 left-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ←
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-
-                    {/* Step Indicator */}
-                    <View className="flex-row justify-center gap-2 mb-4">
-                      <TouchableOpacity
-                        onPress={() => setStep(1)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setStep(2)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-[#dbeafe] border-2 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (isStep2Valid) {
-                            setStep(3);
-                          }
-                        }}
-                        activeOpacity={0.8}
-                        disabled={!isStep2Valid}
-                      >
-                        <View
-                          className={`w-8 h-2 rounded-full ${
-                            isStep2Valid ? "bg-gray-300" : "bg-gray-200"
-                          } border-gray-900`}
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <NameInput
-                      userName={userName}
-                      onUserNameChange={setUserName}
-                      userNameFocused={userNameFocused}
-                      onUserNameFocus={() => setUserNameFocused(true)}
-                      onUserNameBlur={() => setUserNameFocused(false)}
-                    />
-
-                    {/* Continue Button */}
-                    <View className="relative mt-6">
-                      <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                      <TouchableOpacity
-                        onPress={handleContinueFromStep2}
-                        disabled={!isStep2Valid}
-                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
-                        style={{
-                          backgroundColor: isStep2Valid ? "#dbeafe" : "#d1d5db",
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          className="text-gray-900 text-lg text-center font-bold"
-                          style={{ letterSpacing: -0.3 }}
-                        >
-                          {isStep2Valid
-                            ? t("joinRoom.continue")
-                            : t("joinRoom.enterYourName")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                <View className="py-4">
+                  <NameInput
+                    userName={userName}
+                    onUserNameChange={setUserName}
+                    userNameFocused={userNameFocused}
+                    onUserNameFocus={() => setUserNameFocused(true)}
+                    onUserNameBlur={() => setUserNameFocused(false)}
+                  />
                 </View>
+
+                <ModalButton
+                  onPress={handleContinueFromStep2}
+                  disabled={!isStep2Valid}
+                  text={t("joinRoom.continue")}
+                  disabledText={t("joinRoom.enterYourName")}
+                  variant="blue"
+                  className="mt-6"
+                />
               </ScrollView>
             )}
 
@@ -370,154 +270,74 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <View className="relative">
-                  {/* Shadow */}
-                  <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
+                <StepIndicator currentStep={3} />
 
-                  {/* Modal Content */}
-                  <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                    {/* Close Button */}
-                    <TouchableOpacity
-                      onPress={handleClose}
-                      className="absolute top-4 right-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ×
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
+                <Text
+                  className="text-2xl font-bold text-slate-800 text-center mb-2"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                >
+                  {t("joinRoom.enterRoomCode")}
+                </Text>
 
-                    {/* Back Button */}
-                    <TouchableOpacity
-                      onPress={handleBack}
-                      className="absolute top-4 left-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ←
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
+                <Text
+                  className="text-sm text-slate-500 text-center mb-8"
+                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                >
+                  {t("joinRoom.askPartnerForCode")}
+                </Text>
 
-                    {/* Step Indicator */}
-                    <View className="flex-row justify-center gap-2 mb-4">
-                      <TouchableOpacity
-                        onPress={() => setStep(1)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setStep(2)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setStep(3)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-[#dbeafe] border-2 border-gray-900" />
-                      </TouchableOpacity>
-                    </View>
+                <View className="mb-6">
+                  <Text
+                    className="text-sm font-semibold text-slate-700 mb-2 ml-1"
+                    style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
+                  >
+                    {t("joinRoom.roomCode")}
+                  </Text>
 
-                    {/* Title */}
-                    <Text
-                      className="text-2xl font-bold text-gray-900 text-center mb-2"
-                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                    >
-                      {t("joinRoom.enterRoomCode")}
-                    </Text>
+                  <View
+                    className="w-full bg-gray-50 rounded-2xl border"
+                    style={{
+                      borderColor: "#E2E8F0",
+                      borderWidth: 1,
+                    }}
+                  >
+                    <TextInput
+                      value={roomCode}
+                      onChangeText={(text) => {
+                        const sanitizedText = text
+                          .toLocaleUpperCase("en-US")
+                          .replace(/[^A-Z0-9]/g, "")
+                          .slice(0, 16);
 
-                    <Text
-                      className="text-sm text-gray-600 text-center mb-6"
-                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                    >
-                      {t("joinRoom.askPartnerForCode")}
-                    </Text>
-
-                    {/* Room Code Input */}
-                    <View className="mb-3">
-                      <Text
-                        className="text-sm font-semibold text-gray-900 mb-2"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                      >
-                        {t("joinRoom.roomCode")}
-                      </Text>
-                      <View className="relative">
-                        {/* Shadow */}
-                        <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-
-                        {/* Input Container */}
-                        <View
-                          className={`relative bg-white rounded-xl ${
-                            roomCodeFocused
-                              ? "border-4 border-gray-900"
-                              : "border-2 border-gray-900"
-                          }`}
-                        >
-                          <TextInput
-                            value={roomCode}
-                            onChangeText={(text) => {
-                              // Convert to uppercase and limit to 16 characters
-                              const upperText = text.toUpperCase().slice(0, 16);
-                              setRoomCode(upperText);
-                            }}
-                            onFocus={() => setRoomCodeFocused(true)}
-                            onBlur={() => setRoomCodeFocused(false)}
-                            placeholder={t("joinRoom.enterRoomCodePlaceholder")}
-                            placeholderTextColor="#9ca3af"
-                            autoCapitalize="characters"
-                            returnKeyType="done"
-                            onSubmitEditing={handleJoin}
-                            className="px-4 py-3 text-gray-900 text-base"
-                            style={
-                              {
-                                fontFamily: "MerriweatherSans_400Regular",
-                                outline: "none",
-                              } as any
-                            }
-                            maxLength={16}
-                          />
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* Join Button */}
-                    <View className="relative">
-                      <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                      <TouchableOpacity
-                        onPress={handleJoin}
-                        disabled={!isStep3Valid || isJoining}
-                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8 flex-row items-center justify-center gap-2"
-                        style={{
-                          backgroundColor:
-                            isStep3Valid && !isJoining ? "#dbeafe" : "#d1d5db",
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        {isJoining && <ButtonLoading size={14} style="dots" />}
-                        <Text
-                          className="text-gray-900 text-lg text-center font-bold"
-                          style={{ letterSpacing: -0.3 }}
-                        >
-                          {isJoining
-                            ? t("joinRoom.joining")
-                            : isStep3Valid
-                            ? t("joinRoom.joinRoom")
-                            : t("joinRoom.enterRoomCodeButton")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                        setRoomCode(sanitizedText);
+                      }}
+                      onFocus={() => setRoomCodeFocused(true)}
+                      onBlur={() => setRoomCodeFocused(false)}
+                      placeholder={t("joinRoom.enterRoomCodePlaceholder")}
+                      placeholderTextColor="#94A3B8"
+                      autoCapitalize="none"
+                      returnKeyType="done"
+                      onSubmitEditing={handleJoin}
+                      className="px-5 py-4 text-slate-900 text-lg"
+                      style={{
+                        fontFamily: "MerriweatherSans_600SemiBold",
+                        letterSpacing: 2,
+                      }}
+                      maxLength={16}
+                    />
                   </View>
                 </View>
+
+                <ModalButton
+                  onPress={handleJoin}
+                  disabled={!isStep3Valid}
+                  isLoading={isJoining}
+                  text={t("joinRoom.joinRoom")}
+                  disabledText={t("joinRoom.enterRoomCodeButton")}
+                  loadingText={t("joinRoom.joining")}
+                  variant="blue"
+                  showLoadingIndicator={true}
+                />
               </ScrollView>
             )}
           </Pressable>

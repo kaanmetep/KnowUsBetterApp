@@ -21,14 +21,13 @@ import {
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { getQuestionText } from "../utils/questionUtils";
-import Logo from "./Logo";
 
 interface GameFinishedProps {
   matchScore: number;
   totalQuestions: number;
   percentage: number;
   completedRounds: any[];
-  displayDuration: number; // Duration in seconds to display the results
+  displayDuration: number;
   currentPlayerName: string;
   opponentPlayerName: string;
   onComplete: () => void;
@@ -63,7 +62,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
   const roundsCardScale = useRef(new Animated.Value(0.4)).current;
   const roundsCardTranslateY = useRef(new Animated.Value(30)).current;
 
-  // Percentage text blur animation - starts completely blurry
+  // Percentage text blur animation
   const blurOverlayOpacity = useRef(new Animated.Value(1)).current;
   const blurIntensity = useRef(new Animated.Value(20)).current;
   const [currentBlurIntensity, setCurrentBlurIntensity] = useState(20);
@@ -74,48 +73,35 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     LibreBaskerville_700Bold,
   });
 
-  // Keep onComplete ref up to date
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // Timer countdown - uses Date.now() to continue even when app is in background
   useEffect(() => {
     setTimeRemaining(displayDuration);
     durationRef.current = displayDuration;
     startTimeRef.current = Date.now();
     isCompletedRef.current = false;
 
-    // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
 
-    // Don't start timer if duration is 0 or less
     if (displayDuration <= 0) {
       onCompleteRef.current();
       return;
     }
 
-    // Function to update timer based on real elapsed time
     const updateTimer = () => {
-      if (isCompletedRef.current) {
-        return;
-      }
+      if (isCompletedRef.current) return;
 
       const now = Date.now();
       const elapsedMs = now - startTimeRef.current;
       const elapsedSeconds = Math.floor(elapsedMs / 1000);
       const remaining = Math.max(0, durationRef.current - elapsedSeconds);
 
-      setTimeRemaining((prev) => {
-        // Only update if the number actually changed
-        if (prev !== remaining) {
-          return remaining;
-        }
-        return prev;
-      });
+      setTimeRemaining((prev) => (prev !== remaining ? remaining : prev));
 
       if (remaining <= 0 && !isCompletedRef.current) {
         isCompletedRef.current = true;
@@ -129,24 +115,13 @@ const GameFinished: React.FC<GameFinishedProps> = ({
       }
     };
 
-    // Update timer immediately to ensure correct initial value
     updateTimer();
+    timerRef.current = setInterval(updateTimer, 100);
 
-    // Start countdown timer - uses real elapsed time instead of intervals
-    // This ensures timer continues even if app goes to background
-    timerRef.current = setInterval(() => {
-      updateTimer();
-    }, 100); // Check every 100ms
-
-    // Handle AppState changes - update timer immediately when app comes to foreground
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (nextAppState === "active" && !isCompletedRef.current) {
-        // App came to foreground - immediately update timer with real elapsed time
         updateTimer();
-        // Also update after a small delay to ensure accuracy
-        setTimeout(() => {
-          updateTimer();
-        }, 10);
+        setTimeout(() => updateTimer(), 10);
       }
     };
 
@@ -156,15 +131,12 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     );
 
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
       appStateSubscription.remove();
     };
   }, [displayDuration]);
 
-  // Countdown text subtle floating animation
+  // Floating Animation
   useEffect(() => {
     const floatingAnimation = Animated.loop(
       Animated.sequence([
@@ -202,13 +174,10 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     return () => floatingAnimation.stop();
   }, [countdownTranslateY, countdownScale]);
 
-  // Card entrance animations on mount
+  // Card Entrance
   useEffect(() => {
-    // Small delay to let screen render first
     const initialDelay = setTimeout(() => {
-      // Match Score Card animation
       Animated.sequence([
-        // First phase: appear from blur
         Animated.parallel([
           Animated.timing(matchCardOpacity, {
             toValue: 0.3,
@@ -223,7 +192,6 @@ const GameFinished: React.FC<GameFinishedProps> = ({
             useNativeDriver: true,
           }),
         ]),
-        // Second phase: emerge clearly and grow
         Animated.parallel([
           Animated.timing(matchCardOpacity, {
             toValue: 1,
@@ -246,10 +214,8 @@ const GameFinished: React.FC<GameFinishedProps> = ({
         ]),
       ]).start();
 
-      // Completed Rounds Card animation (staggered)
       const roundsDelay = setTimeout(() => {
         Animated.sequence([
-          // First phase: appear from blur
           Animated.parallel([
             Animated.timing(roundsCardOpacity, {
               toValue: 0.3,
@@ -264,7 +230,6 @@ const GameFinished: React.FC<GameFinishedProps> = ({
               useNativeDriver: true,
             }),
           ]),
-          // Second phase: emerge clearly and grow
           Animated.parallel([
             Animated.timing(roundsCardOpacity, {
               toValue: 1,
@@ -294,20 +259,17 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     return () => clearTimeout(initialDelay);
   }, []);
 
-  // Percentage blur animation - completely blurry start, slow reveal.
+  // Blur Reveal
   useEffect(() => {
-    // Start with maximum blur (opacity 1, intensity 20)
     blurOverlayOpacity.setValue(1);
     blurIntensity.setValue(20);
     setCurrentBlurIntensity(20);
 
-    // Update blur intensity state when animated value changes
     const blurIntensityListener = blurIntensity.addListener(({ value }) => {
       setCurrentBlurIntensity(value);
     });
 
     const blurDelay = setTimeout(() => {
-      // Slow reveal animation - blur gradually fades away
       Animated.parallel([
         Animated.timing(blurOverlayOpacity, {
           toValue: 0,
@@ -319,7 +281,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
           toValue: 0,
           duration: 4000,
           easing: Easing.out(Easing.quad),
-          useNativeDriver: false, // blurIntensity doesn't support native driver
+          useNativeDriver: false,
         }),
       ]).start();
     }, 1800);
@@ -330,92 +292,63 @@ const GameFinished: React.FC<GameFinishedProps> = ({
     };
   }, [blurOverlayOpacity, blurIntensity]);
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
-  // Determine result color and romantic quote based on percentage
-  // High scores: Red tones | Mid scores: Blue tones | Low scores: Grey tones
   const getResultStyle = () => {
     if (percentage >= 90) {
-      // Highest score - Deepest red tones (most intense)
       return {
         bgColor: "#f87171",
-        gradientColors: ["#f87171", "#fee2e2"],
+        // Note: Using very subtle backgrounds for the card, the text will carry the color
+        gradientColors: ["#fff1f2", "#ffe4e6"],
         romanticQuote: t("gameFinished.quotes.perfect"),
-        heartColor: "#dc2626",
+        heartColor: "#dc2626", // Strong Red
         borderColor: "#fca5a5",
         shadowColor: "#fee2e2",
       };
     } else if (percentage >= 80) {
-      // High score - Strong red tones
       return {
         bgColor: "#fca5a5",
-        gradientColors: ["#fca5a5", "#fee2e2"],
+        gradientColors: ["#fff7ed", "#ffedd5"],
         romanticQuote: t("gameFinished.quotes.great"),
-        heartColor: "#ef4444",
+        heartColor: "#ea580c", // Orange/Red
         borderColor: "#fecaca",
         shadowColor: "#fef2f2",
       };
     } else if (percentage >= 70) {
-      // Good score - Medium red tones
       return {
         bgColor: "#fecaca",
-        gradientColors: ["#fecaca", "#fef2f2"],
+        gradientColors: ["#fffaff", "#f3e8ff"],
         romanticQuote: t("gameFinished.quotes.good"),
-        heartColor: "#f87171",
+        heartColor: "#9333ea", // Purple
         borderColor: "#fdd5d5",
         shadowColor: "#fef2f2",
       };
     } else if (percentage >= 60) {
-      // Mid score - Blue tones
       return {
         bgColor: "#93c5fd",
-        gradientColors: ["#93c5fd", "#dbeafe"],
+        gradientColors: ["#f0f9ff", "#e0f2fe"],
         romanticQuote: t("gameFinished.quotes.midHigh"),
-        heartColor: "#2563eb",
+        heartColor: "#0284c7", // Sky Blue
         borderColor: "#bfdbfe",
         shadowColor: "#eff6ff",
       };
     } else if (percentage >= 50) {
-      // Mid score - Light blue tones
       return {
         bgColor: "#bfdbfe",
-        gradientColors: ["#bfdbfe", "#eff6ff"],
+        gradientColors: ["#eff6ff", "#dbeafe"],
         romanticQuote: t("gameFinished.quotes.mid"),
-        heartColor: "#3b82f6",
+        heartColor: "#2563eb", // Blue
         borderColor: "#dbeafe",
         shadowColor: "#f0f9ff",
       };
-    } else if (percentage >= 40) {
-      // Mid-Low score - Light grey tones
+    } else {
       return {
         bgColor: "#e2e8f0",
-        gradientColors: ["#e2e8f0", "#f1f5f9"],
-        romanticQuote: t("gameFinished.quotes.midLow"),
-        heartColor: "#64748b",
+        gradientColors: ["#f8fafc", "#f1f5f9"],
+        romanticQuote: t("gameFinished.quotes.low"),
+        heartColor: "#475569", // Slate
         borderColor: "#e2e8f0",
         shadowColor: "#f8fafc",
-      };
-    } else if (percentage >= 30) {
-      // Low score - Medium grey tones
-      return {
-        bgColor: "#cbd5e1",
-        gradientColors: ["#cbd5e1", "#e2e8f0"],
-        romanticQuote: t("gameFinished.quotes.low"),
-        heartColor: "#475569",
-        borderColor: "#cbd5e1",
-        shadowColor: "#f1f5f9",
-      };
-    } else {
-      // Lowest score - Darkest grey tones (darkest as score decreases)
-      return {
-        bgColor: "#94a3b8",
-        gradientColors: ["#94a3b8", "#cbd5e1"],
-        romanticQuote: t("gameFinished.quotes.veryLow"),
-        heartColor: "#334155",
-        borderColor: "#94a3b8",
-        shadowColor: "#e2e8f0",
       };
     }
   };
@@ -423,79 +356,52 @@ const GameFinished: React.FC<GameFinishedProps> = ({
   const resultStyle = getResultStyle();
 
   return (
-    <View className="flex-1 bg-primary pt-16">
+    <View className="flex-1 bg-[#F8FAFC] pt-16">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 20 }}
       >
         {/* Header */}
         <View className="flex-row items-center justify-between px-6 mt-8 mb-6">
-          {/* Back to Room Button */}
           <TouchableOpacity
             onPress={onComplete}
             activeOpacity={0.8}
-            className="relative"
+            className="bg-white border border-slate-200 rounded-full px-4 py-2 flex-row items-center gap-2 shadow-sm"
           >
-            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
-            <View className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-1.5 flex-row items-center gap-1.5">
-              <FontAwesome6 name="arrow-left" size={12} color="#1f2937" />
+            <FontAwesome6 name="arrow-left" size={12} color="#475569" />
+            <Text
+              className="text-slate-600 text-xs font-bold"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              {t("gameFinished.backToRoom")}
+            </Text>
+          </TouchableOpacity>
+
+          <Animated.View
+            style={{
+              transform: [
+                { translateY: countdownTranslateY },
+                { scale: countdownScale },
+              ],
+            }}
+          >
+            <View className="bg-white border border-slate-200 rounded-full px-4 py-2 shadow-sm">
               <Text
-                className="text-gray-900 text-xs font-bold"
+                className="text-slate-600 text-sm font-bold"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
-                {t("gameFinished.backToRoom")}
+                {t("gameFinished.returningCountdown", {
+                  seconds: timeRemaining,
+                })}
               </Text>
             </View>
-          </TouchableOpacity>
-          {/* Countdown Text */}
-          <View>
-            <Animated.View
-              style={{
-                transform: [
-                  { translateY: countdownTranslateY },
-                  { scale: countdownScale },
-                ],
-              }}
-            >
-              <View className="relative">
-                {/* Shadow */}
-                <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
-                {/* Background Container */}
-                <View className="relative border-2 border-gray-900 rounded-lg overflow-hidden">
-                  <LinearGradient
-                    colors={["#f0f9ff", "#f8fafc"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                    }}
-                  />
-                  <View className="relative px-3 py-1.5">
-                    <Text
-                      className="text-gray-800 text-sm font-bold"
-                      style={{
-                        fontFamily: "MerriweatherSans_700Bold",
-                      }}
-                    >
-                      {t("gameFinished.returningCountdown", {
-                        seconds: timeRemaining,
-                      })}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
+          </Animated.View>
         </View>
 
         <View className="px-6">
-          {/*Match Score Card */}
+          {/* Match Score Card */}
           <Animated.View
-            className="mb-4 relative"
+            className="mb-4"
             style={{
               opacity: matchCardOpacity,
               transform: [
@@ -504,153 +410,133 @@ const GameFinished: React.FC<GameFinishedProps> = ({
               ],
             }}
           >
-            <View className="relative">
-              <View
-                className="relative rounded-2xl overflow-hidden"
+            <View
+              className="bg-white rounded-[32px] overflow-hidden shadow-xl shadow-slate-200/60"
+              style={{ elevation: 5 }}
+            >
+              {/* Subtle Background Gradient for whole card */}
+              <LinearGradient
+                colors={resultStyle.gradientColors as [string, string]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={{
-                  borderWidth: 3,
-                  borderColor: "#000000",
-                  shadowColor: "#000000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.12,
-                  shadowRadius: 20,
-                  elevation: 6,
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  opacity: 0.6,
                 }}
-              >
-                <LinearGradient
-                  colors={["#fef3f2", "#fff5f7"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                  }}
-                />
-                <View className="relative p-8">
-                  <View className="items-center mb-6">
-                    <View className="relative items-center justify-center">
-                      <View className="relative overflow-hidden rounded-2xl">
-                        <LinearGradient
-                          colors={
-                            resultStyle.gradientColors as [string, string]
-                          }
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                          }}
-                        />
-                        <View className="relative px-10 py-8">
-                          <View className="relative items-center justify-center">
-                            <View className="flex-row items-baseline justify-center gap-2">
-                              <Text
-                                className="text-gray-900 text-7xl font-bold"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                {percentage}
-                              </Text>
-                              <Text
-                                className="text-gray-900 text-5xl font-bold"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                %
-                              </Text>
-                            </View>
-                            <Text
-                              className="text-gray-600 text-xs font-semibold mt-3 uppercase tracking-widest"
-                              style={{
-                                fontFamily: "MerriweatherSans_700Bold",
-                                letterSpacing: 3,
-                              }}
-                            >
-                              {t("gameFinished.matchScoreLabel")}
-                            </Text>
-                          </View>
+              />
 
-                          <Animated.View
-                            style={{
-                              position: "absolute",
-                              top: -10,
-                              left: -20,
-                              right: -20,
-                              bottom: -10,
-                              opacity: blurOverlayOpacity,
-                            }}
-                            pointerEvents="none"
-                          >
-                            <BlurView
-                              intensity={currentBlurIntensity}
-                              tint="light"
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                              }}
-                            />
-                          </Animated.View>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View className="mb-4">
+              <View className="p-8">
+                <View className="items-center mb-6 pt-4">
+                  <View className="bg-white/60 px-10 py-1.5 rounded-full border border-white/40 mb-2 items-center justify-center">
                     <Text
-                      className="text-center text-red-950 text-base leading-6 italic px-2"
-                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      className="text-[10px] font-bold uppercase tracking-[3px] text-center"
+                      style={{
+                        fontFamily: "MerriweatherSans_700Bold",
+                        color: resultStyle.heartColor,
+                        opacity: 0.8,
+                      }}
                     >
-                      {resultStyle.romanticQuote}
+                      {t("gameFinished.matchScoreLabel")}
                     </Text>
                   </View>
 
-                  <View className="flex-row items-center justify-center mb-6">
-                    <View className="h-px bg-gray-300 flex-1" />
-                    <View className="mx-3">
-                      <FontAwesome6
-                        name="heart"
-                        size={20}
-                        color={resultStyle.heartColor}
-                      />
-                    </View>
-                    <View className="h-px bg-gray-300 flex-1" />
+                  <View className="flex-row items-start justify-center">
+                    <Text
+                      className="font-bold"
+                      style={{
+                        fontFamily: "MerriweatherSans_700Bold",
+                        fontSize: 96,
+                        lineHeight: 100,
+                        color: resultStyle.heartColor,
+                        textShadowColor: "rgba(255, 255, 255, 0.5)",
+                        textShadowOffset: { width: 0, height: 2 },
+                        textShadowRadius: 4,
+                        includeFontPadding: false,
+                      }}
+                    >
+                      {percentage}
+                    </Text>
+                    <Text
+                      className="font-bold mt-4 ml-1"
+                      style={{
+                        fontFamily: "MerriweatherSans_700Bold",
+                        fontSize: 32,
+                        color: resultStyle.heartColor,
+                        opacity: 0.5,
+                      }}
+                    >
+                      %
+                    </Text>
                   </View>
 
-                  <View className="bg-white/60 rounded-xl p-4 border-2 border-gray-900/20 mb-6">
-                    <View className="items-center">
-                      <Text
-                        className="text-gray-900 text-lg font-bold mb-1"
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        {t("gameFinished.matchesSummary", {
-                          matchScore,
-                          totalQuestions,
-                        })}
-                      </Text>
-                      <View className="flex-row items-center gap-2 mt-2">
-                        <View className="relative">
-                          <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        </View>
-                        <Text
-                          className="text-gray-700 text-sm font-semibold"
-                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                        >
-                          {currentPlayerName} & {opponentPlayerName}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  <Animated.View
+                    style={{
+                      position: "absolute",
+                      top: -20,
+                      left: -50,
+                      right: -50,
+                      bottom: -20,
+                      opacity: blurOverlayOpacity,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    }}
+                    pointerEvents="none"
+                  >
+                    <BlurView
+                      intensity={currentBlurIntensity}
+                      tint="light"
+                      style={{
+                        width: "120%",
+                        height: "120%",
+                      }}
+                    />
+                  </Animated.View>
+                </View>
 
+                <View className="mb-6">
+                  <Text
+                    className="text-center text-slate-700 text-lg italic leading-7 px-4"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  >
+                    "{resultStyle.romanticQuote}"
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center justify-center mb-6 opacity-30">
+                  <View className="h-px bg-slate-400 flex-1" />
+                  <View className="mx-3">
+                    <FontAwesome6
+                      name="heart"
+                      size={14}
+                      color={resultStyle.heartColor}
+                      solid
+                    />
+                  </View>
+                  <View className="h-px bg-slate-400 flex-1" />
+                </View>
+
+                <View className="bg-white/50 rounded-2xl p-4 mb-2 border border-white/60">
                   <View className="items-center">
-                    <Logo size="mini" />
+                    <Text
+                      className="text-gray-900 text-base font-bold mb-1"
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    >
+                      {t("gameFinished.matchesSummary", {
+                        matchScore,
+                        totalQuestions,
+                      })}
+                    </Text>
+                    <Text
+                      className="text-gray-500 text-xs font-bold uppercase tracking-wide"
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    >
+                      {currentPlayerName} & {opponentPlayerName}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -660,7 +546,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
           {/* Completed Rounds Summary */}
           {completedRounds && completedRounds.length > 0 && (
             <Animated.View
-              className="mb-3"
+              className="mb-6"
               style={{
                 opacity: roundsCardOpacity,
                 transform: [
@@ -669,88 +555,58 @@ const GameFinished: React.FC<GameFinishedProps> = ({
                 ],
               }}
             >
-              <View className="relative">
-                <View
-                  className="relative rounded-xl p-3 overflow-hidden"
-                  style={{
-                    borderWidth: 3,
-                    borderColor: "#000000",
-                    shadowColor: "#000000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.08,
-                    shadowRadius: 12,
-                    elevation: 3,
-                  }}
-                >
-                  <LinearGradient
-                    colors={["#f0f9ff", "#f5f3ff"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                    }}
-                  />
-                  <View className="relative gap-1.5">
-                    {completedRounds.map((round: any, index: number) => (
-                      <View
-                        key={index}
-                        className="flex-row items-start justify-between gap-2"
+              <View className="bg-white rounded-2xl p-4 shadow-lg shadow-slate-200/50">
+                <View className="gap-3">
+                  {completedRounds.map((round: any, index: number) => (
+                    <View
+                      key={index}
+                      className="flex-row items-center justify-between gap-3 pb-3 border-b border-slate-50 last:border-0 last:pb-0"
+                    >
+                      <Text
+                        className="text-slate-600 text-xs flex-1 font-medium"
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                        }}
+                        numberOfLines={2}
                       >
-                        <Text
-                          className="text-gray-900 text-xs flex-1"
-                          style={{
-                            fontFamily: "MerriweatherSans_400Regular",
-                          }}
-                          numberOfLines={2}
+                        {round.question
+                          ? getQuestionText(round.question, selectedLanguage)
+                          : round.questionText ||
+                            t("gameFinished.questionNumber", {
+                              index: index + 1,
+                            })}
+                      </Text>
+                      <View className="flex-shrink-0">
+                        <View
+                          className={`rounded-full px-2.5 py-1 flex-row items-center gap-1.5 ${
+                            round.isMatched
+                              ? "bg-green-50 border border-green-100"
+                              : "bg-red-50 border border-red-100"
+                          }`}
                         >
-                          {round.question
-                            ? getQuestionText(round.question, selectedLanguage)
-                            : round.questionText ||
-                              t("gameFinished.questionNumber", {
-                                index: index + 1,
-                              })}
-                        </Text>
-                        <View className="relative flex-shrink-0">
-                          <View
-                            className={`relative rounded-md px-2 py-1 flex-row items-center gap-1 ${
-                              round.isMatched ? "bg-[#ecfdf5]" : "bg-[#fef2f2]"
+                          <FontAwesome6
+                            name={round.isMatched ? "check" : "xmark"}
+                            size={10}
+                            color={round.isMatched ? "#16a34a" : "#dc2626"}
+                          />
+                          <Text
+                            className={`text-[10px] font-bold uppercase ${
+                              round.isMatched
+                                ? "text-green-700"
+                                : "text-red-700"
                             }`}
                             style={{
-                              shadowColor: "#000000",
-                              shadowOffset: { width: 0, height: 1 },
-                              shadowOpacity: 0.06,
-                              shadowRadius: 4,
-                              elevation: 2,
+                              fontFamily: "MerriweatherSans_700Bold",
                             }}
                           >
-                            <FontAwesome6
-                              name={
-                                round.isMatched
-                                  ? "heart-circle-check"
-                                  : "heart-circle-xmark"
-                              }
-                              size={12}
-                              color={round.isMatched ? "#16a34a" : "#991b1b"}
-                            />
-                            <Text
-                              className="text-gray-900 text-xs font-bold"
-                              style={{
-                                fontFamily: "MerriweatherSans_700Bold",
-                              }}
-                            >
-                              {round.isMatched
-                                ? t("gameFinished.matchTag")
-                                : t("gameFinished.noMatchTag")}
-                            </Text>
-                          </View>
+                            {round.isMatched
+                              ? t("gameFinished.matchTag")
+                              : t("gameFinished.noMatchTag")}
+                          </Text>
                         </View>
                       </View>
-                    ))}
-                  </View>
+                    </View>
+                  ))}
                 </View>
               </View>
             </Animated.View>

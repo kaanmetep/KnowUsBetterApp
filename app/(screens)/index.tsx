@@ -1,4 +1,4 @@
-import OnboardingScreen from "./OnboardingScreen";
+import OnboardingSteps from "../(components)/OnboardingSteps";
 export default function Index() {
-  return <OnboardingScreen />;
+  return <OnboardingSteps />;
 }

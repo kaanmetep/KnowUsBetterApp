@@ -1,10 +1,10 @@
-import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -29,7 +29,9 @@ import { getAvatarImage } from "../utils/avatarUtils";
 import ButtonLoading from "./ButtonLoading";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
+import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
+import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
@@ -59,8 +61,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
-  const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
+  const { selectedLanguage } = useLanguage();
   const { coins } = useCoins();
   const { t } = useTranslation();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -74,7 +75,6 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const hasEnoughPlayers = participants.length >= 2;
   const canStartGame = hasEnoughPlayers;
 
-  // Waiting animation - pulse
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -94,17 +94,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     ).start();
   }, [pulseAnim]);
 
-  // Dashed border animation - keep it running continuously
-  // This effect ensures animation is always running when participants < 2
   useEffect(() => {
     if (participants.length < 2) {
-      // Stop existing animation if any to avoid conflicts
       if (dashAnimationRef.current) {
         dashAnimationRef.current.stop();
         dashAnimationRef.current = null;
       }
-
-      // Reset and start fresh animation
       dashOffsetAnim.setValue(0);
       const animation = Animated.loop(
         Animated.timing(dashOffsetAnim, {
@@ -114,25 +109,17 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           useNativeDriver: false,
         })
       );
-
       dashAnimationRef.current = animation;
       animation.start();
     } else {
-      // Stop animation when we have enough players
       if (dashAnimationRef.current) {
         dashAnimationRef.current.stop();
         dashAnimationRef.current = null;
       }
     }
-
-    // Cleanup function
-    return () => {
-      // Cleanup is handled by the effect logic above
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {};
   }, [participants.length]);
 
-  // Start button glow animation
   useEffect(() => {
     if (canStartGame) {
       Animated.loop(
@@ -156,7 +143,6 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }
   }, [canStartGame, startButtonGlowAnim]);
 
-  // Coin warning pulse animation
   useEffect(() => {
     if (
       categoryInfo?.isPremium &&
@@ -188,14 +174,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }
   }, [categoryInfo, coins, coinWarningPulseAnim]);
 
-  // Load category info from Supabase
   useEffect(() => {
     const loadCategoryInfo = async () => {
       const category = room.settings?.category || "just_friends";
       const categoryData = await getCategoryById(category);
       setCategoryInfo(categoryData);
     };
-
     loadCategoryInfo();
   }, [room.settings?.category]);
 
@@ -234,14 +218,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-primary pt-16">
-      {/* Coin Purchase Modal */}
+    <View className="flex-1 bg-white pt-16">
       <CoinPurchaseModal
         visible={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
       />
 
-      {/* Settings Modal */}
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
@@ -251,196 +233,113 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         }}
       />
 
-      {/* Coin Balance Display */}
-      <CoinBalanceDisplay
-        onBuyCoins={handleBuyCoins}
-        style="absolute"
-        position="top-left"
-      />
-
-      {/* Language Selector & Settings Button Container */}
-      <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
-        {/* Inline Language Selector */}
-        <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-          <TouchableOpacity
-            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
+      <View className="absolute top-20 left-6 z-50 flex-row items-center gap-3">
+        <CoinBalanceDisplay onBuyCoins={handleBuyCoins} />
+        <TouchableOpacity
+          onPress={handleBuyCoins}
+          activeOpacity={0.7}
+          className="bg-amber-50 border border-amber-300 rounded-full px-3 py-1.5 flex-row items-center justify-center gap-1.5 shadow-sm shadow-amber-100/50"
+        >
+          <View className="bg-amber-100 w-4 h-4 rounded-full items-center justify-center">
+            <FontAwesome5 name="plus" size={8} color="#B45309" />
+          </View>
+          <Text
+            className="text-amber-800 font-bold text-xs"
+            style={{ fontFamily: "MerriweatherSans_700Bold" }}
           >
-            <Text style={{ fontSize: 18 }}>
-              {languages[selectedLanguage].flag}
-            </Text>
-            <Text
-              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
-              className="text-gray-900"
-            >
-              {selectedLanguage.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
+            {t("coins.buyCoins")}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Dropdown Menu */}
-          {isLanguageMenuOpen && (
-            <View className="absolute top-[52px] right-0 w-[140px]">
-              <View className="relative">
-                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
-                  {(
-                    Object.keys(languages) as Array<keyof typeof languages>
-                  ).map((lang, index) => (
-                    <TouchableOpacity
-                      key={lang}
-                      onPress={() => {
-                        setSelectedLanguage(lang);
-                        setIsLanguageMenuOpen(false);
-                      }}
-                      activeOpacity={0.8}
-                      className={`flex-row items-center gap-1 px-3 py-3 ${
-                        index !== Object.keys(languages).length - 1
-                          ? "border-b-2 border-gray-900"
-                          : ""
-                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
-                    >
-                      <Text style={{ fontSize: 16 }}>
-                        {languages[lang].flag}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: "MerriweatherSans_400Regular",
-                          fontSize: 13,
-                        }}
-                        className="text-gray-900"
-                      >
-                        {languages[lang].label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Settings Button */}
-        <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-          <TouchableOpacity
-            onPress={() => setShowSettingsModal(true)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
-          >
-            <Feather name="settings" size={17} color="black" />
-          </TouchableOpacity>
-        </View>
+      <View className="absolute top-20 right-6 z-50 flex-row items-center justify-end gap-4">
+        <LanguageSelector position="none" />
+        <SettingsButton onPress={() => setShowSettingsModal(true)} />
       </View>
 
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
         <View className="mt-20">
-          <Logo size="small" />
+          <Logo size="tiny" />
         </View>
-        <View className="px-6 mt-6">
+        <View className="px-6 mt-4">
           {/* Room Code Section */}
-          <View className="mb-6">
+          <View className="mb-8 items-center">
             <Text
-              className="text-center text-gray-600 text-sm mb-3"
+              className="text-center text-slate-500 text-sm mb-4"
               style={{ fontFamily: "MerriweatherSans_400Regular" }}
             >
               {t("waitingRoom.shareCodeWithPartner")}
             </Text>
+            <View
+              className="bg-white w-full rounded-[32px] p-8 items-center"
+              style={{
+                shadowColor: "#fe9ea2",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 8,
+              }}
+            >
+              <Text
+                className="text-5xl font-bold text-slate-800 tracking-widest mb-4"
+                style={{
+                  letterSpacing: 8,
+                  fontFamily: "MerriweatherSans_700Bold",
+                }}
+              >
+                {roomCode}
+              </Text>
 
-            <View className="relative">
-              <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-2xl" />
-              <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6 items-center">
+              {/* Copy Button */}
+              <TouchableOpacity
+                onPress={handleCopyCode}
+                className="bg-amber-50 rounded-full px-6 py-3 flex-row items-center gap-2"
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={copied ? "checkmark-circle" : "copy-outline"}
+                  size={18}
+                  color="#d97706"
+                />
                 <Text
-                  className="text-5xl font-bold text-gray-900 tracking-widest mb-2"
-                  style={{
-                    letterSpacing: 8,
-                  }}
+                  className="text-amber-700 font-semibold"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
-                  {roomCode}
+                  {copied ? t("waitingRoom.copied") : t("waitingRoom.copyCode")}
                 </Text>
-                <View className="flex-row gap-3 mt-4">
-                  {/* Copy Code Button */}
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <TouchableOpacity
-                      onPress={handleCopyCode}
-                      className="relative bg-[#fef3c7] border-2 border-gray-900 rounded-xl px-4 py-2 flex-row items-center gap-2"
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons
-                        name={copied ? "checkmark-circle" : "copy-outline"}
-                        size={18}
-                        color="#991b1b"
-                      />
-                      <Text
-                        className="text-gray-900 font-semibold"
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        {copied
-                          ? t("waitingRoom.copied")
-                          : t("waitingRoom.copyCode")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Share Link Button */}
-                  {/* <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <TouchableOpacity
-                      onPress={handleShareLink}
-                      className="relative bg-[#e0f2fe] border-2 border-gray-900 rounded-xl px-4 py-2 flex-row items-center gap-2"
-                      activeOpacity={0.8}
-                    >
-                      <Ionicons name="share-social" size={18} color="#991b1b" />
-                      <Text
-                        className="text-gray-900 font-semibold"
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        Share Link
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                  */}
-                </View>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 
           {/* Category Badge */}
-          <View className="items-center mb-6">
-            <View className="relative">
-              <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
-              <View
-                className="relative border-2 border-gray-900 rounded-full px-5 py-2 flex-row items-center gap-2"
-                style={{ backgroundColor: displayCategoryInfo.color }}
+          <View className="items-center mb-8">
+            <View className="rounded-full px-6 py-3 flex-row items-center gap-3 bg-slate-50 border border-slate-100">
+              {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
+                <MaterialCommunityIcons
+                  name={displayCategoryInfo.iconName as any}
+                  size={20}
+                  color="#475569"
+                />
+              ) : (
+                <FontAwesome6
+                  name={displayCategoryInfo.iconName as any}
+                  size={18}
+                  color="#475569"
+                />
+              )}
+              <Text
+                className="text-slate-700 font-semibold"
+                style={{ fontFamily: "MerriweatherSans_400Regular" }}
               >
-                {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
-                  <MaterialCommunityIcons
-                    name={displayCategoryInfo.iconName as any}
-                    size={18}
-                    color="#1f2937"
-                  />
-                ) : (
-                  <FontAwesome6
-                    name={displayCategoryInfo.iconName as any}
-                    size={18}
-                    color="#1f2937"
-                  />
-                )}
-                <Text
-                  className="text-gray-900 font-semibold"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                >
-                  {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
-                </Text>
-              </View>
+                {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
+              </Text>
             </View>
 
-            {/* Coin Warning for Premium Categories - Only show to host */}
+            {/* Coin Warning */}
             {isHost &&
               categoryInfo?.isPremium &&
               categoryInfo.coinsRequired &&
@@ -449,41 +348,39 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 <Animated.View
                   style={{
                     opacity: coinWarningPulseAnim,
-                    marginTop: 8,
+                    marginTop: 12,
                   }}
                 >
-                  <View className="relative">
-                    <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
-                    <View className="relative bg-red-200 border-2 border-red-600 rounded-lg px-2.5 py-1.5 flex-row items-center gap-1.5">
-                      <Text
-                        className="text-red-900 text-xs font-semibold"
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        {t("waitingRoom.needCoins", {
-                          required: categoryInfo.coinsRequired,
-                          current: coins,
-                        })}
-                      </Text>
-                    </View>
+                  <View className="bg-red-50 border border-red-100 rounded-xl px-4 py-2 flex-row items-center gap-2">
+                    <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                    <Text
+                      className="text-red-600 text-xs font-semibold"
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    >
+                      {t("waitingRoom.needCoins", {
+                        required: categoryInfo.coinsRequired,
+                        current: coins,
+                      })}
+                    </Text>
                   </View>
                 </Animated.View>
               )}
           </View>
 
           {/* Participants Section */}
-          <View className="mb-6">
-            <View className="flex-row items-center justify-between mb-3">
+          <View className="mb-8">
+            <View className="flex-row items-center justify-between mb-4 px-1">
               <Text
-                className="text-gray-900 text-lg font-bold"
+                className="text-slate-800 text-lg font-bold"
                 style={{ fontFamily: "MerriweatherSans_700Bold" }}
               >
                 {t("waitingRoom.participants", { count: participants.length })}
               </Text>
               {participants.length < 2 && (
                 <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                  <View className="bg-amber-100 border border-amber-300 rounded-full px-3 py-1">
+                  <View className="bg-blue-50 rounded-full px-3 py-1">
                     <Text
-                      className="text-amber-700 text-xs font-semibold"
+                      className="text-blue-600 text-xs font-semibold"
                       style={{ fontFamily: "MerriweatherSans_400Regular" }}
                     >
                       {t("waitingRoom.waiting")}
@@ -493,125 +390,144 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               )}
             </View>
 
-            <View className="gap-2.5">
+            <View className="gap-4">
               {participants.map((participant) => {
                 const isCurrentUser = isMe(participant.id);
                 const canKick = isHost && !isCurrentUser && onKickPlayer;
 
                 return (
-                  <View key={participant.id} className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <View className="relative bg-white border-2 border-gray-900 rounded-xl p-3 flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-2.5">
-                        <View className="w-12 h-12 rounded-full items-center justify-center border  overflow-hidden">
-                          {participant.avatar &&
-                          getAvatarImage(participant.avatar) ? (
-                            <Image
-                              source={getAvatarImage(participant.avatar)}
-                              style={{ width: "100%", height: "100%" }}
-                              contentFit="cover"
-                            />
-                          ) : (
-                            <FontAwesome5
-                              name="user"
-                              size={14}
-                              color="#991b1b"
-                            />
-                          )}
-                        </View>
-                        <View>
-                          <View className="flex-row items-center gap-1">
-                            <Text
-                              className="text-gray-900 font-semibold text-base"
-                              style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                            >
-                              {participant.name}
-                            </Text>
-                            {isCurrentUser && (
+                  // Card
+                  <View
+                    key={participant.id}
+                    className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-50"
+                    style={{
+                      shadowColor: "#cbd5e1",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 4,
+                      elevation: 2,
+                    }}
+                  >
+                    <View className="flex-row items-center gap-4">
+                      <View className="w-12 h-12 rounded-full items-center justify-center bg-slate-100 overflow-hidden">
+                        {participant.avatar &&
+                        getAvatarImage(participant.avatar) ? (
+                          <Image
+                            source={getAvatarImage(participant.avatar)}
+                            style={{ width: "100%", height: "100%" }}
+                            contentFit="cover"
+                          />
+                        ) : (
+                          <FontAwesome5 name="user" size={16} color="#94a3b8" />
+                        )}
+                      </View>
+                      <View>
+                        <View className="flex-row items-center gap-2">
+                          <Text
+                            className="text-slate-800 font-semibold text-base"
+                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                          >
+                            {participant.name}
+                          </Text>
+                          {isCurrentUser && (
+                            <View className="bg-slate-100 px-2 py-0.5 rounded-md">
                               <Text
-                                className="text-gray-500 mt-[2px] text-sm font-semibold"
+                                className="text-slate-500 text-[10px] font-bold"
                                 style={{
-                                  fontFamily: "MerriweatherSans_400Regular",
+                                  fontFamily: "MerriweatherSans_700Bold",
                                 }}
                               >
                                 {t("waitingRoom.you")}
                               </Text>
-                            )}
-                          </View>
-                          {participant.isHost && (
-                            <Text
-                              className="text-gray-500 text-xs"
-                              style={{
-                                fontFamily: "MerriweatherSans_400Regular",
-                              }}
-                            >
-                              {t("waitingRoom.roomHost")}
-                            </Text>
+                            </View>
                           )}
                         </View>
+                        {participant.isHost && (
+                          <Text
+                            className="text-amber-500 text-xs mt-0.5"
+                            style={{
+                              fontFamily: "MerriweatherSans_400Regular",
+                            }}
+                          >
+                            {t("waitingRoom.roomHost")}
+                          </Text>
+                        )}
                       </View>
-                      {canKick && (
-                        <TouchableOpacity
-                          onPress={() => onKickPlayer(participant.id)}
-                          className="p-1.5"
-                          activeOpacity={0.7}
-                        >
-                          <View className="relative">
-                            <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-lg" />
-                            <View className="relative bg-red-100 border border-gray-900 rounded-lg p-1">
-                              <MaterialCommunityIcons
-                                name="account-remove"
-                                size={16}
-                                color="#991b1b"
-                              />
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      )}
                     </View>
+                    {canKick && (
+                      <TouchableOpacity
+                        onPress={() => onKickPlayer(participant.id)}
+                        className="bg-red-50 p-2 rounded-xl"
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons
+                          name="account-remove"
+                          size={20}
+                          color="#ef4444"
+                        />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 );
               })}
 
-              {/* Waiting for more players */}
+              {/* Waiting Dashed Box */}
               {participants.length < 2 && (
-                <View className="relative">
-                  <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px]  rounded-xl" />
-                  <View className="relative bg-gray-100 rounded-xl overflow-hidden">
-                    {/* Animated dashed border with SVG */}
-                    <Svg
+                <View
+                  className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-50 relative"
+                  style={{
+                    shadowColor: "#cbd5e1",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <Svg
+                    width="100%"
+                    height="100%"
+                    style={{ position: "absolute" }}
+                  >
+                    <AnimatedRect
+                      x="0"
+                      y="0"
                       width="100%"
                       height="100%"
-                      style={{ position: "absolute" }}
-                    >
-                      <AnimatedRect
-                        x="0"
-                        y="0"
-                        width="100%"
-                        height="100%"
-                        stroke="#1f2937"
-                        strokeWidth="2"
-                        fill="none"
-                        strokeDasharray="10 5"
-                        strokeDashoffset={dashOffsetAnim}
-                        rx="12"
-                      />
-                    </Svg>
+                      stroke="#cbd5e1"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeDasharray="10 6"
+                      strokeDashoffset={dashOffsetAnim}
+                      rx="16"
+                    />
+                  </Svg>
 
-                    <View className="p-4 flex-row items-center gap-3">
-                      <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center border-2 border-gray-400 border-dashed">
+                  <View className="p-4 flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-4">
+                      {/* Placeholder Avatar */}
+                      <View className="w-12 h-12 rounded-full bg-slate-200/50 items-center justify-center">
                         <MaterialCommunityIcons
                           name="account-question"
-                          size={20}
-                          color="#6b7280"
+                          size={24}
+                          color="#94a3b8"
                         />
                       </View>
-                      <Text
-                        className="text-gray-500 text-sm italic flex-1"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                      >
-                        {t("waitingRoom.waitingForAnotherPlayer")}
-                      </Text>
+
+                      {/* Text Area */}
+                      <View className="flex-1">
+                        <Text
+                          className="text-slate-500 font-bold text-base"
+                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                        >
+                          {t("waitingRoom.waiting")}...
+                        </Text>
+                        <Text
+                          className="text-slate-400 text-xs italic mt-0.5"
+                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                        >
+                          {t("waitingRoom.waitingForAnotherPlayer")}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -622,33 +538,50 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           {/* Action Buttons */}
           {isHost && (
             <View className="mb-4">
-              <View className="relative">
-                {/* Static Shadow */}
-                <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                {/* Animated Button */}
-                <Animated.View
-                  className="relative border-2 border-gray-900 rounded-[14px] overflow-hidden"
+              {/* START BUTTON */}
+              <TouchableOpacity
+                onPress={onStartGame}
+                disabled={!hasEnoughPlayers || isStartingGame}
+                activeOpacity={0.9}
+                style={{
+                  borderRadius: 24,
+                  shadowColor: "#FECACA",
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: !hasEnoughPlayers || isStartingGame ? 0 : 0.4,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
+              >
+                <LinearGradient
+                  colors={
+                    !hasEnoughPlayers || isStartingGame
+                      ? ["#F1F5F9", "#E2E8F0"]
+                      : ["#FFF5F5", "#FFE3E3", "#FFDADA"]
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={{
-                    backgroundColor: canStartGame
-                      ? startButtonGlowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ["#ffe4e6", "#ffc0cb"],
-                        })
-                      : "#d1d5db",
+                    borderRadius: 24,
+                    paddingVertical: 18,
+                    alignItems: "center",
+                    borderWidth: 1,
+                    borderColor:
+                      !hasEnoughPlayers || isStartingGame
+                        ? "#F1F5F9"
+                        : "#FFF0F0",
                   }}
                 >
-                  <TouchableOpacity
-                    onPress={onStartGame}
-                    disabled={!hasEnoughPlayers || isStartingGame}
-                    className="py-[18px] px-8 flex-row items-center justify-center gap-2"
-                    activeOpacity={0.8}
-                  >
+                  <View className="flex-row items-center gap-3">
                     {isStartingGame && <ButtonLoading size={16} style="dots" />}
                     <Text
-                      className="text-gray-900 text-xl text-center font-bold"
                       style={{
                         fontFamily: "MerriweatherSans_700Bold",
-                        letterSpacing: -0.3,
+                        fontSize: 18,
+                        color:
+                          !hasEnoughPlayers || isStartingGame
+                            ? "#94A3B8"
+                            : "#1E293B",
+                        letterSpacing: 0.5,
                       }}
                     >
                       {isStartingGame
@@ -657,28 +590,25 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         ? t("waitingRoom.startGame")
                         : t("waitingRoom.waitingForPlayers")}
                     </Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              </View>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           )}
 
           {/* Leave Room Button */}
-          <View className="relative">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <TouchableOpacity
-              onPress={onLeaveRoom}
-              className="relative bg-white border-2 border-gray-900 rounded-xl py-3 px-6"
-              activeOpacity={0.8}
+          <TouchableOpacity
+            onPress={onLeaveRoom}
+            className="py-4 items-center"
+            activeOpacity={0.7}
+          >
+            <Text
+              className="text-slate-400 font-semibold"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
             >
-              <Text
-                className="text-gray-900 text-center font-semibold"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
-              >
-                {t("waitingRoom.leaveRoom")}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {t("waitingRoom.leaveRoom")}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

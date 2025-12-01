@@ -4,7 +4,7 @@ import { useTranslation } from "../hooks/useTranslation";
 
 interface LogoProps {
   marginTop?: number;
-  size?: "default" | "small" | "tiny" | "mini";
+  size?: "default" | "small" | "xs" | "tiny" | "mini";
 }
 
 const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
@@ -20,19 +20,26 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
   const translateY = useRef(new Animated.Value(0)).current;
 
   const isSmall = size === "small";
+  const isXs = size === "xs";
   const isTiny = size === "tiny";
   const isMini = size === "mini";
+
   const logoSize = isMini
     ? { width: 25, height: 25 }
     : isTiny
     ? { width: 35, height: 35 }
+    : isXs
+    ? { width: 42, height: 42 }
     : isSmall
     ? { width: 50, height: 50 }
     : { width: 80, height: 70 };
+
   const titleSize = isMini
     ? "text-sm"
     : isTiny
     ? "text-xl"
+    : isXs
+    ? "text-2xl"
     : isSmall
     ? "text-3xl"
     : "text-5xl";
@@ -47,7 +54,7 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
           useNativeDriver: true,
         }),
         Animated.timing(translateY, {
-          toValue: -12,
+          toValue: -8,
           duration: 400,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
@@ -55,7 +62,7 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
       ]).start(() => {
         const next = (msgIndex + 1) % messages.length;
         setMsgIndex(next);
-        translateY.setValue(12);
+        translateY.setValue(8);
         opacity.setValue(0);
         Animated.parallel([
           Animated.timing(translateY, {
@@ -78,19 +85,37 @@ const Logo = ({ marginTop = 0, size = "default" }: LogoProps) => {
 
   return (
     <View className="flex items-center" style={{ marginTop }}>
-      <Image
-        source={require("../../assets/images/logo.png")}
-        style={logoSize}
-      />
+      {/* Logo Image */}
+      <View
+        className="shadow-xl shadow-rose-200/50"
+        style={{ borderRadius: 20 }}
+      >
+        <Image
+          source={require("../../assets/images/logo.png")}
+          style={logoSize}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Main Title */}
       <Text
-        className={`${titleSize} text-red-950 -mt-2`}
-        style={{ fontFamily: "LibreBaskerville_700Bold" }}
+        className={`${titleSize} text-slate-800 -mt-2`}
+        style={{
+          fontFamily: "LibreBaskerville_700Bold",
+          textShadowColor: "rgba(226, 232, 240, 0.5)",
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 2,
+        }}
       >
         KnowUsBetter
       </Text>
+
+      {/* Animated Subtitle */}
       {!isSmall && !isTiny && !isMini && (
         <Animated.Text
-          className="mt-1 text-red-900"
+          className={`mt-1 text-slate-500 font-medium tracking-wide ${
+            isXs ? "text-xs" : "text-sm"
+          }`}
           style={{
             fontFamily: "MerriweatherSans_400Regular",
             opacity,

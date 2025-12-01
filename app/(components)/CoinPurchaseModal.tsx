@@ -63,34 +63,28 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       const offering = await purchaseService.getOfferings();
 
       if (!offering || !offering.availablePackages.length) {
-        console.warn("⚠️ No packages found in RevenueCat");
-        setError(t("coins.noPackagesAvailable"));
         setPackages([]);
-        setLoading(false);
         return;
       }
 
-      // Format revenuecat packages
-      // Only show coins_10 and coins_30 packages
       const formattedPackages: CoinPackage[] = offering.availablePackages
         .filter((pkg) => {
           const productId = pkg.product.identifier;
           return productId === "coins_10" || productId === "coins_30";
         })
         .map((pkg) => {
-          // Extract coin amount from product identifier (coins_10 -> 10, coins_30 -> 30)
           const productId = pkg.product.identifier;
           const coinsMatch = productId.match(/(\d+)/);
           const coins = coinsMatch ? parseInt(coinsMatch[1], 10) : 0;
 
           return {
-            identifier: pkg.product.identifier, // Use product identifier (coins_10, coins_30)
+            identifier: pkg.product.identifier,
             coins,
             price: pkg.product.priceString,
             package: pkg,
           };
         })
-        .sort((a, b) => a.coins - b.coins); // Sort by coin amount ascending
+        .sort((a, b) => a.coins - b.coins);
 
       setPackages(formattedPackages);
     } catch (error: any) {
@@ -103,34 +97,18 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
   };
 
   const handlePurchase = async (coinPackage: CoinPackage) => {
-    if (!coinPackage.package) {
-      setError(t("coins.packagesNotConfigured"));
-      return;
-    }
+    if (!coinPackage.package) return;
 
     try {
       setPurchasing(coinPackage.identifier);
       setError(null);
-
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-      // Purchase package via RevenueCat
       await purchaseService.purchasePackage(coinPackage.package);
-
-      // Frontend optimistic update (until webhook is received from backend)
-      // Webhook received, CoinContext listener will automatically update balance
       await addCoins(coinPackage.coins);
-
-      // Haptic feedback - success notification
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
       onClose();
     } catch (error: any) {
-      console.error("❌ Purchase error:", error);
-
-      if (error.message === "Purchase cancelled by user") {
-        setError(null); // If the user cancelled the purchase, don't show an error
-      } else {
+      if (error.message !== "Purchase cancelled by user") {
         setError(error.message || t("coins.purchaseFailed"));
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
@@ -143,14 +121,11 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-
       await purchaseService.restorePurchases();
       await refreshCoins();
-
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
     } catch (error: any) {
-      console.error("❌ Restore error:", error);
       setError(t("coins.failedToRestore"));
     } finally {
       setLoading(false);
@@ -158,16 +133,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
   };
 
   if (!visible) return null;
-
-  if (!fontsLoaded) {
-    return (
-      <Modal visible={visible} transparent>
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <Text style={{ color: "white" }}>{t("common.loading")}</Text>
-        </View>
-      </Modal>
-    );
-  }
+  if (!fontsLoaded) return null;
 
   return (
     <Modal
@@ -181,7 +147,7 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
       <Pressable
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.7)",
+          backgroundColor: "rgba(0,0,0,0.6)",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -190,21 +156,20 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
         <Pressable
           style={{
             width: "90%",
-            maxWidth: 420,
+            maxWidth: 400,
           }}
           onPress={() => {}}
         >
-          {/* Shadow */}
-          <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-[20px]" />
-
-          {/* Content Container */}
-          <View className="relative bg-gray-100 border-2 border-gray-900 rounded-[20px] p-6">
+          {/* Main Card */}
+          <View className="bg-white rounded-[28px] p-6 shadow-2xl shadow-black/15">
             {/* Header */}
             <View className="flex-row justify-between items-center mb-6">
-              <View className="flex-row items-center gap-2">
-                <FontAwesome6 name="coins" size={24} color="#991b1b" />
+              <View className="flex-row items-center gap-3">
+                <View className="w-10 h-10 bg-red-50 rounded-full items-center justify-center">
+                  <FontAwesome6 name="coins" size={20} color="#dc2626" />
+                </View>
                 <Text
-                  className="text-gray-900 text-2xl font-bold"
+                  className="text-slate-800 text-2xl font-bold"
                   style={{
                     fontFamily: "MerriweatherSans_700Bold",
                     letterSpacing: -0.5,
@@ -213,69 +178,52 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                   {t("coins.title")}
                 </Text>
               </View>
+
               <TouchableOpacity
                 onPress={onClose}
-                className="w-8 h-8 items-center justify-center"
+                className="w-8 h-8 items-center justify-center bg-slate-100 rounded-full"
                 activeOpacity={0.7}
               >
-                <Text
-                  className="text-gray-900 text-3xl"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  ×
-                </Text>
+                <FontAwesome6 name="xmark" size={14} color="#64748b" />
               </TouchableOpacity>
             </View>
 
             {/* Content */}
             <View>
-              {/* Loading State */}
               {loading && (
-                <View className="py-16 items-center">
-                  <ActivityIndicator size="large" color="#991b1b" />
+                <View className="py-12 items-center">
+                  <ActivityIndicator size="large" color="#dc2626" />
                   <Text
-                    className="text-gray-700 mt-4 text-base"
-                    style={{
-                      fontFamily: "MerriweatherSans_400Regular",
-                      letterSpacing: -0.2,
-                    }}
+                    className="text-slate-500 mt-4 text-sm"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
                   >
                     {t("coins.loadingPackages")}
                   </Text>
                 </View>
               )}
 
-              {/* Error Message */}
               {error && (
-                <View className="relative mb-4">
-                  <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                  <View className="relative bg-red-50 border-2 border-gray-900 rounded-xl p-4">
-                    <Text
-                      className="text-red-800 text-sm text-center font-semibold"
-                      style={{
-                        fontFamily: "MerriweatherSans_400Regular",
-                        letterSpacing: -0.2,
-                      }}
-                    >
-                      {error}
-                    </Text>
-                  </View>
+                <View className="bg-red-50 rounded-xl p-4 mb-4 border border-red-100">
+                  <Text
+                    className="text-red-600 text-sm text-center"
+                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  >
+                    {error}
+                  </Text>
                 </View>
               )}
 
-              {/* Packages */}
               {!loading && packages.length > 0 && (
                 <View className="gap-3 mb-4">
                   {packages.map((pkg) => {
                     const isPurchasing = purchasing === pkg.identifier;
                     const isDisabled = purchasing !== null;
 
-                    // Determine gradient colors based on package
                     const getGradientColors = (): [string, string, string] => {
                       if (pkg.coins === 30) {
-                        return ["#fee2e2", "#fecaca", "#f87171"]; // Vibrant red gradient for 30 coins
+                        return ["#fff1f2", "#ffe4e6", "#fecdd3"];
                       }
-                      return ["#ffffff", "#f9fafb", "#f3f4f6"]; // Clean white gradient for 10 coins
+                      return ["#f8fafc", "#f1f5f9", "#e2e8f0"];
                     };
 
                     return (
@@ -283,89 +231,73 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                         key={pkg.identifier}
                         onPress={() => handlePurchase(pkg)}
                         disabled={isDisabled || !pkg.package}
-                        activeOpacity={0.85}
+                        activeOpacity={0.9}
                       >
-                        <View className="relative">
-                          {/* Shadow */}
-                          <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[16px]" />
-
-                          {/* Content with Gradient - Horizontal long layout */}
-                          <View
-                            className={`relative border-2 border-gray-900 rounded-[16px] overflow-hidden ${
-                              isDisabled ? "opacity-50" : ""
-                            }`}
+                        <View
+                          className={`rounded-[20px] overflow-hidden border border-slate-100 shadow-sm shadow-slate-200 ${
+                            isDisabled ? "opacity-50" : ""
+                          }`}
+                        >
+                          <LinearGradient
+                            colors={getGradientColors()}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                              padding: 16,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
                           >
-                            <LinearGradient
-                              colors={getGradientColors()}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 1 }}
-                              style={{
-                                padding: 14,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              {/* Left Side - Coin Info */}
-                              <View className="flex-1 flex-row items-center gap-3">
-                                {/* Coin Icon */}
-                                <View className="relative">
-                                  <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                                  <View className="relative bg-white border-2 border-gray-900 rounded-full p-2">
-                                    <FontAwesome6
-                                      name="coins"
-                                      size={20}
-                                      color="#991b1b"
-                                    />
-                                  </View>
-                                </View>
-
-                                {/* Coin Amount */}
-                                <View>
-                                  <Text
-                                    className="text-gray-900 text-2xl font-bold"
-                                    style={{
-                                      fontFamily: "MerriweatherSans_700Bold",
-                                      letterSpacing: -0.4,
-                                    }}
-                                  >
-                                    {pkg.coins.toLocaleString()}
-                                  </Text>
-                                  <Text
-                                    className="text-gray-700 text-sm"
-                                    style={{
-                                      fontFamily: "MerriweatherSans_400Regular",
-                                      letterSpacing: -0.2,
-                                    }}
-                                  >
-                                    {pkg.coins === 1
-                                      ? t("coins.coin")
-                                      : t("coins.coins")}
-                                  </Text>
-                                </View>
+                            <View className="flex-1 flex-row items-center gap-3">
+                              <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm">
+                                <FontAwesome6
+                                  name="coins"
+                                  size={18}
+                                  color="#dc2626"
+                                />
                               </View>
 
-                              {/* Right Side - Price */}
-                              <View className="items-end">
+                              <View>
                                 <Text
-                                  className="text-gray-900 text-2xl font-bold"
+                                  className="text-slate-800 text-xl font-bold"
                                   style={{
                                     fontFamily: "MerriweatherSans_700Bold",
-                                    letterSpacing: -0.6,
+                                  }}
+                                >
+                                  {pkg.coins.toLocaleString()}
+                                </Text>
+                                <Text
+                                  className="text-slate-500 text-xs font-bold uppercase tracking-wide"
+                                  style={{
+                                    fontFamily: "MerriweatherSans_700Bold",
+                                  }}
+                                >
+                                  {pkg.coins === 1
+                                    ? t("coins.coin")
+                                    : t("coins.coins")}
+                                </Text>
+                              </View>
+                            </View>
+
+                            <View className="bg-white/60 px-4 py-2 rounded-xl">
+                              {isPurchasing ? (
+                                <ActivityIndicator
+                                  size="small"
+                                  color="#dc2626"
+                                />
+                              ) : (
+                                <Text
+                                  className="text-slate-900 text-base font-bold"
+                                  style={{
+                                    fontFamily: "MerriweatherSans_700Bold",
                                   }}
                                 >
                                   {pkg.price}
                                 </Text>
-                                {isPurchasing && (
-                                  <ActivityIndicator
-                                    size="small"
-                                    color="#991b1b"
-                                    className="mt-1.5"
-                                  />
-                                )}
-                              </View>
-                            </LinearGradient>
-                          </View>
+                              )}
+                            </View>
+                          </LinearGradient>
                         </View>
                       </TouchableOpacity>
                     );
@@ -377,54 +309,52 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
               <TouchableOpacity
                 onPress={handleRestore}
                 disabled={loading || purchasing !== null}
-                className="mt-2"
+                className="mt-2 py-2"
                 activeOpacity={0.7}
               >
                 <Text
-                  className="text-center text-gray-700 text-sm"
+                  className="text-center text-slate-400 text-xs font-bold uppercase tracking-widest underline"
                   style={{
-                    fontFamily: "MerriweatherSans_400Regular",
-                    textDecorationLine: "underline",
+                    fontFamily: "MerriweatherSans_700Bold",
                   }}
                 >
                   {t("coins.restorePurchases")}
                 </Text>
               </TouchableOpacity>
 
-              {/* Info Text */}
-              <Text
-                className="text-center text-gray-600 text-xs mt-4"
-                style={{
-                  fontFamily: "MerriweatherSans_400Regular",
-                  lineHeight: 16,
-                }}
-              >
-                {Platform.OS === "ios"
-                  ? t("coins.paymentChargedApple")
-                  : t("coins.paymentChargedGoogle")}
-              </Text>
+              <View className="mt-4 gap-1">
+                <Text
+                  className="text-center text-slate-400 text-[10px]"
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    lineHeight: 14,
+                  }}
+                >
+                  {Platform.OS === "ios"
+                    ? t("coins.paymentChargedApple")
+                    : t("coins.paymentChargedGoogle")}
+                </Text>
 
-              {/* Device Specific Info */}
-              <Text
-                className="text-center text-gray-500 text-xs mt-2"
-                style={{
-                  fontFamily: "MerriweatherSans_400Regular",
-                  lineHeight: 16,
-                }}
-              >
-                {t("coins.deviceSpecific")}
-              </Text>
+                <Text
+                  className="text-center text-slate-400 text-[10px]"
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    lineHeight: 14,
+                  }}
+                >
+                  {t("coins.deviceSpecific")}
+                </Text>
 
-              {/* Support Info */}
-              <Text
-                className="text-center text-gray-500 text-xs mt-1"
-                style={{
-                  fontFamily: "MerriweatherSans_400Regular",
-                  lineHeight: 16,
-                }}
-              >
-                {t("coins.deviceSpecificSupport")}
-              </Text>
+                <Text
+                  className="text-center text-slate-400 text-[10px]"
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    lineHeight: 14,
+                  }}
+                >
+                  {t("coins.deviceSpecificSupport")}
+                </Text>
+              </View>
             </View>
           </View>
         </Pressable>

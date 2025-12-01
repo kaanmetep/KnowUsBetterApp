@@ -21,13 +21,25 @@ import { getQuestionAnswers, getQuestionText } from "../utils/questionUtils";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
 import RoundResult from "./RoundResult";
+import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
 
-// AnswerNotification Component - Moved outside to prevent re-creation on every render
+const GlassPill: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className = "" }) => (
+  <View
+    className={`bg-white/80 rounded-full px-4 py-2 border border-blue-50 shadow-sm ${className}`}
+    style={{ shadowColor: "#93C5FD", shadowOpacity: 0.2, shadowRadius: 8 }}
+  >
+    {children}
+  </View>
+);
+
 const AnswerNotification: React.FC<{ text: string }> = React.memo(
   ({ text }) => {
     const animValue = useRef(new Animated.Value(0)).current;
-    const slideValue = useRef(new Animated.Value(-20)).current;
+    const slideValue = useRef(new Animated.Value(20)).current; // Slide up from bottom
     const hasAnimated = useRef(false);
 
     useEffect(() => {
@@ -36,12 +48,12 @@ const AnswerNotification: React.FC<{ text: string }> = React.memo(
         Animated.parallel([
           Animated.timing(animValue, {
             toValue: 1,
-            duration: 400,
+            duration: 500,
             useNativeDriver: true,
           }),
-          Animated.timing(slideValue, {
+          Animated.spring(slideValue, {
             toValue: 0,
-            duration: 400,
+            friction: 6,
             useNativeDriver: true,
           }),
         ]).start();
@@ -54,10 +66,11 @@ const AnswerNotification: React.FC<{ text: string }> = React.memo(
           opacity: animValue,
           transform: [{ translateY: slideValue }],
         }}
+        className="items-center justify-center mt-4"
       >
-        <View className="rounded-lg bg-gray-200/80 px-4 py-2.5 border border-gray-300/50 mb-2">
+        <View className="bg-slate-800 rounded-2xl px-6 py-3 shadow-lg shadow-slate-300">
           <Text
-            className="text-gray-600 text-center text-xs"
+            className="text-white text-center text-sm font-medium"
             style={{ fontFamily: "MerriweatherSans_400Regular" }}
           >
             {text}
@@ -66,7 +79,6 @@ const AnswerNotification: React.FC<{ text: string }> = React.memo(
       </Animated.View>
     );
   },
-  // Prevent re-renders when text changes - component should stay mounted
   () => true
 );
 
@@ -74,7 +86,7 @@ interface GamePlayProps {
   currentQuestion: any;
   currentQuestionIndex: number;
   totalQuestions: number;
-  questionDuration: number; // Duration in seconds
+  questionDuration: number;
   selectedAnswer: string | null;
   hasSubmitted: boolean;
   opponentAnswered: boolean;
@@ -97,24 +109,19 @@ const GamePlay: React.FC<GamePlayProps> = ({
   hasSubmitted,
   opponentAnswered,
   opponentName,
-  notifications,
   roundResult,
   onSelectAnswer,
   onLeaveRoom,
-  roomCode,
-  currentPlayerId,
   categoryId,
 }) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { t } = useTranslation();
-  const [timerKey, setTimerKey] = useState(0); // Key to force timer reset
+  const [timerKey, setTimerKey] = useState(0);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
-  // Reset timer when question changes
   useEffect(() => {
-    // Force timer to reset by changing key
     setTimerKey((prev) => prev + 1);
   }, [currentQuestionIndex, questionDuration]);
 
@@ -122,24 +129,16 @@ const GamePlay: React.FC<GamePlayProps> = ({
     let isMounted = true;
     const loadCategoryInfo = async () => {
       if (!categoryId) {
-        if (isMounted) {
-          setCategoryInfo(null);
-        }
+        if (isMounted) setCategoryInfo(null);
         return;
       }
       try {
         const info = await getCategoryById(categoryId);
-        if (isMounted) {
-          setCategoryInfo(info);
-        }
+        if (isMounted) setCategoryInfo(info);
       } catch (error) {
-        console.error("❌ Failed to load category info:", error);
-        if (isMounted) {
-          setCategoryInfo(null);
-        }
+        if (isMounted) setCategoryInfo(null);
       }
     };
-
     loadCategoryInfo();
     return () => {
       isMounted = false;
@@ -149,7 +148,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   const displayCategoryInfo = categoryInfo || {
     id: categoryId || "just_friends",
     labels: {},
-    color: "#f3f4f6",
+    color: "#EFF6FF",
     iconName: "heart",
     iconType: "FontAwesome6" as const,
     coinsRequired: 0,
@@ -157,347 +156,315 @@ const GamePlay: React.FC<GamePlayProps> = ({
     orderIndex: 0,
   };
 
+  const getButtonStyles = (
+    type: "yes" | "no" | "custom",
+    isSelected: boolean,
+    isDisabled: boolean
+  ) => {
+    if (isDisabled && !isSelected) return "bg-slate-100 border-slate-200";
+
+    if (type === "yes") {
+      return isSelected
+        ? "bg-[#A5D8FF] border-[#74C0FC]" // Active Blue
+        : "bg-[#E7F5FF] border-[#D0EBFF]"; // Passive Blue
+    }
+    if (type === "no") {
+      return isSelected
+        ? "bg-[#FFA8A8] border-[#FF8787]" // Active Red
+        : "bg-[#FFF5F5] border-[#FFC9C9]"; // Passive Red
+    }
+    // Custom answers default to blue theme
+    return isSelected
+      ? "bg-[#A5D8FF] border-[#74C0FC]"
+      : "bg-white border-slate-100";
+  };
+
+  const getButtonTextStyles = (isSelected: boolean, isDisabled: boolean) => {
+    if (isDisabled && !isSelected) return "text-slate-300";
+    if (isSelected) return "text-slate-900";
+    return "text-slate-600";
+  };
+
   return (
-    <View className="flex-1 bg-primary" style={{ flexDirection: "column" }}>
+    <View className="flex-1 bg-[#F8FAFC]" style={{ flexDirection: "column" }}>
       {/* Settings Modal */}
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
       />
 
-      {/* Language Selector & Settings Button Container */}
-      <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
-        {/* Inline Language Selector */}
-        <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
+      {/* --- Header Section --- */}
+      <View className="pt-16 pb-4 px-6 flex-row justify-between items-center z-50">
+        {/* Back Button */}
+        {onLeaveRoom && (
           <TouchableOpacity
-            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
+            onPress={onLeaveRoom}
+            className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm shadow-slate-200 border border-slate-100"
+            activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 18 }}>
-              {languages[selectedLanguage].flag}
-            </Text>
-            <Text
-              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
-              className="text-gray-900"
-            >
-              {selectedLanguage.toUpperCase()}
-            </Text>
+            <FontAwesome5 name="arrow-left" size={14} color="#64748B" />
           </TouchableOpacity>
+        )}
 
-          {/* Dropdown Menu */}
-          {isLanguageMenuOpen && (
-            <View className="absolute top-[52px] right-0 w-[140px]">
-              <View className="relative">
-                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
-                  {(
-                    Object.keys(languages) as Array<keyof typeof languages>
-                  ).map((lang, index) => (
+        {/* Right Actions Group */}
+        <View className="flex-row gap-3">
+          {/* Language Selector */}
+          <View className="relative z-50">
+            <TouchableOpacity
+              onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+              activeOpacity={0.7}
+              className="bg-white border border-slate-100 rounded-full px-4 py-2 flex-row items-center gap-2 shadow-sm shadow-slate-200"
+            >
+              <Text style={{ fontSize: 16 }}>
+                {languages[selectedLanguage].flag}
+              </Text>
+              <Text className="text-slate-600 font-bold text-xs">
+                {selectedLanguage.toUpperCase()}
+              </Text>
+              <Feather
+                name={isLanguageMenuOpen ? "chevron-up" : "chevron-down"}
+                size={14}
+                color="#94A3B8"
+              />
+            </TouchableOpacity>
+
+            {/* Language Dropdown */}
+            {isLanguageMenuOpen && (
+              <View className="absolute top-12 right-0 w-[140px] bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden py-1">
+                {(Object.keys(languages) as Array<keyof typeof languages>).map(
+                  (lang) => (
                     <TouchableOpacity
                       key={lang}
                       onPress={() => {
                         setSelectedLanguage(lang);
                         setIsLanguageMenuOpen(false);
                       }}
-                      activeOpacity={0.8}
-                      className={`flex-row items-center gap-1 px-3 py-3 ${
-                        index !== Object.keys(languages).length - 1
-                          ? "border-b-2 border-gray-900"
-                          : ""
-                      } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
+                      className={`flex-row items-center gap-3 px-4 py-3 ${
+                        selectedLanguage === lang ? "bg-blue-50" : ""
+                      }`}
                     >
                       <Text style={{ fontSize: 16 }}>
                         {languages[lang].flag}
                       </Text>
                       <Text
-                        style={{
-                          fontFamily: "MerriweatherSans_400Regular",
-                          fontSize: 13,
-                        }}
-                        className="text-gray-900"
+                        className={`text-sm ${
+                          selectedLanguage === lang
+                            ? "text-blue-600 font-bold"
+                            : "text-slate-500"
+                        }`}
+                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
                       >
                         {languages[lang].label}
                       </Text>
                     </TouchableOpacity>
-                  ))}
+                  )
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* Settings Icon */}
+          <SettingsButton
+            onPress={() => setShowSettingsModal(true)}
+            variant="modern"
+          />
+        </View>
+      </View>
+
+      {/* --- Main Game Area --- */}
+      <View className="flex-1 px-6 pt-4">
+        {/* Category Badge */}
+        <View className="items-center mb-6">
+          <GlassPill className="flex-row items-center gap-2">
+            {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
+              <MaterialCommunityIcons
+                name={displayCategoryInfo.iconName as any}
+                size={14}
+                color="#64748B"
+              />
+            ) : (
+              <FontAwesome6
+                name={displayCategoryInfo.iconName as any}
+                size={12}
+                color="#64748B"
+              />
+            )}
+            <Text
+              className="text-slate-500 text-xs font-semibold tracking-wide uppercase"
+              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+            >
+              {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
+            </Text>
+          </GlassPill>
+        </View>
+
+        {roundResult && (
+          <RoundResult
+            roundResult={roundResult}
+            currentQuestion={currentQuestion}
+            currentQuestionIndex={currentQuestionIndex}
+            totalQuestions={totalQuestions}
+            selectedLanguage={selectedLanguage}
+          />
+        )}
+
+        {!roundResult && (
+          <Pressable className="flex-1" onPress={(e) => e.stopPropagation()}>
+            {/* THE CARD */}
+            <View
+              className="bg-white rounded-[32px] p-6 w-full shadow-2xl shadow-blue-100/50"
+              style={{ elevation: 10 }} // Android Shadow
+            >
+              {/* Card Header: Timer & Progress */}
+              <View className="flex-row items-center justify-between mb-8">
+                <View style={{ width: 48, height: 48 }}>
+                  <View key={timerKey}>
+                    <Countdown
+                      duration={questionDuration}
+                      showFullScreen={false}
+                      onComplete={() => {
+                        if (!hasSubmitted && currentQuestion) {
+                          if (!currentQuestion.haveAnswers) {
+                            onSelectAnswer("yes");
+                          } else {
+                            const answers = getQuestionAnswers(
+                              currentQuestion,
+                              selectedLanguage
+                            );
+                            if (answers.length > 0) onSelectAnswer(answers[0]);
+                          }
+                        }
+                      }}
+                    />
+                  </View>
+                </View>
+
+                {/* Elegant Question Counter */}
+                <View className="bg-slate-50 px-4 py-2 rounded-2xl">
+                  <Text className="text-slate-400 font-bold text-xs tracking-widest">
+                    <Text className="text-slate-800 text-lg">
+                      {currentQuestionIndex + 1}
+                    </Text>
+                    /{totalQuestions}
+                  </Text>
                 </View>
               </View>
-            </View>
-          )}
-        </View>
 
-        {/* Settings Button */}
-        <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-          <TouchableOpacity
-            onPress={() => setShowSettingsModal(true)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
-          >
-            <Feather name="settings" size={17} color="black" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Logo - Bottom center */}
-      <View className="absolute bottom-8 left-0 right-0 z-40 items-center">
-        <Logo size="mini" />
-      </View>
-
-      <Pressable
-        className="bg-primary pt-12 mt-24"
-        style={{ flexDirection: "column" }}
-      >
-        <View className="px-6" style={{ flexShrink: 1 }}>
-          {/* Category Badge - Above the card, centered */}
-          <View className="flex-row items-center justify-center gap-2 my-2">
-            <Text
-              className="text-gray-600 text-xs"
-              style={{
-                fontFamily: "MerriweatherSans_400Regular",
-              }}
-            >
-              {t("gamePlay.categoryLabel")}:
-            </Text>
-            <View className="relative opacity-95">
-              <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-              <View
-                className="relative border-2 border-gray-900 rounded-full px-3 py-1.5 flex-row items-center justify-center gap-1.5"
-                style={{ backgroundColor: displayCategoryInfo.color }}
-              >
-                {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
-                  <MaterialCommunityIcons
-                    name={displayCategoryInfo.iconName as any}
-                    size={12}
-                    color="#1f2937"
-                  />
-                ) : (
-                  <FontAwesome6
-                    name={displayCategoryInfo.iconName as any}
-                    size={12}
-                    color="#1f2937"
-                  />
-                )}
+              {/* Question Text */}
+              <View className="mb-10 min-h-[120px] justify-center">
                 <Text
-                  className="text-gray-800 text-[10px] font-semibold"
-                  style={{
-                    fontFamily: "MerriweatherSans_400Regular",
-                  }}
-                  numberOfLines={1}
+                  className="text-[28px] text-slate-800 text-center leading-9"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
                 >
-                  {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
+                  {getQuestionText(currentQuestion, selectedLanguage)}
                 </Text>
               </View>
-            </View>
-          </View>
-          {/* Round Result Card (Displayed between questions) */}
-          {roundResult && (
-            <RoundResult
-              roundResult={roundResult}
-              currentQuestion={currentQuestion}
-              currentQuestionIndex={currentQuestionIndex}
-              totalQuestions={totalQuestions}
-              selectedLanguage={selectedLanguage}
-            />
-          )}
-          {/* Main Card */}
-          {!roundResult && (
-            <View className="relative mb-2 mt-6">
-              <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-8 min-h-[420px]">
-                  {/* Progress Bar and Timer in top bar */}
-                  <View className="flex-row items-center justify-between mb-6 gap-3">
-                    {/* Timer - Left Side */}
-                    <View style={{ width: 52, height: 52 }}>
-                      <View key={timerKey}>
-                        <Countdown
-                          duration={questionDuration}
-                          showFullScreen={false}
-                          onComplete={() => {
-                            // Timer completed - auto-submit if not already submitted
-                            if (!hasSubmitted && currentQuestion) {
-                              if (!currentQuestion.haveAnswers) {
-                                // Auto-select "yes" for yes/no questions
-                                onSelectAnswer("yes");
-                              } else {
-                                // Auto-select first answer for multiple choice
-                                const answers = getQuestionAnswers(
-                                  currentQuestion,
-                                  selectedLanguage
-                                );
-                                if (answers.length > 0) {
-                                  onSelectAnswer(answers[0]);
-                                }
-                              }
-                            }
-                          }}
-                        />
-                      </View>
-                    </View>
 
-                    {/* Simple Circular Question Counter - Right Side */}
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-16 h-16 items-center justify-center">
+              {/* Answers Section */}
+              <View className="gap-4">
+                {!currentQuestion.haveAnswers ? (
+                  // YES / NO Layout
+                  <>
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        if (!hasSubmitted) onSelectAnswer("yes");
+                      }}
+                      disabled={hasSubmitted}
+                      activeOpacity={0.9}
+                    >
+                      <View
+                        className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
+                          "yes",
+                          selectedAnswer === "yes",
+                          hasSubmitted
+                        )}`}
+                      >
                         <Text
-                          className="text-gray-900 text-sm font-bold"
+                          className={`text-center text-lg font-bold ${getButtonTextStyles(
+                            selectedAnswer === "yes",
+                            hasSubmitted
+                          )}`}
                           style={{ fontFamily: "MerriweatherSans_700Bold" }}
                         >
-                          {currentQuestionIndex + 1}/{totalQuestions}
+                          {t("gamePlay.yes")}
                         </Text>
                       </View>
-                    </View>
-                  </View>
+                    </TouchableOpacity>
 
-                  {/* Question */}
-                  <View className="mt-2">
-                    <Text
-                      className="text-3xl font-bold text-gray-900 text-center leading-9"
-                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        if (!hasSubmitted) onSelectAnswer("no");
+                      }}
+                      disabled={hasSubmitted}
+                      activeOpacity={0.9}
                     >
-                      {getQuestionText(currentQuestion, selectedLanguage)}
-                    </Text>
-                  </View>
-
-                  {/* Answer Options */}
-                  <View className="gap-4 mt-6">
-                    {!currentQuestion.haveAnswers ? (
-                      <>
-                        {/* Yes Button */}
-                        <TouchableOpacity
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            if (!hasSubmitted) {
-                              onSelectAnswer("yes");
-                            }
-                          }}
-                          disabled={hasSubmitted}
-                          activeOpacity={0.8}
+                      <View
+                        className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
+                          "no",
+                          selectedAnswer === "no",
+                          hasSubmitted
+                        )}`}
+                      >
+                        <Text
+                          className={`text-center text-lg font-bold ${getButtonTextStyles(
+                            selectedAnswer === "no",
+                            hasSubmitted
+                          )}`}
+                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
                         >
-                          <View className="relative">
-                            <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-xl" />
-                            <View
-                              className={`relative border-4 border-gray-900 rounded-xl py-4 px-6 ${
-                                selectedAnswer === "yes"
-                                  ? "bg-green-300"
-                                  : hasSubmitted
-                                  ? "bg-gray-200"
-                                  : "bg-green-50"
-                              }`}
-                            >
-                              <Text
-                                className="text-gray-900 text-xl font-bold text-center"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                {t("gamePlay.yes")}
-                              </Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-
-                        {/* No Button */}
-                        <TouchableOpacity
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            if (!hasSubmitted) {
-                              onSelectAnswer("no");
-                            }
-                          }}
-                          disabled={hasSubmitted}
-                          activeOpacity={0.8}
+                          {t("gamePlay.no")}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  // Custom Answers Layout
+                  getQuestionAnswers(currentQuestion, selectedLanguage).map(
+                    (answer: string, index: number) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          if (!hasSubmitted) onSelectAnswer(answer);
+                        }}
+                        disabled={hasSubmitted}
+                        activeOpacity={0.9}
+                      >
+                        <View
+                          className={`w-full py-4 px-6 rounded-2xl border-b-4 ${getButtonStyles(
+                            "custom",
+                            selectedAnswer === answer,
+                            hasSubmitted
+                          )}`}
                         >
-                          <View className="relative">
-                            <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-xl" />
-                            <View
-                              className={`relative border-4 border-gray-900 rounded-xl py-4 px-6 ${
-                                selectedAnswer === "no"
-                                  ? "bg-red-300"
-                                  : hasSubmitted
-                                  ? "bg-gray-200"
-                                  : "bg-red-50"
-                              }`}
-                            >
-                              <Text
-                                className="text-gray-900 text-xl font-bold text-center"
-                                style={{
-                                  fontFamily: "MerriweatherSans_700Bold",
-                                }}
-                              >
-                                {t("gamePlay.no")}
-                              </Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      </>
-                    ) : (
-                      <>
-                        {/* Custom Answers from question.answers array */}
-                        {getQuestionAnswers(
-                          currentQuestion,
-                          selectedLanguage
-                        ).map((answer: string, index: number) => (
-                          <TouchableOpacity
-                            key={index}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              if (!hasSubmitted) {
-                                onSelectAnswer(answer);
-                              }
-                            }}
-                            disabled={hasSubmitted}
-                            activeOpacity={0.8}
+                          <Text
+                            className={`text-center text-lg font-bold ${getButtonTextStyles(
+                              selectedAnswer === answer,
+                              hasSubmitted
+                            )}`}
+                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
                           >
-                            <View className="relative">
-                              <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-xl" />
-                              <View
-                                className={`relative border-4 border-gray-900 rounded-xl py-4 px-6 ${
-                                  selectedAnswer === answer
-                                    ? "bg-[#ffe4e6]"
-                                    : hasSubmitted
-                                    ? "bg-gray-200"
-                                    : "bg-primary"
-                                }`}
-                              >
-                                <Text
-                                  className="text-gray-900 text-lg font-bold"
-                                  style={{
-                                    fontFamily: "MerriweatherSans_700Bold",
-                                  }}
-                                >
-                                  {answer}
-                                </Text>
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                      </>
-                    )}
-                  </View>
-                </View>
-              </Pressable>
+                            {answer}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )
+                  )
+                )}
+              </View>
             </View>
-          )}
-        </View>
-      </Pressable>
+          </Pressable>
+        )}
+      </View>
 
-      {/* Notifications Section */}
+      {/* Notifications Area - Floating at bottom */}
       {!roundResult && (
-        <View className="px-6 pb-6 mt-4">
-          {/* Waiting Notification - Only show if user submitted and opponent hasn't answered */}
+        <View className="px-6 pb-10">
           {hasSubmitted && !opponentAnswered && (
             <AnswerNotification text={t("gamePlay.waitingForPartner")} />
           )}
-
-          {/* Opponent Answer Notification - Only show if opponent answered */}
           {opponentAnswered && opponentName && (
             <AnswerNotification
               text={t("gamePlay.opponentAnswered", { name: opponentName })}
@@ -506,27 +473,10 @@ const GamePlay: React.FC<GamePlayProps> = ({
         </View>
       )}
 
-      {/* Leave Button - Top left, small and always visible */}
-      {onLeaveRoom && (
-        <View className="absolute top-20 left-6 z-50">
-          <View className="relative">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-            <TouchableOpacity
-              onPress={onLeaveRoom}
-              className="relative bg-white border-2 border-gray-900 text-red-950 rounded-xl py-2.5 px-4 flex-row items-center gap-2"
-              activeOpacity={0.8}
-            >
-              <FontAwesome5 name="arrow-left" size={12} color="#1f2937" />
-              <Text
-                className="text-gray-900 text-xs font-semibold"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
-              >
-                {t("gamePlay.leaveRoomButton")}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      {/* Footer Logo */}
+      <View className="absolute bottom-4 left-0 right-0 items-center opacity-30 pointer-events-none">
+        <Logo size="mini" />
+      </View>
     </View>
   );
 };

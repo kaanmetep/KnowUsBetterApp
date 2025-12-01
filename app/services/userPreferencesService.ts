@@ -4,6 +4,7 @@ const USERNAME_STORAGE_KEY = "@KnowUsBetter:username";
 const AVATAR_STORAGE_KEY = "@KnowUsBetter:avatar";
 const LANGUAGE_STORAGE_KEY = "@KnowUsBetter:language";
 const TERMS_ACCEPTED_KEY = "@KnowUsBetter:termsAccepted";
+const ONBOARDING_COMPLETED_KEY = "@KnowUsBetter:onboardingCompleted";
 
 export class UserPreferencesService {
   /**
@@ -88,6 +89,7 @@ export class UserPreferencesService {
         AVATAR_STORAGE_KEY,
         LANGUAGE_STORAGE_KEY,
         TERMS_ACCEPTED_KEY,
+        ONBOARDING_COMPLETED_KEY,
       ]);
     } catch (error) {
       console.warn("⚠️ Failed to clear user preferences:", error);
@@ -117,6 +119,33 @@ export class UserPreferencesService {
       return value ? JSON.parse(value) === true : false;
     } catch (error) {
       console.warn("⚠️ Failed to read terms acceptance:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Save onboarding completion status to device storage
+   */
+  static async setOnboardingCompleted(isCompleted: boolean): Promise<void> {
+    try {
+      await AsyncStorage.setItem(
+        ONBOARDING_COMPLETED_KEY,
+        JSON.stringify(isCompleted)
+      );
+    } catch (error) {
+      console.warn("⚠️ Failed to save onboarding completion:", error);
+    }
+  }
+
+  /**
+   * Get onboarding completion status from device storage
+   */
+  static async hasCompletedOnboarding(): Promise<boolean> {
+    try {
+      const value = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+      return value ? JSON.parse(value) === true : false;
+    } catch (error) {
+      console.warn("⚠️ Failed to read onboarding completion:", error);
       return false;
     }
   }

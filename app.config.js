@@ -30,6 +30,7 @@ module.exports = {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.knowusbetter.app",
+      versionCode: 1,
       intentFilters: [
         {
           action: "VIEW",

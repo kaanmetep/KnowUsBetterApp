@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useEffect, useRef, useState } from "react";
@@ -22,8 +23,8 @@ import {
 } from "../services/categoryService";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import AvatarSelection from "./AvatarSelection";
-import ButtonLoading from "./ButtonLoading";
 import ContactUsButton from "./ContactUsButton";
+import ModalButton from "./ModalButton";
 import NameInput from "./NameInput";
 
 interface CreateNewRoomProps {
@@ -56,7 +57,6 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const { t } = useTranslation();
   const loadingOpacity = useRef(new Animated.Value(0.4)).current;
 
-  // Load categories from Supabase
   useEffect(() => {
     const loadCategories = async () => {
       setCategoriesLoading(true);
@@ -69,11 +69,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
         setCategoriesLoading(false);
       }
     };
-
     loadCategories();
   }, []);
 
-  // Loading animation - always running
   useEffect(() => {
     loadingOpacity.setValue(0.1);
     const pulse = Animated.loop(
@@ -97,43 +95,30 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     };
   }, []);
 
-  // Load saved preferences when modal opens
   useEffect(() => {
-    if (visible) {
-      loadSavedPreferences();
-    }
+    if (visible) loadSavedPreferences();
   }, [visible]);
 
   const loadSavedPreferences = async () => {
     try {
       const savedUsername = await UserPreferencesService.getUsername();
       const savedAvatar = await UserPreferencesService.getAvatar();
-
-      if (savedUsername) {
-        setUserName(savedUsername);
-      }
-      if (savedAvatar) {
-        setSelectedAvatar(savedAvatar);
-      }
+      if (savedUsername) setUserName(savedUsername);
+      if (savedAvatar) setSelectedAvatar(savedAvatar);
     } catch (error) {
       console.warn("⚠️ Failed to load saved preferences:", error);
     }
   };
 
-  // Save avatar when it changes
   useEffect(() => {
-    if (selectedAvatar) {
-      UserPreferencesService.saveAvatar(selectedAvatar);
-    }
+    if (selectedAvatar) UserPreferencesService.saveAvatar(selectedAvatar);
   }, [selectedAvatar]);
 
-  // Save username when it changes (debounced)
   useEffect(() => {
     if (userName.trim().length > 0) {
       const timeoutId = setTimeout(() => {
         UserPreferencesService.saveUsername(userName.trim());
-      }, 500); // Save after 500ms of no typing
-
+      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [userName]);
@@ -148,36 +133,24 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   };
 
   const handleContinueFromStep1 = () => {
-    if (selectedAvatar) {
-      setStep(2);
-    }
+    if (selectedAvatar) setStep(2);
   };
 
   const handleContinueFromStep2 = () => {
-    if (userName.trim().length > 0) {
-      setStep(3);
-    }
+    if (userName.trim().length > 0) setStep(3);
   };
 
   const handleBack = () => {
-    if (step === 2) {
-      setStep(1);
-    } else if (step === 3) {
-      setStep(2);
-    }
+    if (step === 2) setStep(1);
+    else if (step === 3) setStep(2);
   };
 
   const handleCreate = async () => {
     if (selectedCategory && userName.trim() && selectedAvatar && !isCreating) {
-      // Check if category requires coins (only check, don't deduct yet)
       const category = categories.find((c) => c.id === selectedCategory);
-      if (category?.coinsRequired) {
-        // Only check if user has enough coins, don't deduct yet
-        if (coins < category.coinsRequired) {
-          // Not enough coins - show purchase modal
-          onBuyCoins?.();
-          return;
-        }
+      if (category?.coinsRequired && coins < category.coinsRequired) {
+        onBuyCoins?.();
+        return;
       }
 
       setIsCreating(true);
@@ -211,476 +184,286 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
         className="flex-1"
       >
         <Pressable
-          className="flex-1 bg-black/50 justify-center items-center px-5"
+          className="flex-1 bg-black/40 justify-center items-center px-4"
           onPress={handleClose}
         >
           <Pressable
-            className="w-full max-w-[400px]"
+            className="w-full bg-white rounded-3xl p-6"
             onPress={(e) => e.stopPropagation()}
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 5,
+            }}
           >
-            {/* STEP 1: Avatar Selection */}
-            {step === 1 && (
-              <View className="relative">
-                {/* Shadow */}
-                <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
-
-                {/* Modal Content */}
-                <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                  {/* Close Button */}
+            {/* Header: Close & Back Buttons */}
+            <View className="flex-row justify-between items-center absolute top-4 left-4 right-4 z-20">
+              <View>
+                {step > 1 && (
                   <TouchableOpacity
-                    onPress={handleClose}
-                    className="absolute top-4 right-4 z-10"
+                    onPress={handleBack}
+                    className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
                   >
-                    <View className="relative">
-                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                        <Text className="text-gray-900 text-lg font-bold">
-                          ×
-                        </Text>
-                      </View>
-                    </View>
+                    <Ionicons name="arrow-back" size={20} color="#374151" />
                   </TouchableOpacity>
+                )}
+              </View>
 
-                  {/* Step Indicator */}
-                  <View className="flex-row justify-center gap-2 mb-4">
-                    <TouchableOpacity
-                      onPress={() => setStep(1)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isStep1Valid) {
-                          setStep(2);
-                        }
-                      }}
-                      activeOpacity={0.8}
-                      disabled={!isStep1Valid}
-                    >
-                      <View
-                        className={`w-8 h-2 rounded-full ${
-                          isStep1Valid ? "bg-gray-300" : "bg-gray-200"
-                        } border-gray-900`}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isStep1Valid && isStep2Valid) {
-                          setStep(3);
-                        }
-                      }}
-                      activeOpacity={0.8}
-                      disabled={!isStep1Valid || !isStep2Valid}
-                    >
-                      <View
-                        className={`w-8 h-2 rounded-full ${
-                          isStep1Valid && isStep2Valid
-                            ? "bg-gray-300"
-                            : "bg-gray-200"
-                        } border-gray-900`}
-                      />
-                    </TouchableOpacity>
-                  </View>
+              <TouchableOpacity
+                onPress={handleClose}
+                className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
+              >
+                <Ionicons name="close" size={20} color="#374151" />
+              </TouchableOpacity>
+            </View>
 
-                  <AvatarSelection
-                    selectedAvatar={selectedAvatar}
-                    onAvatarSelect={setSelectedAvatar}
-                    theme="red"
+            <View className="h-8" />
+
+            {/* STEP INDICATOR */}
+            <View className="flex-row justify-center gap-2 mb-6">
+              {[1, 2, 3].map((s) => {
+                let bgClass = "bg-gray-100";
+                if (s === step) bgClass = "bg-rose-400";
+                else if (s < step) bgClass = "bg-rose-200";
+
+                return (
+                  <TouchableOpacity
+                    key={s}
+                    onPress={() => {
+                      if (s === 1) setStep(1);
+                      if (s === 2 && isStep1Valid) setStep(2);
+                      if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
+                    }}
+                    disabled={
+                      (s === 2 && !isStep1Valid) ||
+                      (s === 3 && (!isStep1Valid || !isStep2Valid))
+                    }
+                    activeOpacity={0.8}
+                  >
+                    <View className={`w-8 h-1.5 rounded-full ${bgClass}`} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* --- STEP 1: AVATAR --- */}
+            {step === 1 && (
+              <View>
+                <AvatarSelection
+                  selectedAvatar={selectedAvatar}
+                  onAvatarSelect={setSelectedAvatar}
+                  theme="red"
+                />
+                <View className="mt-8">
+                  <ModalButton
+                    onPress={handleContinueFromStep1}
+                    disabled={!isStep1Valid}
+                    text={t("createRoom.continue")}
+                    disabledText={t("createRoom.selectAvatar")}
+                    variant="pink"
                   />
-
-                  {/* Continue Button */}
-                  <View className="relative mt-6">
-                    <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                    <TouchableOpacity
-                      onPress={handleContinueFromStep1}
-                      disabled={!isStep1Valid}
-                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
-                      style={{
-                        backgroundColor: isStep1Valid ? "#ffe4e6" : "#d1d5db",
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text
-                        className="text-gray-900 text-lg text-center font-bold"
-                        style={{ letterSpacing: -0.3 }}
-                      >
-                        {isStep1Valid
-                          ? t("createRoom.continue")
-                          : t("createRoom.selectAvatar")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
                 </View>
               </View>
             )}
 
-            {/* STEP 2: Name Input */}
+            {/* --- STEP 2: NAME --- */}
             {step === 2 && (
               <ScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <View className="relative">
-                  {/* Shadow */}
-                  <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
-
-                  {/* Modal Content */}
-                  <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                    {/* Close Button */}
-                    <TouchableOpacity
-                      onPress={handleClose}
-                      className="absolute top-4 right-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ×
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-
-                    {/* Back Button */}
-                    <TouchableOpacity
-                      onPress={handleBack}
-                      className="absolute top-4 left-4 z-10"
-                    >
-                      <View className="relative">
-                        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                        <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                          <Text className="text-gray-900 text-lg font-bold">
-                            ←
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-
-                    {/* Step Indicator */}
-                    <View className="flex-row justify-center gap-2 mb-4">
-                      <TouchableOpacity
-                        onPress={() => setStep(1)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setStep(2)}
-                        activeOpacity={0.8}
-                      >
-                        <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => {
-                          if (isStep2Valid) {
-                            setStep(3);
-                          }
-                        }}
-                        activeOpacity={0.8}
-                        disabled={!isStep2Valid}
-                      >
-                        <View
-                          className={`w-8 h-2 rounded-full ${
-                            isStep2Valid ? "bg-gray-300" : "bg-gray-200"
-                          } border-gray-900`}
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    <NameInput
-                      userName={userName}
-                      onUserNameChange={setUserName}
-                      userNameFocused={userNameFocused}
-                      onUserNameFocus={() => setUserNameFocused(true)}
-                      onUserNameBlur={() => setUserNameFocused(false)}
-                    />
-
-                    {/* Continue Button */}
-                    <View className="relative mt-6">
-                      <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                      <TouchableOpacity
-                        onPress={handleContinueFromStep2}
-                        disabled={!isStep2Valid}
-                        className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8"
-                        style={{
-                          backgroundColor: isStep2Valid ? "#ffe4e6" : "#d1d5db",
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Text
-                          className="text-gray-900 text-lg text-center font-bold"
-                          style={{ letterSpacing: -0.3 }}
-                        >
-                          {isStep2Valid
-                            ? t("createRoom.continue")
-                            : t("createRoom.enterYourName")}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                <View className="py-4">
+                  <NameInput
+                    userName={userName}
+                    onUserNameChange={setUserName}
+                    userNameFocused={userNameFocused}
+                    onUserNameFocus={() => setUserNameFocused(true)}
+                    onUserNameBlur={() => setUserNameFocused(false)}
+                  />
+                </View>
+                <View className="mt-6">
+                  <ModalButton
+                    onPress={handleContinueFromStep2}
+                    disabled={!isStep2Valid}
+                    text={t("createRoom.continue")}
+                    disabledText={t("createRoom.enterYourName")}
+                    variant="pink"
+                  />
                 </View>
               </ScrollView>
             )}
 
-            {/* STEP 3: Category Selection */}
+            {/* --- STEP 3: CATEGORY --- */}
             {step === 3 && (
-              <View className="relative">
-                {/* Shadow */}
-                <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
+              <View>
+                <Text
+                  className="text-2xl font-bold text-slate-800 text-center mb-1"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                >
+                  {t("createRoom.chooseYourVibe")}
+                </Text>
 
-                {/* Modal Content */}
-                <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6">
-                  {/* Close Button */}
-                  <TouchableOpacity
-                    onPress={handleClose}
-                    className="absolute top-4 right-4 z-10"
-                  >
-                    <View className="relative">
-                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                        <Text className="text-gray-900 text-lg font-bold">
-                          ×
-                        </Text>
+                <Text
+                  className="text-sm text-slate-500 text-center mb-6"
+                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                >
+                  {t("createRoom.pickCategory")}
+                </Text>
+
+                <ScrollView
+                  className="max-h-[300px] mb-4 -mx-2 px-2"
+                  showsVerticalScrollIndicator={false}
+                >
+                  {categoriesLoading ? (
+                    <View className="py-8 items-center">
+                      <Animated.Text
+                        className="text-slate-400"
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                          opacity: loadingOpacity,
+                        }}
+                      >
+                        {t("createRoom.loadingCategories")}
+                      </Animated.Text>
+                    </View>
+                  ) : categories.length === 0 ? (
+                    <View className="py-4 items-center">
+                      <Text
+                        className="text-slate-500"
+                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      >
+                        {t("createRoom.noCategoriesAvailable")}
+                      </Text>
+                      <View className="mt-4">
+                        <ContactUsButton
+                          position="none"
+                          text={t("createRoom.reportIssue")}
+                        />
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  ) : (
+                    categories.map((category) => {
+                      const isSelected = selectedCategory === category.id;
 
-                  {/* Back Button */}
-                  <TouchableOpacity
-                    onPress={handleBack}
-                    className="absolute top-4 left-4 z-10"
-                  >
-                    <View className="relative">
-                      <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                        <Text className="text-gray-900 text-lg font-bold">
-                          ←
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                      const borderColor = isSelected
+                        ? "rgba(0,0,0,0.1)"
+                        : "transparent";
+                      const borderWidth = isSelected ? 2 : 0;
 
-                  {/* Step Indicator */}
-                  <View className="flex-row justify-center gap-2 mb-4">
-                    <TouchableOpacity
-                      onPress={() => setStep(1)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setStep(2)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="w-8 h-2 rounded-full bg-gray-300 border-gray-900" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => setStep(3)}
-                      activeOpacity={0.8}
-                    >
-                      <View className="w-8 h-2 rounded-full bg-[#ffe4e6] border-2 border-gray-900" />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Title */}
-                  <Text
-                    className="text-2xl font-bold text-gray-900 text-center mb-2"
-                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                  >
-                    {t("createRoom.chooseYourVibe")}
-                  </Text>
-
-                  <Text
-                    className="text-sm text-gray-600 text-center mb-6"
-                    style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                  >
-                    {t("createRoom.pickCategory")}
-                  </Text>
-
-                  {/* Categories */}
-                  <ScrollView className="max-h-[300px] mb-4">
-                    {categoriesLoading ? (
-                      <View className="py-8 items-center">
-                        <Animated.Text
-                          className="text-gray-600"
-                          style={{
-                            fontFamily: "MerriweatherSans_400Regular",
-                            opacity: loadingOpacity,
-                          }}
-                        >
-                          {t("createRoom.loadingCategories")}
-                        </Animated.Text>
-                      </View>
-                    ) : categories.length === 0 ? (
-                      <View className="py-4 items-center">
-                        <Text
-                          className="text-gray-600"
-                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                        >
-                          {t("createRoom.noCategoriesAvailable")}
-                        </Text>
-                        <Text
-                          className="text-gray-500 text-sm text-center mt-4"
-                          style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                        >
-                          {t("createRoom.noCategoriesMessage")}
-                        </Text>
-                        <View className="mt-4">
-                          <ContactUsButton
-                            position="none"
-                            text={t("createRoom.reportIssue")}
-                          />
-                        </View>
-                      </View>
-                    ) : (
-                      categories.map((category) => (
+                      return (
                         <TouchableOpacity
                           key={category.id}
                           onPress={() => setSelectedCategory(category.id)}
-                          className="mb-3"
-                        >
-                          <View className="relative">
-                            {/* Shadow */}
-                            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-
-                            {/* Category Card */}
-                            <View
-                              className={`relative border-2 border-gray-900 rounded-xl p-4 ${
-                                selectedCategory === category.id
-                                  ? "border-4"
-                                  : ""
-                              }`}
-                              style={{
-                                backgroundColor: category.color,
-                              }}
-                            >
-                              <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center flex-1">
-                                  {category.iconType ===
-                                  "MaterialCommunityIcons" ? (
-                                    <MaterialCommunityIcons
-                                      name={category.iconName as any}
-                                      size={20}
-                                      color="black"
-                                      className="ml-[1.5px] -mr-[2px]"
-                                    />
-                                  ) : (
-                                    <FontAwesome6
-                                      name={category.iconName as any}
-                                      size={20}
-                                      color="#1f2937"
-                                    />
-                                  )}
-                                  <Text
-                                    className="text-lg font-semibold text-gray-900 ml-[6px]"
-                                    style={{
-                                      fontFamily: "MerriweatherSans_400Regular",
-                                    }}
-                                  >
-                                    {getCategoryLabel(
-                                      category,
-                                      selectedLanguage
-                                    )}
-                                  </Text>
-                                  {category.isPremium && (
-                                    <View className="relative ml-[4px]">
-                                      <View className="relative bg-amber-300 border-2 border-gray-900 rounded-md px-2 py-0.5">
-                                        <Text
-                                          className="text-gray-900 text-xs font-bold"
-                                          style={{ letterSpacing: -0.2 }}
-                                        >
-                                          <FontAwesome6
-                                            name="coins"
-                                            size={8}
-                                            color="#991b1b"
-                                          />{" "}
-                                          <Text>
-                                            {category.coinsRequired}{" "}
-                                            {category.coinsRequired === 1
-                                              ? t("coins.coin")
-                                              : t("coins.coins")}
-                                          </Text>
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  )}
-                                </View>
-                                {selectedCategory === category.id && (
-                                  <View className="w-6 h-6 rounded-full bg-gray-900 items-center justify-center -mr-2.5">
-                                    <Text className="text-white text-sm font-bold">
-                                      ✓
-                                    </Text>
-                                  </View>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      ))
-                    )}
-                  </ScrollView>
-
-                  {/* Coin Balance */}
-                  <View className="flex-row items-center justify-center mb-2">
-                    <View className="bg-amber-50 border border-amber-200 rounded-full px-3 py-2">
-                      <Text
-                        className="text-amber-700 text-xs font-medium"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                      >
-                        <FontAwesome6 name="coins" size={16} color="#991b1b" />
-                        {"   "}
-                        <Text>{t("coins.youHave", { coins })}</Text>
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Buy Coins Button */}
-                  <View className="mb-4">
-                    <TouchableOpacity
-                      onPress={() => onBuyCoins?.()}
-                      activeOpacity={0.8}
-                    >
-                      <View className="flex-row items-center justify-center gap-2 py-2">
-                        <Text
-                          className="text-amber-600 text-sm font-semibold underline"
+                          className="mb-3 rounded-2xl p-4 flex-row items-center justify-between"
+                          activeOpacity={0.8}
                           style={{
-                            fontFamily: "MerriweatherSans_400Regular",
+                            backgroundColor: category.color,
+                            borderWidth: borderWidth,
+                            borderColor: borderColor,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 4,
+                            elevation: 2,
                           }}
                         >
-                          {t("coins.buyCoins")}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
+                          <View className="flex-row items-center flex-1">
+                            <View className="w-10 h-10 rounded-full bg-white/40 items-center justify-center mr-3">
+                              {category.iconType ===
+                              "MaterialCommunityIcons" ? (
+                                <MaterialCommunityIcons
+                                  name={category.iconName as any}
+                                  size={20}
+                                  color="#1f2937"
+                                />
+                              ) : (
+                                <FontAwesome6
+                                  name={category.iconName as any}
+                                  size={18}
+                                  color="#1f2937"
+                                />
+                              )}
+                            </View>
 
-                  {/* Create Button */}
-                  <View className="relative">
-                    <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-                    <TouchableOpacity
-                      onPress={handleCreate}
-                      disabled={!isStep3Valid || isCreating}
-                      className="relative border-2 border-gray-900 rounded-[14px] py-4 px-8 flex-row items-center justify-center gap-2"
-                      style={{
-                        backgroundColor:
-                          isStep3Valid && !isCreating ? "#ffe4e6" : "#d1d5db",
-                      }}
-                      activeOpacity={0.8}
+                            <Text
+                              className="text-lg font-semibold text-slate-900 flex-1 mr-2"
+                              style={{
+                                fontFamily: "MerriweatherSans_600SemiBold",
+                              }}
+                              numberOfLines={1}
+                            >
+                              {getCategoryLabel(category, selectedLanguage)}
+                            </Text>
+
+                            {category.isPremium && (
+                              <View className="bg-yellow-400 rounded-lg px-2.5 py-1.5 flex-row items-center shadow-sm">
+                                <FontAwesome6
+                                  name="coins"
+                                  size={10}
+                                  color="#713f12"
+                                />
+                                <Text className="text-yellow-900 text-xs font-bold ml-1.5">
+                                  {category.coinsRequired}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+
+                          {/* Checkmark */}
+                          {isSelected && (
+                            <View className="ml-3 w-6 h-6 rounded-full bg-white/40 items-center justify-center">
+                              <Ionicons
+                                name="checkmark"
+                                size={16}
+                                color="#1f2937"
+                              />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })
+                  )}
+                </ScrollView>
+
+                <View className="items-center justify-center mb-2 gap-2">
+                  <View className="bg-amber-50 rounded-full px-4 py-1.5 border border-amber-100">
+                    <Text
+                      className="text-amber-700 text-xs font-medium"
+                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
                     >
-                      {isCreating && <ButtonLoading size={14} style="dots" />}
-                      <Text
-                        className="text-gray-900 text-lg text-center font-bold"
-                        style={{ letterSpacing: -0.3 }}
-                      >
-                        {isCreating
-                          ? t("createRoom.creating")
-                          : isStep3Valid
-                          ? t("createRoom.createRoom")
-                          : t("createRoom.selectCategory")}
-                      </Text>
-                    </TouchableOpacity>
+                      <FontAwesome6 name="coins" size={12} color="#b45309" />
+                      {"  "}
+                      <Text>{t("coins.youHave", { coins })}</Text>
+                    </Text>
                   </View>
+                  <TouchableOpacity
+                    onPress={() => onBuyCoins?.()}
+                    className="bg-amber-100 rounded-full px-4 py-1.5 border border-amber-200 active:bg-amber-200 mt-2"
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      className="text-amber-700 text-xs font-semibold"
+                      style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
+                    >
+                      {t("coins.buyCoins")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View className="mt-4">
+                  <ModalButton
+                    onPress={handleCreate}
+                    disabled={!isStep3Valid}
+                    isLoading={isCreating}
+                    text={t("createRoom.createRoom")}
+                    disabledText={t("createRoom.selectCategory")}
+                    loadingText={t("createRoom.creating")}
+                    variant="pink"
+                    showLoadingIndicator={true}
+                  />
                 </View>
               </View>
             )}

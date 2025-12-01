@@ -1,12 +1,28 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Text, View } from "react-native";
 import { Language } from "../contexts/LanguageContext";
 import { useTranslation } from "../hooks/useTranslation";
 import { getAvatarImage } from "../utils/avatarUtils";
 import { getQuestionText } from "../utils/questionUtils";
+
+const StatusPill: React.FC<{
+  children: React.ReactNode;
+  type?: "success" | "danger" | "neutral";
+}> = ({ children, type = "neutral" }) => {
+  let bgStyle = "bg-slate-100 border-slate-200";
+  if (type === "success") bgStyle = "bg-green-50 border-green-200";
+  if (type === "danger") bgStyle = "bg-red-50 border-red-200";
+
+  return (
+    <View
+      className={`px-3 py-1.5 rounded-full border ${bgStyle} flex-row items-center gap-2`}
+    >
+      {children}
+    </View>
+  );
+};
 
 interface RoundResultProps {
   roundResult: any;
@@ -27,10 +43,10 @@ const RoundResult: React.FC<RoundResultProps> = ({
   const progressAnim = useRef(new Animated.Value(100)).current;
   const { t } = useTranslation();
 
-  // Animate progress bar when round result appears
+  const isMatched = roundResult?.isMatched ?? false;
+
   useEffect(() => {
     if (roundResult) {
-      // Reset to 100% and animate down to 0% over 5 seconds
       progressAnim.setValue(100);
       Animated.timing(progressAnim, {
         toValue: 0,
@@ -40,226 +56,177 @@ const RoundResult: React.FC<RoundResultProps> = ({
       }).start();
     }
   }, [roundResult, progressAnim]);
+
+  // Player Card Styling Logic
+  const getPlayerCardStyle = (index: number) => {
+    if (index === 0) {
+      return {
+        bgClass: "bg-[#E7F5FF]",
+        borderClass: "border-[#D0EBFF]",
+        textColor: "text-[#1971c2]",
+      };
+    }
+    return {
+      bgClass: "",
+      borderClass: "",
+      customStyle: {
+        backgroundColor: "rgba(254, 158, 162, 0.15)",
+        borderColor: "#fe9ea2",
+        borderWidth: 1,
+      },
+      textColor: "text-[#c92a2a]",
+    };
+  };
+
   return (
-    <View className="relative mb-2 mt-6">
-      <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
-      <View className="relative bg-white border-4 border-gray-900 rounded-2xl p-6 overflow-hidden">
-        {/* Subtle Background Pattern */}
-        <LinearGradient
-          colors={["#ffffff", "#f9fafb"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
-          }}
-        />
-        {/* Question */}
-        <View className="relative mb-5 z-10">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-          <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4 overflow-hidden">
-            <View className="relative z-10">
-              <View className="flex-row items-start gap-2 mb-3">
-                <FontAwesome5 name="question-circle" size={16} color="black" />
-                <Text
-                  className="text-xs font-bold text-black uppercase tracking-wider mt-[1px] -ml-1"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {t("roundResult.questionLabel")}
-                </Text>
-              </View>
-              <Text
-                className="text-lg font-bold text-gray-900 leading-6"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
-              >
-                {getQuestionText(
-                  roundResult.question || currentQuestion,
-                  selectedLanguage
-                )}
-              </Text>
-            </View>
-          </View>
+    <View className="w-full mt-2">
+      {/* Card */}
+      <View
+        className="bg-white rounded-[32px] p-6 w-full shadow-2xl shadow-blue-100/50 border border-white"
+        style={{ elevation: 10 }}
+      >
+        {/* Header */}
+        <View className="flex-row items-center justify-between mb-6">
+          <StatusPill type="neutral">
+            <FontAwesome5 name="question-circle" size={12} color="#64748B" />
+            <Text
+              className="text-slate-500 text-[10px] font-bold uppercase tracking-wider"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              {t("roundResult.questionLabel") || "SORU"}
+            </Text>
+          </StatusPill>
+
+          {/* Icon */}
+          <StatusPill type={isMatched ? "success" : "danger"}>
+            {isMatched ? (
+              <FontAwesome5 name="check-circle" size={14} color="#059669" />
+            ) : (
+              <FontAwesome5 name="times-circle" size={14} color="#DC2626" />
+            )}
+            <Text
+              className={`text-xs font-bold ${
+                isMatched ? "text-green-700" : "text-red-700"
+              }`}
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              {isMatched ? t("roundResult.matched") : t("roundResult.mismatch")}
+            </Text>
+          </StatusPill>
         </View>
 
-        {/* Players' Answers */}
-        <View className="gap-3 mb-5 relative z-10">
+        {/* Question Text */}
+        <View className="mb-8 justify-center items-center">
+          <Text
+            className="text-slate-800 text-center text-xl leading-8"
+            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+          >
+            {getQuestionText(
+              roundResult.question || currentQuestion,
+              selectedLanguage
+            )}
+          </Text>
+        </View>
+
+        {/* Players' Answers List */}
+        <View className="gap-3 mb-6">
           {roundResult.playerAnswers?.map(
-            (playerAnswer: any, index: number) => (
-              <View key={index} className="relative">
-                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                <View className="relative bg-white border-2 border-gray-900 rounded-xl p-4">
-                  {/* Player Name Header */}
-                  <View className="flex-row items-center gap-2 mb-3">
-                    <View className="relative flex-shrink-0">
-                      <View className="relative bg-white border-2 border-gray-900 rounded-full w-10 h-10 items-center justify-center overflow-hidden">
-                        {playerAnswer.avatar &&
-                        getAvatarImage(playerAnswer.avatar) ? (
-                          <Image
-                            source={getAvatarImage(playerAnswer.avatar)}
-                            style={{ width: "100%", height: "100%" }}
-                            contentFit="cover"
-                          />
-                        ) : (
-                          <FontAwesome5 name="user" size={14} color="#1f2937" />
-                        )}
+            (playerAnswer: any, index: number) => {
+              const styles = getPlayerCardStyle(index);
+
+              return (
+                <View
+                  key={index}
+                  className={`flex-row items-center p-3 rounded-2xl border ${styles.bgClass} ${styles.borderClass}`}
+                  style={styles.customStyle}
+                >
+                  {/* Avatar Section */}
+                  <View className="relative w-10 h-10 rounded-full border-2 border-white shadow-sm mr-3 bg-white overflow-hidden">
+                    {playerAnswer.avatar &&
+                    getAvatarImage(playerAnswer.avatar) ? (
+                      <Image
+                        source={getAvatarImage(playerAnswer.avatar)}
+                        style={{ width: "100%", height: "100%" }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View className="w-full h-full items-center justify-center bg-slate-50">
+                        <FontAwesome5 name="user" size={16} color="#cbd5e1" />
                       </View>
-                    </View>
+                    )}
+                  </View>
+
+                  {/* Name & Answer Section */}
+                  <View className="flex-1 justify-center">
                     <Text
-                      className="font-bold text-gray-900 flex-1"
+                      className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5"
                       numberOfLines={1}
-                      ellipsizeMode="tail"
-                      style={{
-                        fontFamily: "MerriweatherSans_700Bold",
-                      }}
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
                     >
                       {playerAnswer.playerName}
                     </Text>
-                  </View>
-                  {/* Answer - Below player name */}
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                    <View
-                      className={`relative border-2 border-gray-900 rounded-lg py-2.5 px-3 overflow-hidden ${
-                        typeof playerAnswer.answer === "string" &&
-                        playerAnswer.answer.toLowerCase().trim() === "yes"
-                          ? "bg-green-100"
-                          : typeof playerAnswer.answer === "string" &&
-                            playerAnswer.answer.toLowerCase().trim() === "no"
-                          ? "bg-red-200"
-                          : ""
-                      }`}
+
+                    <Text
+                      className={`text-base font-semibold ${styles.textColor}`}
+                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      numberOfLines={1}
                     >
                       {(() => {
-                        // Show gradient only for non-yes/no answers (custom answers or MultiLanguageAnswer objects)
-                        if (!playerAnswer.answer) return null;
-                        if (typeof playerAnswer.answer === "object") {
-                          // It's a MultiLanguageAnswer object, show gradient
-                          return (
-                            <LinearGradient
-                              colors={["#fff1f2", "#ffe4e6"]}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              style={{
-                                position: "absolute",
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                              }}
-                            />
-                          );
+                        if (!playerAnswer.answer) return "---";
+
+                        // Multi-language handling
+                        let finalAnswer = "";
+                        if (
+                          typeof playerAnswer.answer === "object" &&
+                          !Array.isArray(playerAnswer.answer)
+                        ) {
+                          const langKey =
+                            selectedLanguage as keyof typeof playerAnswer.answer;
+                          finalAnswer =
+                            playerAnswer.answer[langKey] ||
+                            playerAnswer.answer.en ||
+                            "";
+                        } else {
+                          finalAnswer = String(playerAnswer.answer);
                         }
-                        // It's a string, check if it's yes/no
-                        const answerString = String(playerAnswer.answer);
-                        const answerLower = answerString.toLowerCase().trim();
-                        if (answerLower !== "yes" && answerLower !== "no") {
-                          return (
-                            <LinearGradient
-                              colors={["#fff1f2", "#ffe4e6"]}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              style={{
-                                position: "absolute",
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                              }}
-                            />
-                          );
-                        }
-                        return null;
+
+                        // Translations
+                        const lower = finalAnswer.toLowerCase().trim();
+                        if (lower === "yes") return t("gamePlay.yes");
+                        if (lower === "no") return t("gamePlay.no");
+
+                        // Capitalize
+                        return (
+                          finalAnswer.charAt(0).toUpperCase() +
+                          finalAnswer.slice(1)
+                        );
                       })()}
-                      <View className="flex-row items-center justify-center relative z-10">
-                        <Text
-                          className="text-sm font-bold text-gray-900"
-                          numberOfLines={1}
-                          style={{
-                            fontFamily: "MerriweatherSans_700Bold",
-                            fontSize: 14,
-                          }}
-                        >
-                          {(() => {
-                            if (!playerAnswer.answer) {
-                              return "";
-                            }
-
-                            // Check if answer is a MultiLanguageAnswer object
-                            if (
-                              typeof playerAnswer.answer === "object" &&
-                              playerAnswer.answer !== null &&
-                              !Array.isArray(playerAnswer.answer)
-                            ) {
-                              // It's a MultiLanguageAnswer object, get the answer for selected language
-                              const langKey =
-                                selectedLanguage as keyof typeof playerAnswer.answer;
-                              const translatedAnswer =
-                                playerAnswer.answer[langKey] ||
-                                playerAnswer.answer.en ||
-                                "";
-                              // Capitalize first letter
-                              return (
-                                translatedAnswer[0]?.toUpperCase() +
-                                translatedAnswer.slice(1).toLowerCase()
-                              );
-                            }
-
-                            // It's a string answer
-                            const answerString = String(playerAnswer.answer);
-                            if (answerString.trim() === "") {
-                              return "";
-                            }
-                            const answerLower = answerString
-                              .toLowerCase()
-                              .trim();
-                            // Only translate yes/no answers, keep custom answers as-is
-                            if (answerLower === "yes") {
-                              return t("gamePlay.yes");
-                            }
-                            if (answerLower === "no") {
-                              return t("gamePlay.no");
-                            }
-                            // Custom answers - show as received (already translated)
-                            return (
-                              answerString[0].toUpperCase() +
-                              answerString.slice(1).toLowerCase()
-                            );
-                          })()}
-                        </Text>
-                      </View>
-                    </View>
+                    </Text>
                   </View>
                 </View>
-              </View>
-            )
+              );
+            }
           )}
         </View>
 
-        {/* Countdown Progress Bar */}
-        <View className="relative z-10">
-          <View className="relative mb-3">
-            <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
-            <View className="relative h-3 bg-gray-100 border-2 border-gray-900 rounded-full overflow-hidden">
-              <Animated.View
-                style={{
-                  width: progressAnim.interpolate({
-                    inputRange: [0, 100],
-                    outputRange: ["0%", "100%"],
-                  }),
-                  height: "100%",
-                  backgroundColor: roundResult.isMatched
-                    ? "#10b981"
-                    : "#ef4444",
-                }}
-              />
-            </View>
+        {/* Footer */}
+        <View className="mt-2">
+          <View className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full mb-2">
+            <Animated.View
+              style={{
+                width: progressAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ["0%", "100%"],
+                }),
+                height: "100%",
+                backgroundColor: isMatched ? "#10B981" : "#EF4444",
+                borderRadius: 999,
+              }}
+            />
           </View>
           <Text
-            className="text-center text-xs text-gray-500"
-            style={{ fontFamily: "MerriweatherSans_400Regular" }}
+            className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest"
+            style={{ fontFamily: "MerriweatherSans_700Bold" }}
           >
             {isLastQuestion
               ? t("roundResult.loadingResults")
@@ -272,5 +239,3 @@ const RoundResult: React.FC<RoundResultProps> = ({
 };
 
 export default RoundResult;
-
-const styles = StyleSheet.create({});

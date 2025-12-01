@@ -8,8 +8,8 @@ import { purchaseService } from "../services/purchaseService";
 
 interface ContactUsButtonProps {
   position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "none";
-  style?: "default" | "compact"; // default: with text, compact: icon only
-  text?: string; // Custom button text
+  style?: "default" | "compact";
+  text?: string;
 }
 
 const ContactUsButton: React.FC<ContactUsButtonProps> = ({
@@ -22,7 +22,6 @@ const ContactUsButton: React.FC<ContactUsButtonProps> = ({
 
   const handleContactUs = async () => {
     try {
-      // Get app user ID
       let appUserId = t("settings.unableToLoadId");
       try {
         appUserId = await purchaseService.getAppUserId();
@@ -57,7 +56,6 @@ ${t("contact.emailBodyUserId", { userId: appUserId })}`;
       if (canOpen) {
         await Linking.openURL(mailtoUrl);
       } else {
-        // Fallback: Show email address with user info
         if (Platform.OS === "web") {
           window.alert(
             `${t("contact.pleaseSendMessageToWithInfo", {
@@ -99,28 +97,34 @@ ${t("contact.emailBodyUserId", { userId: appUserId })}`;
 
   return (
     <View className={positionClasses[position]}>
-      <View className="relative">
-        <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-        <TouchableOpacity
-          className="bg-white border-2 border-gray-900 rounded-full py-1.5 px-4 relative"
-          activeOpacity={0.8}
-          onPress={handleContactUs}
-        >
-          {style === "compact" ? (
-            <Fontisto name="email" size={16} color="black" />
-          ) : (
-            <View className="flex-row items-center gap-2">
-              <Fontisto name="email" size={14} color="black" />
-              <Text
-                className="text-gray-900 text-xs font-semibold"
-                style={{ letterSpacing: -0.2 }}
-              >
-                {text || defaultText}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        className="bg-white border border-slate-100 rounded-full flex-row items-center justify-center"
+        style={{
+          paddingVertical: style === "compact" ? 10 : 8,
+          paddingHorizontal: style === "compact" ? 10 : 16,
+          shadowColor: "#94a3b8",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        }}
+        activeOpacity={0.8}
+        onPress={handleContactUs}
+      >
+        {style === "compact" ? (
+          <Fontisto name="email" size={16} color="#475569" />
+        ) : (
+          <View className="flex-row items-center gap-2">
+            <Fontisto name="email" size={14} color="#475569" />
+            <Text
+              className="text-slate-700 text-xs font-semibold"
+              style={{ letterSpacing: 0.2 }}
+            >
+              {text || defaultText}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };

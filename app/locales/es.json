@@ -16,13 +16,25 @@
   "startScreen": {
     "createNewRoom": "Crear Nueva Sala",
     "joinExistingRoom": "Unirse a Sala Existente",
-    "learnHowToPlay": "Aprender a Jugar"
+    "learnHowToPlay": "Aprender a Jugar",
+    "hostAGame": "Crear un juego",
+    "enterCode": "Ingresar código"
   },
   "onboarding": {
     "noLoginRequired": "NO SE REQUIERE INICIO DE SESIÓN",
     "playWithPartner": "JUEGA CON TU PAREJA",
     "discoverEachOther": "DESCÚBRANSE EL UNO AL OTRO",
     "startPlayingNow": "¡Comienza a jugar ahora!",
+    "step1Label": "Paso 1",
+    "step1Title": "Crear una Sala",
+    "step1Description": "Crea una sala primero para resolver la prueba con tu pareja.",
+    "step2Label": "Paso 2",
+    "step2Title": "Comparte el Código",
+    "step2Description": "Comparte el código de la sala con tu pareja.",
+    "step3Label": "Paso 3",
+    "step3Title": "Responde las preguntas",
+    "step3Description": "Responde preguntas y ve qué tan bien coinciden.",
+    "startPlaying": "Comenzar a Jugar",
     "termsModalTitle": "Términos y Políticas",
     "termsModalIntroPrefix": "Al usar KnowUsBetter, aceptas nuestros ",
     "termsModalIntroSeparator": " y ",
@@ -201,7 +213,7 @@
     "copied": "¡Copiado!",
     "needCoins": "Necesitas {{required}} coins, tienes {{current}}",
     "participants": "Participantes ({{count}})",
-    "waiting": "Esperando...",
+    "waiting": "Esperando",
     "you": "(Tú)",
     "roomHost": "Anfitrión de la Sala",
     "waitingForAnotherPlayer": "Esperando a otro jugador...",
@@ -213,6 +225,8 @@
   },
   "roundResult": {
     "questionLabel": "Pregunta",
+    "matched": "COINCIDIÓ",
+    "mismatch": "NO COINCIDIÓ",
     "loadingResults": "Cargando resultados...",
     "nextQuestionSoon": "Próxima pregunta en un momento..."
   },

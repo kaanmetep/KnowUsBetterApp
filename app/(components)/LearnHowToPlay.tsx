@@ -1,10 +1,10 @@
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
-  Easing,
   Modal,
+  Platform,
   Pressable,
   Text,
   TouchableOpacity,
@@ -19,16 +19,20 @@ interface LearnHowToPlayProps {
 
 type Step = 1 | 2 | 3;
 
+const COLORS = {
+  primaryDark: "#fe9ea2",
+  textDark: "#1e293b",
+  textLight: "#64748b",
+};
+
 const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
   visible,
   onClose,
 }) => {
   const { t, selectedLanguage } = useTranslation();
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Get steps from translations based on selected language
   const steps = useMemo(
     () => [
       {
@@ -58,70 +62,45 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
 
   const handleClose = () => {
     setCurrentStep(1);
-    slideAnim.setValue(0);
-    fadeAnim.setValue(1);
     onClose();
   };
 
-  const animateTransition = (newStep: Step, direction: "next" | "prev") => {
-    // Fade out and slide
-    Animated.parallel([
+  useEffect(() => {
+    if (visible) {
+      fadeAnim.setValue(0);
       Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
+        toValue: 1,
+        duration: 200,
         useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: direction === "next" ? -30 : 30,
-        duration: 150,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Change content in the middle
-      setCurrentStep(newStep);
-
-      // Reset position for fade in
-      slideAnim.setValue(direction === "next" ? 30 : -30);
-
-      // Fade in and slide back
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 150,
-          easing: Easing.in(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 150,
-          easing: Easing.in(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  };
+      }).start();
+    }
+  }, [currentStep, visible]);
 
   const handleNext = () => {
     if (currentStep < 3) {
-      animateTransition((currentStep + 1) as Step, "next");
+      setCurrentStep((currentStep + 1) as Step);
     }
   };
 
   const handlePrev = () => {
     if (currentStep > 1) {
-      animateTransition((currentStep - 1) as Step, "prev");
-    }
-  };
-
-  const handleStepClick = (step: Step) => {
-    if (step !== currentStep) {
-      animateTransition(step, step > currentStep ? "next" : "prev");
+      setCurrentStep((currentStep - 1) as Step);
     }
   };
 
   const currentStepData = steps[currentStep - 1];
+
+  const softShadowStyle = Platform.select({
+    ios: {
+      shadowColor: COLORS.textDark,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+    },
+    android: {
+      elevation: 8,
+    },
+  });
 
   return (
     <Modal
@@ -129,180 +108,126 @@ const LearnHowToPlay: React.FC<LearnHowToPlayProps> = ({
       transparent
       animationType="fade"
       onRequestClose={handleClose}
+      statusBarTranslucent
     >
       <Pressable
-        className="flex-1 bg-black/50 justify-center items-center px-6"
+        className="flex-1 bg-slate-900/60 justify-center items-center px-6"
         onPress={handleClose}
       >
         <Pressable
-          className="w-full max-w-[400px]"
+          className="w-full max-w-[420px] bg-white rounded-[32px] p-8 relative"
+          style={softShadowStyle}
           onPress={(e) => e.stopPropagation()}
         >
-          {/* Modal Container */}
-          <View className="relative">
-            {/* Shadow */}
-            <View className="absolute top-[4px] left-[4px] right-[-4px] bottom-[-4px] bg-gray-900 rounded-2xl" />
+          <TouchableOpacity
+            onPress={handleClose}
+            className="absolute top-6 right-6 z-10 bg-slate-100 p-2 rounded-full"
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={22} color={COLORS.textLight} />
+          </TouchableOpacity>
 
-            {/* Modal Content */}
-            <View className="relative bg-primary border-4 border-gray-900 rounded-2xl p-6">
-              {/* Close Button */}
-              <TouchableOpacity
-                onPress={handleClose}
-                className="absolute top-4 right-4 z-10"
+          <Text
+            className="text-3xl font-bold text-slate-800 text-center mt-4 mb-8"
+            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+          >
+            {t("learnHowToPlay.title")}
+          </Text>
+
+          <Animated.View className="items-center" style={{ opacity: fadeAnim }}>
+            <View className="mb-6 relative">
+              <View
+                className="w-24 h-24 rounded-full items-center justify-center"
+                style={{ backgroundColor: "#fe9ea240" }}
               >
-                <View className="relative">
-                  <View className="absolute top-[1px] left-[1px] right-[-1px] bottom-[-1px] bg-gray-900 rounded-full" />
-                  <View className="relative bg-white border-2 border-gray-900 rounded-full w-8 h-8 items-center justify-center">
-                    <Text className="text-gray-900 text-lg font-bold">×</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              {/* Step Indicator */}
-              <View className="flex-row justify-center gap-2 mb-6">
-                {[1, 2, 3].map((step) => (
-                  <TouchableOpacity
-                    key={step}
-                    onPress={() => handleStepClick(step as Step)}
-                    activeOpacity={0.8}
-                  >
-                    <View
-                      className={`w-8 h-2 rounded-full ${
-                        currentStep === step
-                          ? "bg-[#ffe4e6] border-2"
-                          : "bg-gray-300"
-                      } border-gray-900`}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Header */}
-              <Text
-                className="text-2xl font-bold text-gray-900 text-center mb-6"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
-              >
-                {t("learnHowToPlay.title")}
-              </Text>
-
-              {/* Animated Card Content */}
-              <Animated.View
-                style={{
-                  opacity: fadeAnim,
-                  transform: [{ translateX: slideAnim }],
-                }}
-              >
-                {/* Icon */}
-                <View className="items-center mb-4">
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-2xl" />
-                    <View className="relative bg-white border-4 border-gray-900 rounded-2xl w-20 h-20 items-center justify-center">
-                      {currentStepData.iconType === "FontAwesome6" ? (
-                        <FontAwesome6
-                          name={currentStepData.iconName as any}
-                          size={36}
-                          color="#1f2937"
-                        />
-                      ) : (
-                        <FontAwesome5
-                          name={currentStepData.iconName as any}
-                          size={36}
-                          color="#1f2937"
-                        />
-                      )}
-                    </View>
-                  </View>
-                </View>
-
-                {/* Step Title */}
-                <Text
-                  className="text-xl font-bold text-gray-900 text-center mb-3"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {currentStepData.title}
-                </Text>
-
-                {/* Step Description */}
-                <Text
-                  className="text-sm text-gray-600 text-center mb-6 leading-6"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                >
-                  {currentStepData.description}
-                </Text>
-
-                {/* Step Counter */}
-                <View className="flex-row justify-center mb-6">
-                  <View className="bg-gray-100 border-2 border-gray-900 rounded-full px-4 py-1">
-                    <Text
-                      className="text-gray-900 font-semibold"
-                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                    >
-                      {t("learnHowToPlay.stepCounter", { step: currentStep })}
-                    </Text>
-                  </View>
-                </View>
-              </Animated.View>
-
-              {/* Navigation Buttons */}
-              <View className="flex-row justify-between items-center gap-3">
-                {/* Previous Button */}
-                <TouchableOpacity
-                  onPress={handlePrev}
-                  disabled={currentStep === 1}
-                  className="flex-1"
-                >
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <View
-                      className={`relative border-2 border-gray-900 rounded-xl py-3 px-4 flex-row items-center justify-center gap-2 ${
-                        currentStep === 1 ? "bg-gray-200" : "bg-white"
-                      }`}
-                    >
-                      <Ionicons
-                        name="arrow-back"
-                        size={18}
-                        color={currentStep === 1 ? "#9ca3af" : "#1a1a1a"}
-                      />
-                      <Text
-                        className={`font-semibold ${
-                          currentStep === 1 ? "text-gray-400" : "text-gray-900"
-                        }`}
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        {t("learnHowToPlay.previous")}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-
-                {/* Next/Got It Button */}
-                <TouchableOpacity
-                  onPress={currentStep === 3 ? handleClose : handleNext}
-                  className="flex-1"
-                >
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-xl" />
-                    <View className="relative bg-[#ffe4e6] border-2 border-gray-900 rounded-xl py-3 px-4 flex-row items-center justify-center gap-2">
-                      <Text
-                        className="text-gray-900 font-semibold"
-                        style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                      >
-                        {currentStep === 3
-                          ? t("learnHowToPlay.gotIt")
-                          : t("learnHowToPlay.next")}
-                      </Text>
-                      {currentStep !== 3 && (
-                        <Ionicons
-                          name="arrow-forward"
-                          size={18}
-                          color="#1a1a1a"
-                        />
-                      )}
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                {currentStepData.iconType === "FontAwesome6" ? (
+                  <FontAwesome6
+                    name={currentStepData.iconName as any}
+                    size={36}
+                    color={COLORS.primaryDark}
+                  />
+                ) : (
+                  <FontAwesome5
+                    name={currentStepData.iconName as any}
+                    size={36}
+                    color={COLORS.primaryDark}
+                  />
+                )}
               </View>
             </View>
+
+            <Text
+              className="text-2xl font-bold text-slate-800 text-center mb-4"
+              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            >
+              {currentStepData.title}
+            </Text>
+
+            <Text
+              className="text-base text-slate-600 text-center mb-8 leading-7 px-2"
+              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+            >
+              {currentStepData.description}
+            </Text>
+          </Animated.View>
+
+          <View className="flex-row justify-center gap-3 mb-8">
+            {[1, 2, 3].map((step) => (
+              <View
+                key={step}
+                className={`h-2 rounded-full ${
+                  currentStep === step ? "w-8" : "bg-slate-200 w-2"
+                }`}
+                style={
+                  currentStep === step ? { backgroundColor: "#fe9ea2" } : {}
+                }
+              />
+            ))}
+          </View>
+
+          <View className="flex-row items-center gap-4">
+            <TouchableOpacity
+              onPress={handlePrev}
+              disabled={currentStep === 1}
+              className={`flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 ${
+                currentStep === 1 ? "opacity-0" : "bg-slate-100"
+              }`}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="arrow-back" size={20} color={COLORS.textDark} />
+              <Text
+                className="font-bold text-slate-700 text-base"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              >
+                {t("learnHowToPlay.previous")}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={currentStep === 3 ? handleClose : handleNext}
+              className="flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm"
+              style={{
+                backgroundColor: "#fe9ea2",
+                shadowColor: "#fe9ea2",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+              activeOpacity={0.9}
+            >
+              <Text
+                className="text-white font-bold text-base"
+                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              >
+                {currentStep === 3
+                  ? t("learnHowToPlay.gotIt")
+                  : t("learnHowToPlay.next")}
+              </Text>
+              {currentStep !== 3 && (
+                <Ionicons name="arrow-forward" size={20} color="white" />
+              )}
+            </TouchableOpacity>
           </View>
         </Pressable>
       </Pressable>

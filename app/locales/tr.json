@@ -16,13 +16,25 @@
   "startScreen": {
     "createNewRoom": "Yeni Oda Oluştur",
     "joinExistingRoom": "Mevcut Odaya Katıl",
-    "learnHowToPlay": "Nasıl Oynanır Öğren"
+    "learnHowToPlay": "Nasıl Oynanır Öğren",
+    "hostAGame": "Oyun oluştur",
+    "enterCode": "Kod gir"
   },
   "onboarding": {
     "noLoginRequired": "GİRİŞ GEREKTİRMEZ",
     "playWithPartner": "EŞİNİZLE OYNAYIN",
     "discoverEachOther": "BİRBİRİNİZİ KEŞFEDİN",
     "startPlayingNow": "Hemen oynamaya başlayın!",
+    "step1Label": "Adım 1",
+    "step1Title": "Oda Oluştur",
+    "step1Description": "Partnerinle test'i çözmek için önce bir oda oluştur.",
+    "step2Label": "Adım 2",
+    "step2Title": "Kodu Paylaş",
+    "step2Description": "Oda kodunu partnerinle paylaş.",
+    "step3Label": "Adım 3",
+    "step3Title": "Soruları Cevapla",
+    "step3Description": "Soruları cevaplayın ve ne kadar uyumlu olduğunuzu görün.",
+    "startPlaying": "Oynamaya Başla",
     "termsModalTitle": "Kullanım Şartları ve Politikalar",
     "termsModalIntroPrefix": "KnowUsBetter'ı kullanarak ",
     "termsModalIntroSeparator": " ve ",
@@ -201,7 +213,7 @@
     "copied": "Kopyalandı!",
     "needCoins": "{{required}} coin gerekiyor, sizde {{current}} var",
     "participants": "Katılımcılar ({{count}})",
-    "waiting": "Bekleniyor...",
+    "waiting": "Bekleniyor",
     "you": "(Siz)",
     "roomHost": "Oda Sahibi",
     "waitingForAnotherPlayer": "Başka bir oyuncu bekleniyor...",
@@ -213,6 +225,8 @@
   },
   "roundResult": {
     "questionLabel": "Soru",
+    "matched": "EŞLEŞTİNİZ",
+    "mismatch": "EŞLEŞMEDİNİZ",
     "loadingResults": "Sonuçlar yükleniyor...",
     "nextQuestionSoon": "Bir sonraki soru az sonra..."
   },

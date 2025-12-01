@@ -97,12 +97,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleRateApp = async () => {
     try {
-      // Try to use native review dialog if available
       if (await StoreReview.isAvailableAsync()) {
         await StoreReview.requestReview();
       } else {
-        // Fallback: Open App Store/Play Store page
-        // NOTE: Replace [YOUR_APP_ID] with your actual App Store ID after publishing
         const appStoreUrl =
           Platform.OS === "ios"
             ? "https://apps.apple.com/app/id[YOUR_APP_ID]"
@@ -114,7 +111,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       }
     } catch (error) {
       console.error("❌ Error requesting review:", error);
-      // Fallback to App Store link if review dialog fails
       const appStoreUrl =
         Platform.OS === "ios"
           ? "https://apps.apple.com/app/id[YOUR_APP_ID]"
@@ -139,7 +135,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           text: t("settings.sendEmailNow"),
           onPress: async () => {
             try {
-              // Get app user ID
               let appUserId = t("settings.unableToLoadId");
               try {
                 appUserId = await purchaseService.getAppUserId();
@@ -168,7 +163,6 @@ User ID: ${userId || appUserId}`;
               if (canOpen) {
                 await Linking.openURL(mailtoUrl);
               } else {
-                // Fallback: Show email address
                 if (Platform.OS === "web") {
                   window.alert(
                     `Please send your message to:\n\n${email}\n\nEmail has been copied to clipboard!`
@@ -229,313 +223,289 @@ User ID: ${userId || appUserId}`;
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.7)",
+          backgroundColor: "rgba(0,0,0,0.5)",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
         <View
           style={{
-            width: "93%",
+            width: "90%",
             maxWidth: 400,
             backgroundColor: "white",
-            borderRadius: 20,
-            maxHeight: "80%",
+            borderRadius: 32,
+            maxHeight: "85%",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.15,
+            shadowRadius: 24,
+            elevation: 10,
           }}
         >
-          <View className="relative">
-            <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[20px]" />
-            <View className="relative bg-white border-2 border-gray-900 rounded-[20px] overflow-hidden">
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ padding: 20 }}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ padding: 24 }}
+          >
+            <View className="flex-row justify-between items-center mb-8">
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 24,
+                  color: "#1e293b",
+                }}
               >
-                <View className="flex-row justify-between items-center mb-6">
+                {t("settings.title")}
+              </Text>
+              <TouchableOpacity
+                onPress={onClose}
+                className="bg-slate-100 rounded-full p-2"
+                activeOpacity={0.7}
+              >
+                <Feather name="x" size={20} color="#475569" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="gap-4">
+              <View className="flex-row items-center justify-between mb-2">
+                <CoinBalanceDisplay onBuyCoins={handleBuyCoins} />
+                <ContactUsButton position="none" />
+              </View>
+
+              {/* Buy Coins Button */}
+              <TouchableOpacity
+                onPress={handleBuyCoins}
+                activeOpacity={0.7}
+                className="bg-amber-50  border-amber-300 rounded-full px-4 py-3 flex-row items-center justify-center gap-2 shadow-sm shadow-amber-100/50"
+              >
+                <View className="bg-amber-100 w-5 h-5 rounded-full items-center justify-center">
+                  <FontAwesome5 name="plus" size={10} color="#B45309" />
+                </View>
+                <Text
+                  className="text-amber-800 font-bold text-sm"
+                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                >
+                  {t("coins.buyCoins")}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+                activeOpacity={0.9}
+                className="bg-white rounded-2xl p-4 border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center gap-3">
+                    <View className="w-8 h-8 rounded-full bg-indigo-50 items-center justify-center">
+                      <Feather name="globe" size={16} color="#6366f1" />
+                    </View>
+                    <Text
+                      style={{
+                        fontFamily: "MerriweatherSans_700Bold",
+                        fontSize: 16,
+                        color: "#334155",
+                      }}
+                    >
+                      {t("settings.selectLanguage")}
+                    </Text>
+                  </View>
+                  <Feather
+                    name={isLanguageMenuOpen ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#94a3b8"
+                  />
+                </View>
+
+                {isLanguageMenuOpen && (
+                  <View className="mt-4 pt-2 border-t border-slate-100">
+                    {(Object.keys(languages) as (keyof typeof languages)[]).map(
+                      (lang, index) => (
+                        <TouchableOpacity
+                          key={lang}
+                          onPress={() => {
+                            setSelectedLanguage(lang);
+                            setIsLanguageMenuOpen(false);
+                          }}
+                          activeOpacity={0.7}
+                          className={`flex-row items-center gap-3 py-3 ${
+                            selectedLanguage === lang
+                              ? "bg-indigo-50/50 rounded-xl px-2 -mx-2"
+                              : ""
+                          }`}
+                        >
+                          <Text style={{ fontSize: 20 }}>
+                            {languages[lang].flag}
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: "MerriweatherSans_400Regular",
+                              fontSize: 15,
+                              color:
+                                selectedLanguage === lang
+                                  ? "#4f46e5"
+                                  : "#475569",
+                            }}
+                          >
+                            {languages[lang].label}
+                          </Text>
+                          {selectedLanguage === lang && (
+                            <View className="ml-auto">
+                              <Feather name="check" size={18} color="#4f46e5" />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      )
+                    )}
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenPrivacyPolicy}
+                activeOpacity={0.7}
+                className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                    <FontAwesome5 name="shield-alt" size={14} color="#3b82f6" />
+                  </View>
                   <Text
                     style={{
                       fontFamily: "MerriweatherSans_700Bold",
-                      fontSize: 24,
-                      color: "#1f2937",
+                      fontSize: 14,
+                      color: "#334155",
                     }}
                   >
-                    {t("settings.title")}
+                    {t("settings.privacyPolicy")}
                   </Text>
-                  <TouchableOpacity
-                    onPress={onClose}
-                    className="bg-gray-100 rounded-full p-1"
-                  >
-                    <Feather name="x" size={24} color="#1f2937" />
-                  </TouchableOpacity>
                 </View>
+                <Feather name="chevron-right" size={18} color="#94a3b8" />
+              </TouchableOpacity>
 
-                <View className="gap-4">
-                  {/* Coin Display and Contact Us - Side by Side */}
-                  <View className="flex-row items-center justify-between gap-3">
-                    <CoinBalanceDisplay
-                      onBuyCoins={handleBuyCoins}
-                      style="default"
+              <TouchableOpacity
+                onPress={handleOpenTermsOfService}
+                activeOpacity={0.7}
+                className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-emerald-50 items-center justify-center">
+                    <FontAwesome5
+                      name="file-contract"
+                      size={14}
+                      color="#10b981"
                     />
-
-                    <ContactUsButton position="none" />
                   </View>
+                  <Text
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 14,
+                      color: "#334155",
+                    }}
+                  >
+                    {t("settings.termsOfService")}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color="#94a3b8" />
+              </TouchableOpacity>
 
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                    <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
-                      <TouchableOpacity
-                        onPress={() =>
-                          setIsLanguageMenuOpen(!isLanguageMenuOpen)
-                        }
-                        activeOpacity={0.8}
-                        className="p-4 flex-row items-center justify-between"
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "MerriweatherSans_700Bold",
-                            fontSize: 16,
-                            color: "#1f2937",
-                          }}
-                        >
-                          {t("settings.selectLanguage")}
-                        </Text>
-                        <Feather
-                          name={
-                            isLanguageMenuOpen ? "chevron-up" : "chevron-down"
-                          }
-                          size={20}
-                          color="#1f2937"
-                        />
-                      </TouchableOpacity>
-
-                      {isLanguageMenuOpen && (
-                        <View className="border-t-2 border-gray-900">
-                          {(
-                            Object.keys(languages) as (keyof typeof languages)[]
-                          ).map((lang, index) => (
-                            <TouchableOpacity
-                              key={lang}
-                              onPress={() => {
-                                setSelectedLanguage(lang);
-                                setIsLanguageMenuOpen(false);
-                              }}
-                              activeOpacity={0.8}
-                              className={`flex-row items-center gap-2 px-4 py-3 ${
-                                index !== Object.keys(languages).length - 1
-                                  ? "border-b-2 border-gray-900"
-                                  : ""
-                              } ${
-                                selectedLanguage === lang ? "bg-white/50" : ""
-                              }`}
-                            >
-                              <Text style={{ fontSize: 18 }}>
-                                {languages[lang].flag}
-                              </Text>
-                              <Text
-                                style={{
-                                  fontFamily: "MerriweatherSans_400Regular",
-                                  fontSize: 14,
-                                  color: "#1f2937",
-                                }}
-                              >
-                                {languages[lang].label}
-                              </Text>
-                              {selectedLanguage === lang && (
-                                <View className="ml-auto">
-                                  <Feather
-                                    name="check"
-                                    size={18}
-                                    color="#1f2937"
-                                  />
-                                </View>
-                              )}
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
-                    </View>
+              <TouchableOpacity
+                onPress={handleRequestDataDeletion}
+                activeOpacity={0.7}
+                className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
+                    <FontAwesome5 name="trash-alt" size={14} color="#ef4444" />
                   </View>
-
-                  {/* Privacy Policy */}
-                  <TouchableOpacity
-                    onPress={handleOpenPrivacyPolicy}
-                    activeOpacity={0.8}
+                  <Text
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 14,
+                      color: "#334155",
+                    }}
                   >
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3">
-                          <FontAwesome5
-                            name="shield-alt"
-                            size={18}
-                            color="#1f2937"
-                          />
-                          <Text
-                            style={{
-                              fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 14,
-                              color: "#1f2937",
-                            }}
-                          >
-                            {t("settings.privacyPolicy")}
-                          </Text>
-                        </View>
-                        <Feather
-                          name="chevron-right"
-                          size={20}
-                          color="#6b7280"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                    {t("settings.requestDataDeletion")}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color="#94a3b8" />
+              </TouchableOpacity>
 
-                  {/* Terms of Service */}
-                  <TouchableOpacity
-                    onPress={handleOpenTermsOfService}
-                    activeOpacity={0.8}
+              <TouchableOpacity
+                onPress={handleCopyUserId}
+                activeOpacity={0.7}
+                className="bg-slate-50 rounded-2xl p-4 mt-2"
+              >
+                <View className="flex-col items-center justify-center gap-2">
+                  <Text
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 12,
+                      color: "#64748b",
+                      textAlign: "center",
+                    }}
                   >
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3">
-                          <FontAwesome5
-                            name="file-contract"
-                            size={18}
-                            color="#1f2937"
-                          />
-                          <Text
-                            style={{
-                              fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 14,
-                              color: "#1f2937",
-                            }}
-                          >
-                            {t("settings.termsOfService")}
-                          </Text>
-                        </View>
-                        <Feather
-                          name="chevron-right"
-                          size={20}
-                          color="#6b7280"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Rate App */}
-                  {/* <TouchableOpacity onPress={handleRateApp} activeOpacity={0.8}>
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3">
-                          <FontAwesome5 name="star" size={18} color="#fbbf24" />
-                          <Text
-                            style={{
-                              fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 14,
-                              color: "#1f2937",
-                            }}
-                          >
-                            {t("settings.rateApp")}
-                          </Text>
-                        </View>
-                        <Feather
-                          name="chevron-right"
-                          size={20}
-                          color="#6b7280"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Request Data Deletion */}
-                  <TouchableOpacity
-                    onPress={handleRequestDataDeletion}
-                    activeOpacity={0.8}
-                  >
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-white border-2 border-gray-900 rounded-lg p-4 flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3">
-                          <FontAwesome5
-                            name="trash-alt"
-                            size={18}
-                            color="#ef4444"
-                          />
-                          <Text
-                            style={{
-                              fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 14,
-                              color: "#1f2937",
-                            }}
-                          >
-                            {t("settings.requestDataDeletion")}
-                          </Text>
-                        </View>
-                        <Feather
-                          name="chevron-right"
-                          size={20}
-                          color="#6b7280"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* User ID */}
-                  <TouchableOpacity
-                    onPress={handleCopyUserId}
-                    activeOpacity={0.8}
-                  >
-                    <View className="relative">
-                      <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                      <View className="relative bg-gray-50 border-2 border-gray-900 rounded-lg p-4 flex-col items-center justify-center gap-2">
-                        <Text
-                          style={{
-                            fontFamily: "MerriweatherSans_400Regular",
-                            fontSize: 12,
-                            color: "#6b7280",
-                            textAlign: "center",
-                          }}
-                        >
-                          {t("settings.userId")}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: "MerriweatherSans_400Regular",
-                            fontSize: 12,
-                            color: "#6b7280",
-                            textAlign: "center",
-                          }}
-                        >
-                          {userId || t("settings.loading")}
-                        </Text>
-                        <Feather name="copy" size={16} color="#6b7280" />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* App Version */}
-                  <View className="relative">
-                    <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                    <View className="relative bg-gray-50 border-2 border-gray-900 rounded-lg p-4">
-                      <Text
-                        style={{
-                          fontFamily: "MerriweatherSans_400Regular",
-                          fontSize: 12,
-                          color: "#6b7280",
-                          textAlign: "center",
-                        }}
-                      >
-                        {t("settings.version", { version: appVersion })}
-                        {buildNumber
-                          ? ` (${t("settings.build", { build: buildNumber })})`
-                          : ""}
-                      </Text>
-                    </View>
+                    {t("settings.userId")}
+                  </Text>
+                  <View className="flex-row items-center gap-2">
+                    <Text
+                      style={{
+                        fontFamily: "MerriweatherSans_400Regular",
+                        fontSize: 12,
+                        color: "#94a3b8",
+                        textAlign: "center",
+                      }}
+                    >
+                      {userId || t("settings.loading")}
+                    </Text>
+                    <Feather name="copy" size={12} color="#94a3b8" />
                   </View>
                 </View>
-              </ScrollView>
+              </TouchableOpacity>
+
+              <View className="items-center py-2">
+                <Text
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    fontSize: 12,
+                    color: "#cbd5e1",
+                    textAlign: "center",
+                  }}
+                >
+                  {t("settings.version", { version: appVersion })}
+                  {buildNumber
+                    ? ` (${t("settings.build", { build: buildNumber })})`
+                    : ""}
+                </Text>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>

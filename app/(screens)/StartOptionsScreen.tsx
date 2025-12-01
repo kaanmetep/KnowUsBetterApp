@@ -1,12 +1,17 @@
 import { LibreBaskerville_700Bold } from "@expo-google-fonts/libre-baskerville";
 import {
   MerriweatherSans_400Regular,
+  MerriweatherSans_600SemiBold,
   MerriweatherSans_700Bold,
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
-import Entypo from "@expo/vector-icons/Entypo";
-import Feather from "@expo/vector-icons/Feather";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import {
+  Entypo,
+  Feather,
+  FontAwesome5,
+  FontAwesome6,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -14,7 +19,8 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  Easing,
+  Dimensions,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -23,17 +29,108 @@ import CoinBalanceDisplay from "../(components)/CoinBalanceDisplay";
 import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import CreateNewRoom from "../(components)/CreateNewRoom";
 import JoinExistingRoom from "../(components)/JoinExistingRoom";
+import LanguageSelector from "../(components)/LanguageSelector";
 import LearnHowToPlay from "../(components)/LearnHowToPlay";
 import Logo from "../(components)/Logo";
+import SettingsButton from "../(components)/SettingsButton";
 import SettingsModal from "../(components)/SettingsModal";
-import SocialMediaIcons from "../(components)/SocialMediaIcons";
-import { useLanguage } from "../contexts/LanguageContext";
 import { useTranslation } from "../hooks/useTranslation";
 import socketService from "../services/socketService";
 
+const { width, height } = Dimensions.get("window");
+
+// ARTIRILMIŞ VE KENARLARA SERPİŞTİRİLMİŞ İKONLAR
+const FLOATING_ICONS = [
+  // --- SOL ÜST BÖLGE ---
+  {
+    name: "heart",
+    lib: "FA5",
+    size: 24,
+    color: "#FFDECF",
+    top: "15%",
+    left: "4%",
+    rotate: "-25deg",
+  },
+  {
+    name: "leaf",
+    lib: "Entypo",
+    size: 18,
+    color: "#E0F2F1",
+    top: "20%",
+    left: "22%",
+    rotate: "45deg",
+  },
+  {
+    name: "ghost",
+    lib: "FA5",
+    size: 16,
+    color: "#F3E5F5",
+    top: "22%",
+    left: "48%",
+    rotate: "10deg",
+  },
+
+  // --- SAĞ ÜST BÖLGE ---
+  {
+    name: "heart",
+    lib: "FA5",
+    size: 16,
+    color: "#FFDECF",
+    top: "18%",
+    right: "8%",
+    rotate: "-30deg",
+  },
+  {
+    name: "ladybug",
+    lib: "MCI",
+    size: 22,
+    color: "#FFEBEE",
+    top: "24%",
+    right: "4%",
+    rotate: "20deg",
+  },
+
+  // --- SAĞ ALT BÖLGE ---
+  {
+    name: "ladybug",
+    lib: "MCI",
+    size: 26,
+    color: "#FFEBEE",
+    bottom: "20%",
+    right: "26%",
+    rotate: "45deg",
+  },
+  {
+    name: "heart",
+    lib: "FA5",
+    size: 18,
+    color: "#FFDECF",
+    bottom: "5%",
+    right: "18%",
+    rotate: "-15deg",
+  },
+  {
+    name: "leaf",
+    lib: "Entypo",
+    size: 16,
+    color: "#E0F2F1",
+    bottom: "18%",
+    right: "3%",
+    rotate: "60deg",
+  },
+  {
+    name: "ghost",
+    lib: "FA5",
+    size: 14,
+    color: "#F3E5F5",
+    bottom: "12%",
+    right: "38%",
+    rotate: "-5deg",
+  },
+];
+
 const StartOptionsScreen = () => {
   const router = useRouter();
-  const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { t } = useTranslation();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -41,144 +138,121 @@ const StartOptionsScreen = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
-  // Button animations
-  const createButtonScale = useRef(new Animated.Value(0.95)).current;
+  // Animations
+  const createButtonScale = useRef(new Animated.Value(0.9)).current;
   const createButtonOpacity = useRef(new Animated.Value(0)).current;
-  const createButtonPulse = useRef(new Animated.Value(1)).current;
-  const joinButtonScale = useRef(new Animated.Value(0.95)).current;
+  const joinButtonScale = useRef(new Animated.Value(0.9)).current;
   const joinButtonOpacity = useRef(new Animated.Value(0)).current;
-  const joinButtonPulse = useRef(new Animated.Value(1)).current;
-  const learnButtonScale = useRef(new Animated.Value(0.95)).current;
   const learnButtonOpacity = useRef(new Animated.Value(0)).current;
-  const learnButtonPulse = useRef(new Animated.Value(1)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+
+  // İllüstrasyonların giriş animasyonu için
+  const imageSlideIn = useRef(new Animated.Value(50)).current;
+  const imageOpacity = useRef(new Animated.Value(0)).current;
 
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
+    MerriweatherSans_600SemiBold,
     MerriweatherSans_700Bold,
     LibreBaskerville_700Bold,
   });
 
   useEffect(() => {
     socketService.connect();
-
-    return () => {
-      // Cleanup - DO NOT DISCONNECT SOCKET WHEN THIS COMPONENT UNMOUNTS.
-      // socketService.disconnect();
-    };
+    return () => {};
   }, []);
 
-  // Button entrance animations
+  // Entrance Animations
   useEffect(() => {
-    // Create button animation
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(createButtonScale, {
+    Animated.parallel([
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.spring(imageSlideIn, {
+        toValue: 0,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.stagger(150, [
+        Animated.timing(logoOpacity, {
           toValue: 1,
-          tension: 50,
-          friction: 6,
+          duration: 600,
           useNativeDriver: true,
         }),
-        Animated.timing(createButtonOpacity, {
-          toValue: 1,
-          duration: 400,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        // Start subtle pulse animation after entrance
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(createButtonPulse, {
-              toValue: 1.015,
-              duration: 2500,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-            Animated.timing(createButtonPulse, {
-              toValue: 1,
-              duration: 2500,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-      });
-    }, 150);
-
-    // Join button animation
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(joinButtonScale, {
-          toValue: 1,
-          tension: 50,
-          friction: 6,
-          useNativeDriver: true,
-        }),
-        Animated.timing(joinButtonOpacity, {
-          toValue: 1,
-          duration: 400,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        // Start subtle pulse animation after entrance
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(joinButtonPulse, {
-              toValue: 1.015,
-              duration: 2800,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-            Animated.timing(joinButtonPulse, {
-              toValue: 1,
-              duration: 2800,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-      });
-    }, 250);
-
-    // Learn button animation
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(learnButtonScale, {
-          toValue: 1,
-          tension: 50,
-          friction: 6,
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.spring(createButtonScale, {
+            toValue: 1,
+            friction: 6,
+            useNativeDriver: true,
+          }),
+          Animated.timing(createButtonOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.spring(joinButtonScale, {
+            toValue: 1,
+            friction: 6,
+            useNativeDriver: true,
+          }),
+          Animated.timing(joinButtonOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
         Animated.timing(learnButtonOpacity, {
           toValue: 1,
           duration: 400,
-          easing: Easing.out(Easing.ease),
+          delay: 200,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        // Start subtle pulse animation after entrance
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(learnButtonPulse, {
-              toValue: 1.015,
-              duration: 3000,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-            Animated.timing(learnButtonPulse, {
-              toValue: 1,
-              duration: 3000,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-      });
-    }, 350);
+      ]),
+    ]).start();
   }, []);
+
+  const renderIcon = (icon: any, index: number) => {
+    let IconLib: any;
+    switch (icon.lib) {
+      case "FA5":
+        IconLib = FontAwesome5;
+        break;
+      case "MCI":
+        IconLib = MaterialCommunityIcons;
+        break;
+      case "Feather":
+        IconLib = Feather;
+        break;
+      case "Entypo":
+        IconLib = Entypo;
+        break;
+      default:
+        IconLib = FontAwesome5;
+    }
+
+    return (
+      <View
+        key={index}
+        style={{
+          position: "absolute",
+          top: icon.top,
+          left: icon.left,
+          right: icon.right,
+          bottom: icon.bottom,
+          transform: [{ rotate: icon.rotate }],
+          zIndex: 0,
+          opacity: 0.6,
+        }}
+      >
+        <IconLib name={icon.name} size={icon.size} color={icon.color} />
+      </View>
+    );
+  };
 
   const handleCreateRoom = async (
     userName: string,
@@ -187,26 +261,18 @@ const StartOptionsScreen = () => {
   ): Promise<void> => {
     try {
       setIsLoading(true);
-      // Send request to create room to backend
       const result = await socketService.createRoom(userName, avatar, category);
-      // result -> { roomCode: string; player: room.players[0]; category: string }
       setShowCreateModal(false);
-
-      // Redirect to GameRoom (only roomCode needed, rest comes from backend)
       router.push({
         pathname: "/GameRoom",
-        params: {
-          roomCode: result.roomCode,
-        },
+        params: { roomCode: result.roomCode },
       });
     } catch (error: any) {
-      console.error("❌ Error creating room:", error);
       Alert.alert(
         t("alerts.oops"),
         error?.message || t("errors.roomCreateError"),
-        [{ text: t("common.ok"), style: "default" }]
+        [{ text: t("common.ok") }]
       );
-      // Don't re-throw - error is already handled, re-throwing causes "Uncaught (in promise)"
     } finally {
       setIsLoading(false);
     }
@@ -219,321 +285,318 @@ const StartOptionsScreen = () => {
   ): Promise<void> => {
     try {
       setIsLoading(true);
-
-      // Send request to join room to backend
       const result = await socketService.joinRoom(
         roomCode.toUpperCase(),
         userName,
         avatar
       );
-
       setShowJoinModal(false);
-
-      // Redirect to GameRoom (only roomCode needed, rest comes from backend)
       router.push({
         pathname: "/GameRoom",
-        params: {
-          roomCode: result.roomCode,
-        },
+        params: { roomCode: result.roomCode },
       });
     } catch (error: any) {
-      console.error("❌ Error joining room:", error);
-
-      // Extract error message
       let errorMessage = t("errors.roomNotFoundMessage");
-      if (typeof error === "string") {
-        // If error is just "Room not found" or similar, use our friendly message
-        if (
-          error.toLowerCase().includes("room") &&
-          error.toLowerCase().includes("not found")
-        ) {
-          errorMessage = t("errors.roomNotFoundMessage");
-        } else {
-          errorMessage = error;
-        }
-      } else if (error?.message) {
-        // If error message is generic, use our friendly message
-        if (
-          error.message.toLowerCase().includes("room") &&
-          error.message.toLowerCase().includes("not found")
-        ) {
-          errorMessage = t("errors.roomNotFoundMessage");
-        } else {
-          errorMessage = error.message;
-        }
-      } else if (error?.error) {
-        errorMessage = error.error;
+      if (
+        error?.message?.toLowerCase().includes("room") &&
+        error.message.toLowerCase().includes("not found")
+      ) {
+        errorMessage = t("errors.roomNotFoundMessage");
+      } else {
+        errorMessage = error.message || error;
       }
-
-      // Show alert - modal will remain open and user can try again
-      Alert.alert(
-        t("errors.roomNotFound"),
-        errorMessage,
-        [{ text: t("common.ok"), style: "default" }],
-        { cancelable: true }
-      );
-      // Re-throw error so JoinExistingRoom component knows the join failed
-      // and doesn't reset the form/step
+      Alert.alert(t("errors.roomNotFound"), errorMessage, [
+        { text: t("common.ok") },
+      ]);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  if (!fontsLoaded) return null;
 
   return (
-    <View className="flex-1 bg-primary">
-      {/* Language Selector & Settings Button Container */}
+    <View className="flex-1 bg-white relative">
+      <StatusBar barStyle="dark-content" />
+
+      {/* UÇUŞAN İKONLAR */}
+      {FLOATING_ICONS.map(renderIcon)}
+
+      {/* Üst Kısım Kontrolleri */}
       <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
-        {/* Inline Language Selector */}
         <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-          <TouchableOpacity
-            onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg px-3 py-2 flex-row items-center gap-1"
-          >
-            <Text style={{ fontSize: 18 }}>
-              {languages[selectedLanguage].flag}
-            </Text>
-            <Text
-              style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12 }}
-              className="text-gray-900"
-            >
-              {selectedLanguage.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Dropdown Menu */}
-          {isLanguageMenuOpen && (
-            <View className="absolute top-[52px] right-0 w-[140px]">
-              <View className="relative">
-                <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-                <View className="relative bg-white border-2 border-gray-900 rounded-lg overflow-hidden">
-                  {(Object.keys(languages) as (keyof typeof languages)[]).map(
-                    (lang, index) => (
-                      <TouchableOpacity
-                        key={lang}
-                        onPress={() => {
-                          setSelectedLanguage(lang);
-                          setIsLanguageMenuOpen(false);
-                        }}
-                        activeOpacity={0.8}
-                        className={`flex-row items-center gap-1 px-3 py-3 ${
-                          index !== Object.keys(languages).length - 1
-                            ? "border-b-2 border-gray-900"
-                            : ""
-                        } ${selectedLanguage === lang ? "bg-[#ffe4e6]" : ""}`}
-                      >
-                        <Text style={{ fontSize: 16 }}>
-                          {languages[lang].flag}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: "MerriweatherSans_400Regular",
-                            fontSize: 13,
-                          }}
-                          className="text-gray-900"
-                        >
-                          {languages[lang].label}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
+          <LanguageSelector position="onboarding" />
         </View>
-
-        {/* Settings Button */}
-        <View className="relative">
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-lg" />
-          <TouchableOpacity
-            onPress={() => setShowSettingsModal(true)}
-            activeOpacity={0.8}
-            className="relative bg-white border-2 border-gray-900 rounded-lg p-2.5"
-          >
-            <Feather name="settings" size={17} color="black" />
-          </TouchableOpacity>
-        </View>
+        <CoinBalanceDisplay
+          onBuyCoins={() => {
+            setShowSettingsModal(false);
+            setShowPurchaseModal(true);
+          }}
+        />
+        <SettingsButton onPress={() => setShowSettingsModal(true)} />
       </View>
 
-      {/* Coin Display and Buy Button - Bottom Left */}
-      <CoinBalanceDisplay
-        onBuyCoins={() => {
-          setShowSettingsModal(false);
-          setShowPurchaseModal(true);
-        }}
-        style="absolute"
-        position="bottom-left"
-        showBuyButton={false}
-      />
-
-      <Image
-        source={require("../../assets/images/options-screen-girl.png")}
+      {/* --- KIZ GÖRSELİ (Arka Planda) --- */}
+      <Animated.View
         style={{
-          width: 200,
-          height: 200,
-          transform: [{ scaleX: -1 }, { rotate: "142deg" }],
-          marginTop: -50,
-          marginBottom: 30,
+          position: "absolute",
+          top: height * 0.1,
+          right: -40,
+          opacity: imageOpacity,
+          transform: [{ translateX: imageSlideIn }],
+          // 3. Z-Index: -1 (En arkaya atıldı)
+
+          alignItems: "center",
+          justifyContent: "center",
         }}
-        contentFit="contain"
-      />
-      {/* Social Media Icons - Above Logo */}
-      <SocialMediaIcons position="above-logo" />
-      <Logo marginTop={5} />
-      <View className="flex-1 items-center gap-6 mt-10 px-6">
-        {/* Create New Room Button */}
-        <Animated.View
-          className="w-full relative mb-1"
+      >
+        {/* Glow Effect */}
+        <View
           style={{
-            opacity: createButtonOpacity,
-            transform: [
-              {
-                scale: Animated.multiply(createButtonScale, createButtonPulse),
-              },
-            ],
+            position: "absolute",
+            width: width * 0.7,
+            height: width * 0.7,
+            borderRadius: width * 0.35,
+            backgroundColor: "#FFEEE8",
+            opacity: 0.15, // Glow çok silik
+            transform: [{ scale: 1.2 }],
+            shadowColor: "#FFAB91",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.2,
+            shadowRadius: 60,
+            zIndex: -1,
+          }}
+        />
+        {/* Resim */}
+        <Image
+          source={require("../../assets/images/step1-girl.webp")}
+          style={{
+            width: width * 0.45,
+            height: height * 0.5,
+            // 2. Opacity: İyice kısıldı (0.3)
+            opacity: 0.3,
+          }}
+          // 1. Blur: Hafif fluluk eklendi (Depth of field)
+          blurRadius={1.5}
+          contentFit="contain"
+        />
+      </Animated.View>
+
+      {/* --- ERKEK GÖRSELİ (Arka Planda) --- */}
+      <Animated.View
+        style={{
+          position: "absolute",
+          bottom: -height * 0.08,
+          left: -30,
+          opacity: imageOpacity,
+          transform: [
+            {
+              translateX: Animated.multiply(
+                imageSlideIn,
+                new Animated.Value(-1)
+              ),
+            },
+          ],
+
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* Glow Effect */}
+        <View
+          style={{
+            position: "absolute",
+            width: width * 0.8,
+            height: width * 0.8,
+            borderRadius: width * 0.4,
+            backgroundColor: "#EBF8FF",
+            opacity: 0.15, // Glow çok silik
+            transform: [{ scale: 1.1 }],
+            shadowColor: "#74C0FC",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.2,
+            shadowRadius: 60,
+            zIndex: -1,
+          }}
+        />
+        {/* Resim */}
+        <Image
+          source={require("../../assets/images/step2-boy.webp")}
+          style={{
+            width: width * 0.5,
+            height: height * 0.55,
+            // 2. Opacity: İyice kısıldı (0.3)
+            opacity: 0.2,
+          }}
+          // 1. Blur: Hafif fluluk eklendi (Depth of field)
+          blurRadius={1.5}
+          contentFit="contain"
+        />
+      </Animated.View>
+
+      {/* --- ANA İÇERİK --- */}
+      <View className="flex-1 justify-center px-6 z-10 mt-10">
+        {/* LOGO ALANI - XS BOYUT */}
+        <Animated.View
+          style={{
+            opacity: logoOpacity,
+            marginBottom: 20,
+            alignItems: "center",
+            width: "100%",
           }}
         >
-          <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => setShowCreateModal(true)}
-            className="relative z-10 w-full"
-            style={{ borderRadius: 14, overflow: "hidden" }}
-          >
-            <LinearGradient
-              colors={["#fee2e2", "#fecaca", "#fca5a5"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderWidth: 2,
-                borderColor: "#1f2937",
-                borderRadius: 14,
-                paddingVertical: 18,
-                paddingHorizontal: 32,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <View style={{ marginRight: 12 }}>
-                <Entypo name="plus" size={24} color="#1f2937" />
-              </View>
-              <Text
-                className="text-gray-900 text-xl font-bold text-center"
-                style={{ letterSpacing: -0.3 }}
-              >
-                {t("startScreen.createNewRoom")}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <Logo size="xs" />
         </Animated.View>
 
-        {/* Join Existing Room Button */}
-        <Animated.View
-          className="w-full relative mb-1"
-          style={{
-            opacity: joinButtonOpacity,
-            transform: [
-              { scale: Animated.multiply(joinButtonScale, joinButtonPulse) },
-            ],
-          }}
-        >
-          <View className="absolute top-[3px] left-[3px] right-[-3px] bottom-[-3px] bg-gray-900 rounded-[14px]" />
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => setShowJoinModal(true)}
-            className="relative z-10 w-full"
-            style={{ borderRadius: 14, overflow: "hidden" }}
+        {/* BUTONLAR */}
+        <View className="w-full gap-5">
+          {/* Create New Room Button */}
+          <Animated.View
+            style={{
+              opacity: createButtonOpacity,
+              transform: [{ scale: createButtonScale }],
+            }}
           >
-            <LinearGradient
-              colors={["#dbeafe", "#bfdbfe", "#93c5fd"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => setShowCreateModal(true)}
               style={{
-                borderWidth: 2,
-                borderColor: "#1f2937",
-                borderRadius: 14,
-                paddingVertical: 18,
-                paddingHorizontal: 32,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
+                borderRadius: 24,
+                shadowColor: "#FF8080",
+                shadowOffset: {
+                  width: 0,
+                  height: 8,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 16,
+                elevation: 10,
               }}
             >
-              <View style={{ marginRight: 12 }}>
-                <FontAwesome6 name="user-group" size={16} color="#1f2937" />
-              </View>
-              <Text
-                className="text-gray-900 text-xl font-bold text-center"
-                style={{ letterSpacing: -0.3 }}
+              <LinearGradient
+                colors={["#FFF0F0", "#FFE0E0", "#FFD5D5"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 24,
+                  paddingVertical: 22,
+                  paddingHorizontal: 24,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  borderWidth: 1.5,
+                  borderColor: "#FFBDBD",
+                }}
               >
-                {t("startScreen.joinExistingRoom")}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+                <View className="flex-row items-center gap-4 flex-1">
+                  <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm shadow-red-100">
+                    <Entypo name="plus" size={24} color="#FF8080" />
+                  </View>
+                  <View>
+                    <Text
+                      className="text-slate-800 text-lg"
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    >
+                      {t("startScreen.createNewRoom")}
+                    </Text>
+                    <Text
+                      className="text-slate-500 text-xs mt-0.5"
+                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                    >
+                      {t("startScreen.hostAGame")}
+                    </Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={20} color="#FF8080" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
 
-        {/* How to Play Button */}
-        <Animated.View
-          className="relative self-center mt-6"
-          style={{
-            opacity: learnButtonOpacity,
-            transform: [
-              { scale: Animated.multiply(learnButtonScale, learnButtonPulse) },
-            ],
-          }}
-        >
-          <View className="absolute top-[2px] left-[2px] right-[-2px] bottom-[-2px] bg-gray-900 rounded-full" />
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => setShowHowToPlayModal(true)}
-            className="relative"
-            style={{ borderRadius: 9999, overflow: "hidden" }}
+          {/* Join Existing Room Button */}
+          <Animated.View
+            style={{
+              opacity: joinButtonOpacity,
+              transform: [{ scale: joinButtonScale }],
+            }}
           >
-            <LinearGradient
-              colors={["#f9fafb", "#f3f4f6", "#e5e7eb"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => setShowJoinModal(true)}
               style={{
-                borderWidth: 2,
-                borderColor: "#1f2937",
-                borderRadius: 9999,
-                paddingVertical: 8,
-                paddingHorizontal: 24,
-                flexDirection: "row",
-                alignItems: "center",
+                borderRadius: 24,
+                shadowColor: "#74C0FC",
+                shadowOffset: {
+                  width: 0,
+                  height: 8,
+                },
+                shadowOpacity: 0.25,
+                shadowRadius: 16,
+                elevation: 10,
               }}
             >
+              <LinearGradient
+                colors={["#EDF5FF", "#D8ECFF", "#C3E3FF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 24,
+                  paddingVertical: 22,
+                  paddingHorizontal: 24,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  borderWidth: 1.5,
+                  borderColor: "#A8D8FF",
+                }}
+              >
+                <View className="flex-row items-center gap-4 flex-1">
+                  <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm shadow-blue-100">
+                    <FontAwesome6 name="user-group" size={18} color="#5DB3FF" />
+                  </View>
+                  <View>
+                    <Text
+                      className="text-slate-800 text-lg"
+                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    >
+                      {t("startScreen.joinExistingRoom")}
+                    </Text>
+                    <Text
+                      className="text-slate-500 text-xs mt-0.5"
+                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                    >
+                      {t("startScreen.enterCode")}
+                    </Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={20} color="#5DB3FF" />
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* How to Play Button */}
+          <Animated.View
+            style={{
+              opacity: learnButtonOpacity,
+              alignSelf: "center",
+              marginTop: 15,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowHowToPlayModal(true)}
+              className="bg-white/90 border border-slate-200 rounded-full px-6 py-3 shadow-md shadow-slate-200 flex-row items-center gap-2 backdrop-blur-md"
+            >
+              <Feather name="help-circle" size={16} color="#64748B" />
               <Text
-                className="text-gray-900 text-sm font-semibold"
-                style={{ letterSpacing: -0.2 }}
+                className="text-slate-600 text-sm font-semibold"
+                style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
               >
                 {t("startScreen.learnHowToPlay")}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </Animated.View>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
       </View>
-      <Image
-        source={require("../../assets/images/options-screen-man.png")}
-        style={{
-          width: 200,
-          height: 200,
-          transform: [{ scaleX: -1 }, { rotate: "-16deg" }],
-          marginLeft: "auto",
-          marginBottom: -50,
-        }}
-        contentFit="contain"
-      />
 
-      {/* Create New Room Modal */}
+      {/* Modals */}
       <CreateNewRoom
         visible={showCreateModal && !showPurchaseModal}
         onClose={() => setShowCreateModal(false)}
@@ -543,27 +606,19 @@ const StartOptionsScreen = () => {
           setShowPurchaseModal(true);
         }}
       />
-
-      {/* Join Existing Room Modal */}
       <JoinExistingRoom
         visible={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         onJoinRoom={handleJoinRoom}
       />
-
-      {/* Learn How to Play Modal */}
       <LearnHowToPlay
         visible={showHowToPlayModal}
         onClose={() => setShowHowToPlayModal(false)}
       />
-
-      {/* Coin Purchase Modal - EN SONDA OLMALI (EN ÜSTTE RENDER EDİLİR) */}
       <CoinPurchaseModal
         visible={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
       />
-
-      {/* Settings Modal */}
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
@@ -572,37 +627,6 @@ const StartOptionsScreen = () => {
           setShowPurchaseModal(true);
         }}
       />
-
-      {/* Development Test Button - Only visible in __DEV__ mode */}
-      {__DEV__ && (
-        <TouchableOpacity
-          onPress={() => {
-            router.push({
-              pathname: "/GameFinishedPreview",
-            });
-          }}
-          style={{
-            position: "absolute",
-            bottom: 20,
-            right: 20,
-            backgroundColor: "#fef3c7",
-            padding: 12,
-            borderRadius: 8,
-            borderWidth: 2,
-            borderColor: "#991b1b",
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: "MerriweatherSans_700Bold",
-              fontSize: 12,
-              color: "#991b1b",
-            }}
-          >
-            Test GameFinished
-          </Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 };

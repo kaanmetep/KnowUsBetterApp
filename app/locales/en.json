@@ -16,13 +16,25 @@
   "startScreen": {
     "createNewRoom": "Create New Room",
     "joinExistingRoom": "Join Existing Room",
-    "learnHowToPlay": "Learn How to Play"
+    "learnHowToPlay": "Learn How to Play",
+    "hostAGame": "Host a game",
+    "enterCode": "Enter code"
   },
   "onboarding": {
     "noLoginRequired": "NO LOGIN REQUIRED",
     "playWithPartner": "PLAY WITH YOUR PARTNER",
     "discoverEachOther": "DISCOVER EACH OTHER",
     "startPlayingNow": "Start playing now!",
+    "step1Label": "Step 1",
+    "step1Title": "Create a Room",
+    "step1Description": "Create a room first to solve the test with your partner.",
+    "step2Label": "Step 2",
+    "step2Title": "Share the Code",
+    "step2Description": "Share the room code with your partner.",
+    "step3Label": "Step 3",
+    "step3Title": "Answer the questions",
+    "step3Description": "Answer questions and see how well you match.",
+    "startPlaying": "Start Playing",
     "termsModalTitle": "Terms & Policies",
     "termsModalIntroPrefix": "By using KnowUsBetter, you agree to our ",
     "termsModalIntroSeparator": " and ",
@@ -201,7 +213,7 @@
     "copied": "Copied!",
     "needCoins": "Need {{required}} coins, you have {{current}}",
     "participants": "Participants ({{count}})",
-    "waiting": "Waiting...",
+    "waiting": "Waiting",
     "you": "(You)",
     "roomHost": "Room Host",
     "waitingForAnotherPlayer": "Waiting for another player...",
@@ -213,6 +225,8 @@
   },
   "roundResult": {
     "questionLabel": "Question",
+    "matched": "MATCHED",
+    "mismatch": "NOT A MATCH",
     "loadingResults": "Loading results...",
     "nextQuestionSoon": "Next question in a moment..."
   },
