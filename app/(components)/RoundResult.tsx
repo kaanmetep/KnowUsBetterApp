@@ -57,25 +57,33 @@ const RoundResult: React.FC<RoundResultProps> = ({
     }
   }, [roundResult, progressAnim]);
 
-  // Player Card Styling Logic
-  const getPlayerCardStyle = (index: number) => {
-    if (index === 0) {
+  // Player Card Styling Logic - Based on match status, not index
+  const getPlayerCardStyle = () => {
+    if (isMatched) {
+      // Both players get green when matched
       return {
-        bgClass: "bg-[#E7F5FF]",
-        borderClass: "border-[#D0EBFF]",
-        textColor: "text-[#1971c2]",
+        bgClass: "bg-green-50",
+        borderClass: "border-green-200",
+        textColor: "text-green-700",
+        customStyle: {
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          borderColor: "#10B981",
+          borderWidth: 1,
+        },
+      };
+    } else {
+      // Both players get red when not matched
+      return {
+        bgClass: "bg-red-50",
+        borderClass: "border-red-200",
+        textColor: "text-red-700",
+        customStyle: {
+          backgroundColor: "rgba(239, 68, 68, 0.1)",
+          borderColor: "#EF4444",
+          borderWidth: 1,
+        },
       };
     }
-    return {
-      bgClass: "",
-      borderClass: "",
-      customStyle: {
-        backgroundColor: "rgba(254, 158, 162, 0.15)",
-        borderColor: "#fe9ea2",
-        borderWidth: 1,
-      },
-      textColor: "text-[#c92a2a]",
-    };
   };
 
   return (
@@ -132,7 +140,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
         <View className="gap-3 mb-6">
           {roundResult.playerAnswers?.map(
             (playerAnswer: any, index: number) => {
-              const styles = getPlayerCardStyle(index);
+              const styles = getPlayerCardStyle();
 
               return (
                 <View

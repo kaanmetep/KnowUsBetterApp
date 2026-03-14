@@ -18,7 +18,7 @@ const NameInput: React.FC<NameInputProps> = ({
   const { t } = useTranslation();
 
   return (
-    <View className="mt-6">
+    <View className="mt-2">
       <Text
         className="text-lg font-bold text-slate-800 mb-1"
         style={{ fontFamily: "MerriweatherSans_700Bold" }}

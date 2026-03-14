@@ -137,7 +137,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const isStep3Valid = roomCode.trim().length > 0;
 
   const StepIndicator = ({ currentStep }: { currentStep: number }) => (
-    <View className="flex-row justify-center gap-2 mb-6">
+    <View className="flex-row justify-center gap-2 mb-3">
       {[1, 2, 3].map((s) => {
         let bgClass = "bg-gray-100";
         if (s === currentStep) bgClass = "bg-blue-400";
@@ -242,7 +242,7 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
               >
                 <StepIndicator currentStep={2} />
 
-                <View className="py-4">
+                <View className="pt-2 pb-4">
                   <NameInput
                     userName={userName}
                     onUserNameChange={setUserName}

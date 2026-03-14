@@ -252,5 +252,11 @@
       "low": "Son bastante diferentes. Eso también está bien. A veces eso es lo que funciona.",
       "veryLow": "Son bastante diferentes. Eso también está bien. A veces eso es lo que funciona."
     }
+  },
+  "announcements": {
+    "title": "Últimos Anuncios",
+    "viewAll": "Ver Todo",
+    "learnMore": "Saber Más",
+    "noAnnouncements": "No hay anuncios"
   }
 }

@@ -409,13 +409,17 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                     }}
                   >
                     <View className="flex-row items-center gap-4">
-                      <View className="w-12 h-12 rounded-full items-center justify-center bg-slate-100 overflow-hidden">
+                      <View className="w-12 h-12 rounded-full items-center justify-center bg-slate-100" style={{ overflow: "hidden" }}>
                         {participant.avatar &&
                         getAvatarImage(participant.avatar) ? (
                           <Image
                             source={getAvatarImage(participant.avatar)}
-                            style={{ width: "100%", height: "100%" }}
-                            contentFit="cover"
+                            style={{ 
+                              width: 48, 
+                              height: 48,
+                              borderRadius: 24
+                            }}
+                            contentFit="contain"
                           />
                         ) : (
                           <FontAwesome5 name="user" size={16} color="#94a3b8" />

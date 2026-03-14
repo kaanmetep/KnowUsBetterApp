@@ -275,7 +275,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <View className="py-4">
+                <View className="pt-2 pb-4">
                   <NameInput
                     userName={userName}
                     onUserNameChange={setUserName}

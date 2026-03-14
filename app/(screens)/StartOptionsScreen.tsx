@@ -25,6 +25,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AnnouncementBanner from "../(components)/AnnouncementBanner";
+import AnnouncementsModal from "../(components)/AnnouncementsModal";
 import CoinBalanceDisplay from "../(components)/CoinBalanceDisplay";
 import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import CreateNewRoom from "../(components)/CreateNewRoom";
@@ -137,6 +139,7 @@ const StartOptionsScreen = () => {
   const [showHowToPlayModal, setShowHowToPlayModal] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Animations
@@ -387,7 +390,7 @@ const StartOptionsScreen = () => {
       <Animated.View
         style={{
           position: "absolute",
-          bottom: -height * 0.08,
+          bottom: -height * 0.10,
           left: -30,
           opacity: imageOpacity,
           transform: [
@@ -436,7 +439,12 @@ const StartOptionsScreen = () => {
       </Animated.View>
 
       {/* --- ANA İÇERİK --- */}
-      <View className="flex-1 justify-center px-6 z-10 mt-10">
+      <View className="flex-1 justify-center px-6 z-10 ">
+        {/* ANNOUNCEMENT BANNER */}
+        <AnnouncementBanner
+          onViewAll={() => setShowAnnouncementsModal(true)}
+        />
+
         {/* LOGO ALANI - XS BOYUT */}
         <Animated.View
           style={{
@@ -626,6 +634,10 @@ const StartOptionsScreen = () => {
           setShowSettingsModal(false);
           setShowPurchaseModal(true);
         }}
+      />
+      <AnnouncementsModal
+        visible={showAnnouncementsModal}
+        onClose={() => setShowAnnouncementsModal(false)}
       />
     </View>
   );

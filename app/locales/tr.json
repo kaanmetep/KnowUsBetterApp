@@ -252,5 +252,11 @@
       "low": "Oldukça farklısınız, ama bazen tam da bu çeşitlilik işe yarar.",
       "veryLow": "Farklarınız belirgin, ama bazen en iyi uyum farklılıklardan çıkar."
     }
+  },
+  "announcements": {
+    "title": "Son Duyurular",
+    "viewAll": "Tümünü Gör",
+    "learnMore": "Daha Fazla",
+    "noAnnouncements": "Duyuru yok"
   }
 }

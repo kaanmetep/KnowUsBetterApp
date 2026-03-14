@@ -252,5 +252,11 @@
       "low": "You're pretty different. That's fine. Sometimes that's exactly what works.",
       "veryLow": "You're pretty different. That's fine. Sometimes that's exactly what works."
     }
+  },
+  "announcements": {
+    "title": "Latest Announcements",
+    "viewAll": "View All",
+    "learnMore": "Learn More",
+    "noAnnouncements": "No announcements"
   }
 }
