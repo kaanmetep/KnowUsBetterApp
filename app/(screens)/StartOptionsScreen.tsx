@@ -440,11 +440,6 @@ const StartOptionsScreen = () => {
 
       {/* --- ANA İÇERİK --- */}
       <View className="flex-1 justify-center px-6 z-10 ">
-        {/* ANNOUNCEMENT BANNER */}
-        <AnnouncementBanner
-          onViewAll={() => setShowAnnouncementsModal(true)}
-        />
-
         {/* LOGO ALANI - XS BOYUT */}
         <Animated.View
           style={{
@@ -601,8 +596,20 @@ const StartOptionsScreen = () => {
               </Text>
             </TouchableOpacity>
           </Animated.View>
+
+
         </View>
       </View>
+
+      {/* ANNOUNCEMENT BANNER - bottom */}
+      <Animated.View
+        className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-10"
+        style={{ opacity: learnButtonOpacity }}
+      >
+        <AnnouncementBanner
+          onViewAll={() => setShowAnnouncementsModal(true)}
+        />
+      </Animated.View>
 
       {/* Modals */}
       <CreateNewRoom
@@ -639,6 +646,8 @@ const StartOptionsScreen = () => {
         visible={showAnnouncementsModal}
         onClose={() => setShowAnnouncementsModal(false)}
       />
+
+
     </View>
   );
 };

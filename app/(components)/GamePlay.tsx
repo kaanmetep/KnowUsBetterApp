@@ -163,19 +163,8 @@ const GamePlay: React.FC<GamePlayProps> = ({
   ) => {
     if (isDisabled && !isSelected) return "bg-slate-100 border-slate-200";
 
-    if (type === "yes") {
-      return isSelected
-        ? "bg-[#A5D8FF] border-[#74C0FC]" // Active Blue
-        : "bg-[#E7F5FF] border-[#D0EBFF]"; // Passive Blue
-    }
-    if (type === "no") {
-      return isSelected
-        ? "bg-[#FFA8A8] border-[#FF8787]" // Active Red
-        : "bg-[#FFF5F5] border-[#FFC9C9]"; // Passive Red
-    }
-    // Custom answers default to blue theme
     return isSelected
-      ? "bg-[#A5D8FF] border-[#74C0FC]"
+      ? "bg-slate-200 border-slate-300"
       : "bg-white border-slate-100";
   };
 

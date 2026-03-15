@@ -50,7 +50,7 @@ const RoundResult: React.FC<RoundResultProps> = ({
       progressAnim.setValue(100);
       Animated.timing(progressAnim, {
         toValue: 0,
-        duration: 5000,
+        duration: 4000,
         easing: Easing.linear,
         useNativeDriver: false,
       }).start();

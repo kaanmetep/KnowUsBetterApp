@@ -1,8 +1,9 @@
 import Constants from "expo-constants";
 import { io, Socket } from "socket.io-client";
 
-// Get backend URL from config, fallback to production URL
+// Get backend URL: process.env works on all platforms (including web)
 const SOCKET_URL =
+  process.env.EXPO_PUBLIC_BACKEND_URL ||
   Constants.expoConfig?.extra?.backendUrl ||
   "https://knowusbetterapp-backend.onrender.com";
 

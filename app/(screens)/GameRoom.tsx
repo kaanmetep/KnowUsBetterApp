@@ -6,12 +6,19 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, AppState, AppStateStatus, Platform } from "react-native";
+import AiAnalysisInfoModal from "../(components)/AiAnalysisInfoModal";
+import AiAnalysisResultModal from "../(components)/AiAnalysisResultModal";
+import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import Countdown from "../(components)/Countdown";
 import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
+import {
+  AiAnalysisResult,
+  generateAiAnalysis,
+} from "../services/aiAnalysisService";
 import {
   getCategoryById,
   getCategoryCoinsRequired,
@@ -24,7 +31,7 @@ import socketService, { Room } from "../services/socketService";
 const GameRoom = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { spendCoins } = useCoins();
+  const { coins, spendCoins } = useCoins();
   const { t, selectedLanguage } = useTranslation();
 
   // Only get roomCode from params
@@ -58,6 +65,14 @@ const GameRoom = () => {
     null
   );
   const [categoryColor, setCategoryColor] = useState<string | null>(null);
+
+  // AI Analysis modal states (lifted here so they persist across screen transitions)
+  const [showAiInfoModal, setShowAiInfoModal] = useState(false);
+  const [showAiPurchaseModal, setShowAiPurchaseModal] = useState(false);
+  const [showAiResultModal, setShowAiResultModal] = useState(false);
+  const [aiResultLoading, setAiResultLoading] = useState(false);
+  const [aiResultError, setAiResultError] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<AiAnalysisResult | null>(null);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -461,6 +476,49 @@ const GameRoom = () => {
     setCategoryColor(null);
   };
 
+  // AI Analysis handler
+  const handleStartAiAnalysis = async () => {
+    if (!gameFinishedData) return;
+
+    // Spend coins first
+    const success = await spendCoins(3);
+    if (!success) {
+      setShowAiInfoModal(false);
+      setShowAiPurchaseModal(true);
+      return;
+    }
+
+    // Close info modal and open result modal
+    setShowAiInfoModal(false);
+    setShowAiResultModal(true);
+    setAiResultLoading(true);
+    setAiResultError(null);
+    setAiResult(null);
+
+    // Get player names
+    const currentPlayer = room?.players?.find((p: any) => p.id === mySocketId);
+    const currentPlayerName = currentPlayer?.name || t("gameRoom.youLabel");
+    const opponentPlayer = room?.players?.find((p: any) => p.id !== mySocketId);
+    const opponentPlayerName =
+      opponentPlayer?.name || t("gameRoom.partnerLabel");
+
+    try {
+      const result = await generateAiAnalysis(
+        gameFinishedData.completedRounds,
+        currentPlayerName,
+        opponentPlayerName,
+        gameFinishedData.percentage,
+        selectedLanguage
+      );
+      setAiResult(result);
+    } catch (err: any) {
+      console.error("❌ AI Analysis error:", err);
+      setAiResultError(err.message || "Unknown error");
+    } finally {
+      setAiResultLoading(false);
+    }
+  };
+
   // Handlers
   const handleLeaveRoom = async () => {
     const confirmLeave = async () => {
@@ -622,76 +680,115 @@ const GameRoom = () => {
     return null;
   }
 
-  // Render countdown screen
-  if (gameState === "countdown") {
-    return (
-      <Countdown
-        onComplete={handleCountdownComplete}
-        onCancel={handleLeaveRoom}
-        categoryName={categoryDisplayName || undefined}
-        categoryColor={categoryColor || undefined}
-      />
-    );
-  }
+  // Determine screen content
+  const renderScreenContent = () => {
+    // Render countdown screen
+    if (gameState === "countdown") {
+      return (
+        <Countdown
+          onComplete={handleCountdownComplete}
+          onCancel={handleLeaveRoom}
+          categoryName={categoryDisplayName || undefined}
+          categoryColor={categoryColor || undefined}
+        />
+      );
+    }
 
-  // Render game play screen
-  if (gameState === "playing" && currentQuestion) {
+    // Render game play screen
+    if (gameState === "playing" && currentQuestion) {
+      return (
+        <GamePlay
+          currentQuestion={currentQuestion}
+          currentQuestionIndex={currentQuestionIndex}
+          totalQuestions={totalQuestions}
+          questionDuration={questionDuration}
+          selectedAnswer={selectedAnswer}
+          hasSubmitted={hasSubmitted}
+          opponentAnswered={opponentAnswered}
+          opponentName={opponentName}
+          notifications={notifications}
+          roundResult={roundResult}
+          onSelectAnswer={handleSelectAnswer}
+          onLeaveRoom={handleLeaveRoom}
+          roomCode={roomCode}
+          currentPlayerId={socketService.getSocketId()}
+          categoryId={room?.settings?.category}
+        />
+      );
+    }
+
+    // Render game finished screen
+    if (gameState === "finished" && gameFinishedData) {
+      const currentPlayer = room?.players?.find(
+        (p: any) => p.id === mySocketId
+      );
+      const currentPlayerName = currentPlayer?.name || t("gameRoom.youLabel");
+      const opponentPlayer = room?.players?.find(
+        (p: any) => p.id !== mySocketId
+      );
+      const opponentPlayerName =
+        opponentPlayer?.name || t("gameRoom.partnerLabel");
+
+      return (
+        <GameFinished
+          matchScore={gameFinishedData.matchScore}
+          totalQuestions={gameFinishedData.totalQuestions}
+          percentage={gameFinishedData.percentage}
+          completedRounds={gameFinishedData.completedRounds}
+          currentPlayerName={currentPlayerName}
+          opponentPlayerName={opponentPlayerName}
+          onComplete={resetToWaitingRoom}
+          onAiAnalysisPress={() => {
+            if (coins < 3) {
+              setShowAiPurchaseModal(true);
+              return;
+            }
+            setShowAiInfoModal(true);
+          }}
+        />
+      );
+    }
+
+    // Render waiting room
     return (
-      <GamePlay
-        currentQuestion={currentQuestion}
-        currentQuestionIndex={currentQuestionIndex}
-        totalQuestions={totalQuestions}
-        questionDuration={questionDuration}
-        selectedAnswer={selectedAnswer}
-        hasSubmitted={hasSubmitted}
-        opponentAnswered={opponentAnswered}
-        opponentName={opponentName}
-        notifications={notifications}
-        roundResult={roundResult}
-        onSelectAnswer={handleSelectAnswer}
-        onLeaveRoom={handleLeaveRoom}
+      <WaitingRoom
+        room={room}
         roomCode={roomCode}
-        currentPlayerId={socketService.getSocketId()}
-        categoryId={room?.settings?.category}
+        mySocketId={mySocketId}
+        isMe={isMe}
+        onStartGame={handleStartGame}
+        onLeaveRoom={handleLeaveRoom}
+        onKickPlayer={handleKickPlayer}
+        isStartingGame={isStartingGame}
       />
     );
-  }
+  };
 
-  // Render game finished screen
-  if (gameState === "finished" && gameFinishedData) {
-    // Get player names from room
-    const currentPlayer = room?.players?.find((p: any) => p.id === mySocketId);
-    const currentPlayerName = currentPlayer?.name || t("gameRoom.youLabel");
-    const opponentPlayer = room?.players?.find((p: any) => p.id !== mySocketId);
-    const opponentPlayerName =
-      opponentPlayer?.name || t("gameRoom.partnerLabel");
-
-    return (
-      <GameFinished
-        matchScore={gameFinishedData.matchScore}
-        totalQuestions={gameFinishedData.totalQuestions}
-        percentage={gameFinishedData.percentage}
-        completedRounds={gameFinishedData.completedRounds}
-        displayDuration={questionDuration + 5}
-        currentPlayerName={currentPlayerName}
-        opponentPlayerName={opponentPlayerName}
-        onComplete={resetToWaitingRoom}
-      />
-    );
-  }
-
-  // Render waiting room
   return (
-    <WaitingRoom
-      room={room}
-      roomCode={roomCode}
-      mySocketId={mySocketId}
-      isMe={isMe}
-      onStartGame={handleStartGame}
-      onLeaveRoom={handleLeaveRoom}
-      onKickPlayer={handleKickPlayer}
-      isStartingGame={isStartingGame}
-    />
+    <>
+      {renderScreenContent()}
+
+      {/* AI Analysis modals — rendered at root level so they persist across screen transitions */}
+      <AiAnalysisInfoModal
+        visible={showAiInfoModal}
+        onClose={() => setShowAiInfoModal(false)}
+        onConfirm={handleStartAiAnalysis}
+      />
+      <CoinPurchaseModal
+        visible={showAiPurchaseModal}
+        onClose={() => setShowAiPurchaseModal(false)}
+      />
+      <AiAnalysisResultModal
+        visible={showAiResultModal}
+        onClose={() => setShowAiResultModal(false)}
+        isLoading={aiResultLoading}
+        error={aiResultError}
+        result={aiResult}
+        onRetry={handleStartAiAnalysis}
+        player1Name={room?.players?.find((p: any) => p.id === mySocketId)?.name || t("gameRoom.youLabel")}
+        player2Name={room?.players?.find((p: any) => p.id !== mySocketId)?.name || t("gameRoom.partnerLabel")}
+      />
+    </>
   );
 };
 
