@@ -34,6 +34,7 @@ import JoinExistingRoom from "../(components)/JoinExistingRoom";
 import LanguageSelector from "../(components)/LanguageSelector";
 import LearnHowToPlay from "../(components)/LearnHowToPlay";
 import Logo from "../(components)/Logo";
+import RateAppFeedbackModal from "../(components)/RateAppFeedbackModal";
 import SettingsButton from "../(components)/SettingsButton";
 import SettingsModal from "../(components)/SettingsModal";
 import { useTranslation } from "../hooks/useTranslation";
@@ -140,6 +141,7 @@ const StartOptionsScreen = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
+  const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Animations
@@ -641,10 +643,15 @@ const StartOptionsScreen = () => {
           setShowSettingsModal(false);
           setShowPurchaseModal(true);
         }}
+        onRequestRateApp={() => setShowRateAppModal(true)}
       />
       <AnnouncementsModal
         visible={showAnnouncementsModal}
         onClose={() => setShowAnnouncementsModal(false)}
+      />
+      <RateAppFeedbackModal
+        visible={showRateAppModal}
+        onClose={() => setShowRateAppModal(false)}
       />
 
 

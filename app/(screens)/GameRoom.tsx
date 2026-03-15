@@ -12,6 +12,7 @@ import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import Countdown from "../(components)/Countdown";
 import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
+import RateAppFeedbackModal from "../(components)/RateAppFeedbackModal";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
@@ -27,6 +28,7 @@ import {
 import { CoinStorageService } from "../services/coinStorageService";
 import { purchaseService } from "../services/purchaseService";
 import socketService, { Room } from "../services/socketService";
+import { storeReviewService } from "../services/storeReviewService";
 
 const GameRoom = () => {
   const router = useRouter();
@@ -73,6 +75,9 @@ const GameRoom = () => {
   const [aiResultLoading, setAiResultLoading] = useState(false);
   const [aiResultError, setAiResultError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AiAnalysisResult | null>(null);
+
+  // Rate App Feedback Modal state
+  const [showRateAppModal, setShowRateAppModal] = useState(false);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -274,6 +279,11 @@ const GameRoom = () => {
         totalQuestions: data.totalQuestions,
         percentage: data.percentage,
         completedRounds: data.completedRounds || [],
+      });
+
+      // Trigger store review if the user had a good experience
+      storeReviewService.onGameCompleted(data.percentage, () => {
+        setShowRateAppModal(true);
       });
     };
 
@@ -787,6 +797,10 @@ const GameRoom = () => {
         onRetry={handleStartAiAnalysis}
         player1Name={room?.players?.find((p: any) => p.id === mySocketId)?.name || t("gameRoom.youLabel")}
         player2Name={room?.players?.find((p: any) => p.id !== mySocketId)?.name || t("gameRoom.partnerLabel")}
+      />
+      <RateAppFeedbackModal
+        visible={showRateAppModal}
+        onClose={() => setShowRateAppModal(false)}
       />
     </>
   );

@@ -8,7 +8,6 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Clipboard from "expo-clipboard";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import * as StoreReview from "expo-store-review";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -29,12 +28,14 @@ interface SettingsModalProps {
   visible: boolean;
   onClose: () => void;
   onBuyCoins?: () => void;
+  onRequestRateApp?: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
   visible,
   onClose,
   onBuyCoins,
+  onRequestRateApp,
 }) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { t } = useTranslation();
@@ -95,30 +96,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     });
   };
 
-  const handleRateApp = async () => {
-    try {
-      if (await StoreReview.isAvailableAsync()) {
-        await StoreReview.requestReview();
-      } else {
-        const appStoreUrl =
-          Platform.OS === "ios"
-            ? "https://apps.apple.com/app/id[YOUR_APP_ID]"
-            : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
-        Linking.openURL(appStoreUrl).catch((err) => {
-          console.error("❌ Error opening app store:", err);
-          Alert.alert(t("common.error"), t("settings.couldNotOpenAppStore"));
-        });
-      }
-    } catch (error) {
-      console.error("❌ Error requesting review:", error);
-      const appStoreUrl =
-        Platform.OS === "ios"
-          ? "https://apps.apple.com/app/id[YOUR_APP_ID]"
-          : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
-      Linking.openURL(appStoreUrl).catch((err) => {
-        console.error("❌ Error opening app store:", err);
-        Alert.alert(t("common.error"), t("settings.couldNotOpenAppStore"));
-      });
+  const handleRateApp = () => {
+    // Close settings modal first, then show rate app modal
+    if (onRequestRateApp) {
+      onClose();
+      // Small delay to let settings modal close first
+      setTimeout(() => {
+        onRequestRateApp();
+      }, 300);
+    } else {
+      setShowRateAppModal(true);
     }
   };
 
@@ -423,6 +410,35 @@ User ID: ${userId || appUserId}`;
                     }}
                   >
                     {t("settings.termsOfService")}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleRateApp}
+                activeOpacity={0.7}
+                className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-amber-50 items-center justify-center">
+                    <FontAwesome5 name="star" size={14} color="#f59e0b" />
+                  </View>
+                  <Text
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 14,
+                      color: "#334155",
+                    }}
+                  >
+                    {t("settings.rateApp")}
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={18} color="#94a3b8" />

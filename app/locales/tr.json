@@ -140,7 +140,12 @@
     "pleaseSendMessageTo": "Lütfen mesajınızı şu adrese gönderin:\n\n{{email}}",
     "couldNotOpenEmailClient": "E-posta istemcisi açılamadı. Lütfen bize şu adresten e-posta gönderin: help@knowusbetter.app",
     "unableToLoadId": "ID yüklenemedi",
-    "dataDeletionRequestSubject": "KnowUsBetter - Veri Silme Talebi"
+    "dataDeletionRequestSubject": "KnowUsBetter - Veri Silme Talebi",
+    "rateAppQuestion": "KnowUsBetter oynarken keyif alıyor musun?",
+    "rateAppSubtitle": "Geri bildirimleriniz bizim için çok değerli!",
+    "shareFeedback": "Geri Bildirim Paylaş",
+    "feedbackSubject": "KnowUsBetter - Geri Bildirim",
+    "feedbackBody": "Uygulama hakkında geri bildirimimi paylaşmak istiyorum."
   },
   "coins": {
     "buyCoins": "Coin Satın Al",

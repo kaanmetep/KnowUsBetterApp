@@ -140,7 +140,12 @@
     "pleaseSendMessageTo": "Por favor envía tu mensaje a:\n\n{{email}}",
     "couldNotOpenEmailClient": "No se pudo abrir el cliente de correo. Por favor envíanos un correo a: help@knowusbetter.app",
     "unableToLoadId": "No se pudo cargar el ID",
-    "dataDeletionRequestSubject": "KnowUsBetter - Solicitud de Eliminación de Datos"
+    "dataDeletionRequestSubject": "KnowUsBetter - Solicitud de Eliminación de Datos",
+    "rateAppQuestion": "¿Te diviertes jugando KnowUsBetter?",
+    "rateAppSubtitle": "¡Tu opinión nos ayuda a mejorar!",
+    "shareFeedback": "Compartir Opinión",
+    "feedbackSubject": "KnowUsBetter - Opinión",
+    "feedbackBody": "Me gustaría compartir mi opinión sobre la aplicación."
   },
   "coins": {
     "buyCoins": "Comprar Coins",
