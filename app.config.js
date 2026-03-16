@@ -104,16 +104,45 @@ module.exports = {
         process.env.EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID ||
         process.env.REVENUECAT_API_KEY_ANDROID ||
         "",
-      supabaseUrl:
-        process.env.EXPO_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "",
-      supabaseAnonKey:
-        process.env.EXPO_PUBLIC_SUPABASE_KEY ||
-        process.env.SUPABASE_ANON_KEY ||
+      environment:
+        process.env.EXPO_PUBLIC_ENVIRONMENT ||
+        process.env.ENVIRONMENT ||
         "",
-      backendUrl:
-        process.env.EXPO_PUBLIC_BACKEND_URL ||
-        process.env.BACKEND_URL ||
-        "https://knowusbetterapp-backend.onrender.com",
+      supabaseUrl: (() => {
+        const env = process.env.EXPO_PUBLIC_ENVIRONMENT || process.env.ENVIRONMENT || "";
+        if (env === "dev") {
+          return process.env.EXPO_PUBLIC_SUPABASE_URL_DEV ||
+            process.env.SUPABASE_URL_DEV ||
+            process.env.EXPO_PUBLIC_SUPABASE_URL ||
+            process.env.SUPABASE_URL ||
+            "";
+        }
+        return process.env.EXPO_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+      })(),
+      supabaseAnonKey: (() => {
+        const env = process.env.EXPO_PUBLIC_ENVIRONMENT || process.env.ENVIRONMENT || "";
+        if (env === "dev") {
+          return process.env.EXPO_PUBLIC_SUPABASE_KEY_DEV ||
+            process.env.SUPABASE_ANON_KEY_DEV ||
+            process.env.EXPO_PUBLIC_SUPABASE_KEY ||
+            process.env.SUPABASE_ANON_KEY ||
+            "";
+        }
+        return process.env.EXPO_PUBLIC_SUPABASE_KEY ||
+          process.env.SUPABASE_ANON_KEY ||
+          "";
+      })(),
+      backendUrl: (() => {
+        const env = process.env.EXPO_PUBLIC_ENVIRONMENT || process.env.ENVIRONMENT || "";
+        if (env === "dev") {
+          return process.env.EXPO_PUBLIC_BACKEND_URL_DEV ||
+            process.env.BACKEND_URL_DEV ||
+            "http://localhost:3000";
+        }
+        return process.env.EXPO_PUBLIC_BACKEND_URL ||
+          process.env.BACKEND_URL ||
+          "https://knowusbetterapp-backend.onrender.com";
+      })(),
     },
     runtimeVersion: {
       policy: "appVersion",
