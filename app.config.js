@@ -132,17 +132,9 @@ module.exports = {
           process.env.SUPABASE_ANON_KEY ||
           "";
       })(),
-      backendUrl: (() => {
-        const env = process.env.EXPO_PUBLIC_ENVIRONMENT || process.env.ENVIRONMENT || "";
-        if (env === "dev") {
-          return process.env.EXPO_PUBLIC_BACKEND_URL_DEV ||
-            process.env.BACKEND_URL_DEV ||
-            "http://localhost:3000";
-        }
-        return process.env.EXPO_PUBLIC_BACKEND_URL ||
-          process.env.BACKEND_URL ||
-          "https://knowusbetterapp-backend.onrender.com";
-      })(),
+      backendUrl:
+        process.env.EXPO_PUBLIC_BACKEND_URL ||
+        "https://knowusbetterapp-backend.onrender.com",
     },
     runtimeVersion: {
       policy: "appVersion",
