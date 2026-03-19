@@ -8,6 +8,7 @@ import LoadingScreen from "./LoadingScreen";
 import OnboardingStep1 from "./OnboardingStep1";
 import OnboardingStep2 from "./OnboardingStep2";
 import OnboardingStep3 from "./OnboardingStep3";
+import RateAppFeedbackModal from "./RateAppFeedbackModal";
 import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
 
@@ -17,6 +18,7 @@ const OnboardingSteps = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
   const [isPurchaseModalVisible, setIsPurchaseModalVisible] = useState(false);
+  const [isRateAppModalVisible, setIsRateAppModalVisible] = useState(false);
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -123,12 +125,18 @@ const OnboardingSteps = () => {
           setIsSettingsModalVisible(false);
           setIsPurchaseModalVisible(true);
         }}
+        onRequestRateApp={() => setIsRateAppModalVisible(true)}
       />
 
       {/* Coin Purchase Modal */}
       <CoinPurchaseModal
         visible={isPurchaseModalVisible}
         onClose={() => setIsPurchaseModalVisible(false)}
+      />
+
+      <RateAppFeedbackModal
+        visible={isRateAppModalVisible}
+        onClose={() => setIsRateAppModalVisible(false)}
       />
     </View>
   );

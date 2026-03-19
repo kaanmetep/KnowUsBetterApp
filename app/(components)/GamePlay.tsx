@@ -20,6 +20,7 @@ import {
 import { getQuestionAnswers, getQuestionText } from "../utils/questionUtils";
 import Countdown from "./Countdown";
 import Logo from "./Logo";
+import RateAppFeedbackModal from "./RateAppFeedbackModal";
 import RoundResult from "./RoundResult";
 import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
@@ -119,6 +120,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   const [timerKey, setTimerKey] = useState(0);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -163,6 +165,18 @@ const GamePlay: React.FC<GamePlayProps> = ({
   ) => {
     if (isDisabled && !isSelected) return "bg-slate-100 border-slate-200";
 
+    if (type === "yes") {
+      return isSelected
+        ? "bg-emerald-100 border-emerald-200"
+        : "bg-emerald-50 border-emerald-100";
+    }
+
+    if (type === "no") {
+      return isSelected
+        ? "bg-rose-100 border-rose-200"
+        : "bg-rose-50 border-rose-100";
+    }
+
     return isSelected
       ? "bg-slate-200 border-slate-300"
       : "bg-white border-slate-100";
@@ -180,6 +194,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
+        onRequestRateApp={() => setShowRateAppModal(true)}
       />
 
       {/* --- Header Section --- */}
@@ -466,6 +481,11 @@ const GamePlay: React.FC<GamePlayProps> = ({
       <View className="absolute bottom-4 left-0 right-0 items-center opacity-30 pointer-events-none">
         <Logo size="mini" />
       </View>
+
+      <RateAppFeedbackModal
+        visible={showRateAppModal}
+        onClose={() => setShowRateAppModal(false)}
+      />
     </View>
   );
 };

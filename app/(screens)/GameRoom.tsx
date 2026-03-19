@@ -12,7 +12,6 @@ import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
 import Countdown from "../(components)/Countdown";
 import GameFinished from "../(components)/GameFinished";
 import GamePlay from "../(components)/GamePlay";
-import RateAppFeedbackModal from "../(components)/RateAppFeedbackModal";
 import WaitingRoom from "../(components)/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
@@ -75,9 +74,6 @@ const GameRoom = () => {
   const [aiResultLoading, setAiResultLoading] = useState(false);
   const [aiResultError, setAiResultError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AiAnalysisResult | null>(null);
-
-  // Rate App Feedback Modal state
-  const [showRateAppModal, setShowRateAppModal] = useState(false);
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -282,9 +278,7 @@ const GameRoom = () => {
       });
 
       // Trigger store review if the user had a good experience
-      storeReviewService.onGameCompleted(data.percentage, () => {
-        setShowRateAppModal(true);
-      });
+      storeReviewService.onGameCompleted(data.percentage);
     };
 
     // Game cancelled (player left during game)
@@ -490,9 +484,8 @@ const GameRoom = () => {
   const handleStartAiAnalysis = async () => {
     if (!gameFinishedData) return;
 
-    // Spend coins first
-    const success = await spendCoins(3);
-    if (!success) {
+    const hasEnoughCoins = await ensureUserHasCoins(3);
+    if (!hasEnoughCoins) {
       setShowAiInfoModal(false);
       setShowAiPurchaseModal(true);
       return;
@@ -520,6 +513,14 @@ const GameRoom = () => {
         gameFinishedData.percentage,
         selectedLanguage
       );
+
+      const success = await spendCoins(3);
+      if (!success) {
+        setShowAiResultModal(false);
+        setShowAiPurchaseModal(true);
+        return;
+      }
+
       setAiResult(result);
     } catch (err: any) {
       console.error("❌ AI Analysis error:", err);
@@ -778,7 +779,7 @@ const GameRoom = () => {
     <>
       {renderScreenContent()}
 
-      {/* AI Analysis modals — rendered at root level so they persist across screen transitions */}
+      {/* AI Analysis modals — rendered at root level (so they persist across screen transitions) */}
       <AiAnalysisInfoModal
         visible={showAiInfoModal}
         onClose={() => setShowAiInfoModal(false)}
@@ -797,10 +798,6 @@ const GameRoom = () => {
         onRetry={handleStartAiAnalysis}
         player1Name={room?.players?.find((p: any) => p.id === mySocketId)?.name || t("gameRoom.youLabel")}
         player2Name={room?.players?.find((p: any) => p.id !== mySocketId)?.name || t("gameRoom.partnerLabel")}
-      />
-      <RateAppFeedbackModal
-        visible={showRateAppModal}
-        onClose={() => setShowRateAppModal(false)}
       />
     </>
   );

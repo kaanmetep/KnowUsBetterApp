@@ -152,7 +152,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       return;
     }
 
-    // CRITICAL FIX: Ensure appUserId is set in context before adding coins
+    // Ensure appUserId is set in context before adding coins
     // This ensures the webhook listener is active and can process the backend webhook
     // This is especially important after app restart where appUserId might not be set yet
     if (!appUserId) {
@@ -190,7 +190,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         return false;
       }
 
-      // CRITICAL FIX: Always get fresh appUserId from purchaseService, NEVER trust state.
+      // Always get fresh appUserId from purchaseService, NEVER trust state.
       // State might be stale/old, especially right after app startup or coin purchase
       // This ensures we always use the correct, current appUserId
       const currentAppUserId = await purchaseService.getAppUserId();
@@ -211,7 +211,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       // Use the fresh, correct appUserId from service (NOT from state)
       const id = currentAppUserId;
 
-      // CRITICAL FIX: If context state has more coins than expected, refresh first
+      // If context state has more coins than expected, refresh first
       // This handles the case where coins were just purchased and webhook might have updated Supabase
       // but we want to make sure we have the latest balance before spending
       if (coins >= amount) {

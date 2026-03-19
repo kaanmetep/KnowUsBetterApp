@@ -31,6 +31,7 @@ import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import CoinPurchaseModal from "./CoinPurchaseModal";
 import LanguageSelector from "./LanguageSelector";
 import Logo from "./Logo";
+import RateAppFeedbackModal from "./RateAppFeedbackModal";
 import SettingsButton from "./SettingsButton";
 import SettingsModal from "./SettingsModal";
 
@@ -60,6 +61,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [copied, setCopied] = useState(false);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const { selectedLanguage } = useLanguage();
   const { coins } = useCoins();
@@ -231,6 +233,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           setShowSettingsModal(false);
           setShowPurchaseModal(true);
         }}
+        onRequestRateApp={() => setShowRateAppModal(true)}
+      />
+
+      <RateAppFeedbackModal
+        visible={showRateAppModal}
+        onClose={() => setShowRateAppModal(false)}
       />
 
       <View className="absolute top-20 left-6 z-50 flex-row items-center gap-3">

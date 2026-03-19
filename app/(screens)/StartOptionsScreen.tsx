@@ -325,10 +325,8 @@ const StartOptionsScreen = () => {
     <View className="flex-1 bg-white relative">
       <StatusBar barStyle="dark-content" />
 
-      {/* UÇUŞAN İKONLAR */}
       {FLOATING_ICONS.map(renderIcon)}
 
-      {/* Üst Kısım Kontrolleri */}
       <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
         <View className="relative">
           <LanguageSelector position="onboarding" />

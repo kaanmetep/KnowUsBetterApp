@@ -129,13 +129,12 @@ const AiAnalysisResultModal: React.FC<AiAnalysisResultModalProps> = ({
         t("gameFinished.aiResultLeaveMessage"),
         [
           {
-            text: t("gameFinished.aiResultLeaveCancel"),
-            style: "cancel",
-          },
-          {
             text: t("gameFinished.aiResultLeaveConfirm"),
             style: "destructive",
             onPress: onClose,
+          },
+          {
+            text: t("gameFinished.aiResultLeaveCancel"),
           },
         ]
       );

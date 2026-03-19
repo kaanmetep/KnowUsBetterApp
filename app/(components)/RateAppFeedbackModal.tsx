@@ -6,9 +6,7 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Clipboard from "expo-clipboard";
-import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import * as StoreReview from "expo-store-review";
 import React, { useState } from "react";
 import {
   Alert,
@@ -39,74 +37,41 @@ const RateAppFeedbackModal: React.FC<RateAppFeedbackModalProps> = ({
   });
 
   const handleYes = async () => {
+    const appStoreId = "6754946265";
+    const androidPackageName = "com.knowusbetter.app";
+    const webReviewUrl =
+      Platform.OS === "ios"
+        ? `https://apps.apple.com/app/id${appStoreId}?action=write-review`
+        : `https://play.google.com/store/apps/details?id=${androidPackageName}&showAllReviews=true`;
+    const reviewDeepLink =
+      Platform.OS === "ios"
+        ? `itms-apps://itunes.apple.com/app/id${appStoreId}?action=write-review`
+        : `market://details?id=${androidPackageName}`;
+
     try {
       setIsLoading(true);
-      
-      // Check if we're in Expo Go (development)
-      const isExpoGo = Constants.executionEnvironment === "storeClient";
-      
-      // Try to use native review API
-      const isAvailable = await StoreReview.isAvailableAsync();
-      
-      if (isAvailable && !isExpoGo) {
-        // Native review popup (only works in production builds)
-        // Note: Apple controls when this popup appears (max 3 times/year)
-        // If it doesn't show, there's nothing we can do - it's Apple's decision
-        await StoreReview.requestReview();
-        onClose();
-      } else {
-        // Fallback: open store page directly
-        // This works in all environments (Expo Go, dev build, production)
-        const appStoreId = "6754946265"; // App Store ID from App Store Connect
-        
-        // Try web URL first (more reliable)
-        const webStoreUrl =
-          Platform.OS === "ios"
-            ? `https://apps.apple.com/app/id${appStoreId}`
-            : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
-        
+
+      onClose();
+
+      try {
+        await Linking.openURL(webReviewUrl);
+      } catch (error) {
+        console.error("❌ Error opening App Store:", error);
         try {
-          await Linking.openURL(webStoreUrl);
-        } catch (error) {
-          console.error("❌ Error opening App Store:", error);
-          // If web URL fails, try deep link
-          const appStoreUrl =
+          await Linking.openURL(reviewDeepLink);
+        } catch (deepLinkError) {
+          console.error("❌ Error opening App Store deep link:", deepLinkError);
+          Alert.alert(
+            t("common.error"),
             Platform.OS === "ios"
-              ? `itms-apps://itunes.apple.com/app/id${appStoreId}`
-              : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
-          
-          try {
-            await Linking.openURL(appStoreUrl);
-          } catch (deepLinkError) {
-            console.error("❌ Error opening App Store deep link:", deepLinkError);
-            Alert.alert(
-              t("common.error"),
-              Platform.OS === "ios"
-                ? "Unable to open App Store. Please search for 'KnowUsBetter' in the App Store."
-                : "Unable to open Play Store. Please search for 'KnowUsBetter' in the Play Store."
-            );
-          }
+              ? t("settings.couldNotOpenAppStoreSearchHint")
+              : t("settings.couldNotOpenPlayStoreSearchHint")
+          );
         }
-        onClose();
       }
     } catch (error) {
-      console.error("❌ Error requesting review:", error);
-      // Even if there's an error, try to open store page as fallback
-      try {
-        const appStoreId = "6754946265"; // App Store ID from App Store Connect
-        const webStoreUrl =
-          Platform.OS === "ios"
-            ? `https://apps.apple.com/app/id${appStoreId}`
-            : "https://play.google.com/store/apps/details?id=com.knowusbetter.app";
-        await Linking.openURL(webStoreUrl);
-        onClose();
-      } catch (fallbackError) {
-        Alert.alert(
-          t("common.error"),
-          t("settings.couldNotOpenAppStore") +
-            (__DEV__ ? "\n\n(Development mode: StoreReview API may not work)" : "")
-        );
-      }
+      console.error("❌ Error opening review flow:", error);
+      Alert.alert(t("common.error"), t("settings.couldNotOpenAppStore"));
     } finally {
       setIsLoading(false);
     }
