@@ -23,6 +23,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { purchaseService } from "../services/purchaseService";
 import CoinBalanceDisplay from "./CoinBalanceDisplay";
 import ContactUsButton from "./ContactUsButton";
+import LanguageFlag from "./LanguageFlag";
 
 interface SettingsModalProps {
   visible: boolean;
@@ -326,9 +327,7 @@ User ID: ${userId || appUserId}`;
                               : ""
                           }`}
                         >
-                          <Text style={{ fontSize: 20 }}>
-                            {languages[lang].flag}
-                          </Text>
+                          <LanguageFlag language={lang} size="lg" />
                           <Text
                             style={{
                               fontFamily: "MerriweatherSans_400Regular",

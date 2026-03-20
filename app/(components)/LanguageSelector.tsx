@@ -1,6 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import LanguageFlag from "./LanguageFlag";
 import { useLanguage } from "../contexts/LanguageContext";
 
 interface LanguageSelectorProps {
@@ -46,12 +47,10 @@ const LanguageSelector = ({
           activeOpacity={0.7}
           className="bg-white border border-slate-200 rounded-full px-4 py-2.5 flex-row items-center gap-2 shadow-sm shadow-slate-200"
         >
-          <Text style={{ fontSize: 16 }}>
-            {languages[selectedLanguage].flag}
-          </Text>
+          <LanguageFlag language={selectedLanguage} size="md" />
           <Text
             className="text-slate-600 font-bold text-xs tracking-wide"
-            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+            style={{ fontFamily: "System", fontWeight: "700" }}
           >
             {selectedLanguage.toUpperCase()}
           </Text>
@@ -81,7 +80,7 @@ const LanguageSelector = ({
                         : "bg-transparent"
                     }`}
                   >
-                    <Text style={{ fontSize: 18 }}>{languages[lang].flag}</Text>
+                    <LanguageFlag language={lang} size="lg" />
                     <Text
                       className={`text-sm ${
                         selectedLanguage === lang

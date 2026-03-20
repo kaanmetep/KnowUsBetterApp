@@ -19,6 +19,7 @@ import {
 } from "../services/categoryService";
 import { getQuestionAnswers, getQuestionText } from "../utils/questionUtils";
 import Countdown from "./Countdown";
+import LanguageFlag from "./LanguageFlag";
 import Logo from "./Logo";
 import RateAppFeedbackModal from "./RateAppFeedbackModal";
 import RoundResult from "./RoundResult";
@@ -219,10 +220,11 @@ const GamePlay: React.FC<GamePlayProps> = ({
               activeOpacity={0.7}
               className="bg-white border border-slate-100 rounded-full px-4 py-2 flex-row items-center gap-2 shadow-sm shadow-slate-200"
             >
-              <Text style={{ fontSize: 16 }}>
-                {languages[selectedLanguage].flag}
-              </Text>
-              <Text className="text-slate-600 font-bold text-xs">
+              <LanguageFlag language={selectedLanguage} size="md" />
+              <Text
+                className="text-slate-600 text-xs"
+                style={{ fontFamily: "System", fontWeight: "700" }}
+              >
                 {selectedLanguage.toUpperCase()}
               </Text>
               <Feather
@@ -247,9 +249,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                         selectedLanguage === lang ? "bg-blue-50" : ""
                       }`}
                     >
-                      <Text style={{ fontSize: 16 }}>
-                        {languages[lang].flag}
-                      </Text>
+                      <LanguageFlag language={lang} size="md" />
                       <Text
                         className={`text-sm ${
                           selectedLanguage === lang
