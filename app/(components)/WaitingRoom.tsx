@@ -3,6 +3,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
+import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
@@ -73,6 +74,8 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const coinWarningPulseAnim = useRef(new Animated.Value(1)).current;
 
   const participants = room.players || [];
+  const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
+  const logoTopSpacing = Math.max(headerTop - 12, 31);
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
   const hasEnoughPlayers = participants.length >= 2;
   const canStartGame = hasEnoughPlayers;
@@ -241,12 +244,15 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         onClose={() => setShowRateAppModal(false)}
       />
 
-      <View className="absolute top-20 left-6 z-50 flex-row items-center gap-3">
+      <View
+        className="absolute left-6 z-50 flex-row items-center gap-2"
+        style={{ top: headerTop }}
+      >
         <CoinBalanceDisplay onBuyCoins={handleBuyCoins} />
         <TouchableOpacity
           onPress={handleBuyCoins}
           activeOpacity={0.7}
-          className="bg-amber-50 border border-amber-300 rounded-full px-3 py-1.5 flex-row items-center justify-center gap-1.5 shadow-sm shadow-amber-100/50"
+          className="bg-amber-50 border border-amber-300 rounded-full px-2.5 py-1.5 flex-row items-center justify-center gap-1 shadow-sm shadow-amber-100/50"
         >
           <View className="bg-amber-100 w-4 h-4 rounded-full items-center justify-center">
             <FontAwesome5 name="plus" size={8} color="#B45309" />
@@ -260,7 +266,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View className="absolute top-20 right-6 z-50 flex-row items-center justify-end gap-4">
+      <View
+        className="absolute right-6 z-50 flex-row items-center justify-end gap-3"
+        style={{ top: headerTop }}
+      >
         <LanguageSelector position="none" />
         <SettingsButton onPress={() => setShowSettingsModal(true)} />
       </View>
@@ -270,7 +279,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mt-20">
+        <View style={{ marginTop: logoTopSpacing }}>
           <Logo size="tiny" />
         </View>
         <View className="px-6 mt-4">

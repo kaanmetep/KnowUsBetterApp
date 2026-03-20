@@ -1,5 +1,6 @@
 import Fontisto from "@expo/vector-icons/Fontisto";
 import * as Clipboard from "expo-clipboard";
+import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Alert, Platform, Text, TouchableOpacity, View } from "react-native";
@@ -19,6 +20,7 @@ const ContactUsButton: React.FC<ContactUsButtonProps> = ({
 }) => {
   const { t } = useTranslation();
   const defaultText = t("contact.contactUs");
+  const topOffset = Math.max(Constants.statusBarHeight + 12, 16);
 
   const handleContactUs = async () => {
     try {
@@ -88,15 +90,22 @@ ${t("contact.emailBodyUserId", { userId: appUserId })}`;
   };
 
   const positionClasses = {
-    "top-right": "absolute top-20 right-6 z-10",
-    "top-left": "absolute top-20 left-6 z-10",
+    "top-right": "absolute right-6 z-10",
+    "top-left": "absolute left-6 z-10",
     "bottom-right": "absolute bottom-20 right-6 z-10",
     "bottom-left": "absolute bottom-20 left-6 z-10",
     none: "",
   };
+  const positionStyles = {
+    "top-right": { top: topOffset },
+    "top-left": { top: topOffset },
+    "bottom-right": {},
+    "bottom-left": {},
+    none: {},
+  };
 
   return (
-    <View className={positionClasses[position]}>
+    <View className={positionClasses[position]} style={positionStyles[position]}>
       <TouchableOpacity
         className="bg-white border border-slate-100 rounded-full flex-row items-center justify-center"
         style={{

@@ -1,4 +1,5 @@
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Constants from "expo-constants";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
@@ -15,12 +16,19 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
   position = "top-left",
 }) => {
   const { coins } = useCoins();
+  const topOffset = Math.max(Constants.statusBarHeight + 12, 16);
 
   const positionClasses = {
-    "top-left": "absolute top-20 left-6 z-50",
-    "top-right": "absolute top-20 right-6 z-50",
+    "top-left": "absolute left-6 z-50",
+    "top-right": "absolute right-6 z-50",
     "bottom-left": "absolute bottom-12 left-6 z-50",
     "bottom-right": "absolute bottom-12 right-6 z-50",
+  };
+  const positionStyles = {
+    "top-left": { top: topOffset },
+    "top-right": { top: topOffset },
+    "bottom-left": {},
+    "bottom-right": {},
   };
 
   const containerClasses =
@@ -29,7 +37,10 @@ const CoinBalanceDisplay: React.FC<CoinBalanceDisplayProps> = ({
       : "flex-row items-center gap-3";
 
   return (
-    <View className={containerClasses}>
+    <View
+      className={containerClasses}
+      style={style === "absolute" ? positionStyles[position] : undefined}
+    >
       <TouchableOpacity
         onPress={onBuyCoins}
         activeOpacity={0.8}

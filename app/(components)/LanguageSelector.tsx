@@ -1,4 +1,5 @@
 import Feather from "@expo/vector-icons/Feather";
+import Constants from "expo-constants";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import LanguageFlag from "./LanguageFlag";
@@ -19,14 +20,23 @@ const LanguageSelector = ({
 }: LanguageSelectorProps) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const topOffset = Math.max(Constants.statusBarHeight + 12, 16);
 
   const positionClasses = {
-    "top-right": "absolute top-20 right-6 z-50",
-    "top-left": "absolute top-20 left-6 z-50",
+    "top-right": "absolute right-6 z-50",
+    "top-left": "absolute left-6 z-50",
     "bottom-right": "absolute bottom-20 right-6 z-50",
     "bottom-left": "absolute bottom-20 left-6 z-50",
     none: "",
     onboarding: "",
+  };
+  const positionStyles = {
+    "top-right": { top: topOffset },
+    "top-left": { top: topOffset },
+    "bottom-right": {},
+    "bottom-left": {},
+    none: {},
+    onboarding: {},
   };
 
   const dropdownPositionClasses = {
@@ -39,7 +49,7 @@ const LanguageSelector = ({
   };
 
   return (
-    <View className={positionClasses[position]}>
+    <View className={positionClasses[position]} style={positionStyles[position]}>
       <View className="relative z-50">
         {/* Main Language Button */}
         <TouchableOpacity

@@ -12,6 +12,7 @@ import {
   FontAwesome6,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -167,6 +168,8 @@ const StartOptionsScreen = () => {
     socketService.connect();
     return () => {};
   }, []);
+
+  const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
 
   // Entrance Animations
   useEffect(() => {
@@ -327,7 +330,10 @@ const StartOptionsScreen = () => {
 
       {FLOATING_ICONS.map(renderIcon)}
 
-      <View className="absolute top-20 right-6 z-50 flex-row items-center gap-3">
+      <View
+        className="absolute right-6 z-50 flex-row items-center gap-3"
+        style={{ top: headerTop }}
+      >
         <View className="relative">
           <LanguageSelector position="onboarding" />
         </View>
@@ -439,7 +445,7 @@ const StartOptionsScreen = () => {
       </Animated.View>
 
       {/* --- ANA İÇERİK --- */}
-      <View className="flex-1 justify-center px-6 z-10 ">
+      <View className="flex-1 justify-center px-6 pb-10 z-10 ">
         {/* LOGO ALANI - XS BOYUT */}
         <Animated.View
           style={{

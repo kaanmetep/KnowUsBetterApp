@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+import Constants from "expo-constants";
 import { UserPreferencesService } from "../services/userPreferencesService";
 import CoinPurchaseModal from "./CoinPurchaseModal";
 import LanguageSelector from "./LanguageSelector";
@@ -19,6 +20,7 @@ const OnboardingSteps = () => {
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
   const [isPurchaseModalVisible, setIsPurchaseModalVisible] = useState(false);
   const [isRateAppModalVisible, setIsRateAppModalVisible] = useState(false);
+  const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -88,7 +90,10 @@ const OnboardingSteps = () => {
   return (
     <View className="flex-1 relative">
       {/* Top bar with Language Selector and Settings */}
-      <View className="absolute top-20 right-6 flex-row  items-center justify-end z-50 gap-4">
+      <View
+        className="absolute right-6 flex-row  items-center justify-end z-50 gap-4"
+        style={{ top: headerTop }}
+      >
         <LanguageSelector position="none" />
         <SettingsButton onPress={() => setIsSettingsModalVisible(true)} />
       </View>
