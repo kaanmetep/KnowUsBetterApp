@@ -11,7 +11,8 @@
     "loading": "Cargando...",
     "error": "Error",
     "success": "Éxito",
-    "copied": "¡Copiado!"
+    "copied": "¡Copiado!",
+    "new": "¡NUEVO!"
   },
   "startScreen": {
     "createNewRoom": "Crear Nueva Sala",

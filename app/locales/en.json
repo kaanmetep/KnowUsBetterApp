@@ -11,7 +11,8 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "new": "NEW!"
   },
   "startScreen": {
     "createNewRoom": "Create New Room",

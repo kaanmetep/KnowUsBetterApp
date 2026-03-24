@@ -17,6 +17,7 @@ export interface Category {
   iconType: "FontAwesome6" | "MaterialCommunityIcons";
   coinsRequired: number;
   isPremium: boolean;
+  recentlyAdded: boolean;
   orderIndex: number;
 }
 
@@ -108,9 +109,9 @@ export const getCategories = async (): Promise<Category[]> => {
       iconType: cat.icon_type as "FontAwesome6" | "MaterialCommunityIcons",
       coinsRequired: cat.coins_required || 0,
       isPremium: cat.is_premium || false,
+      recentlyAdded: cat.recently_added || false,
       orderIndex: cat.order_index || 0,
     }));
-
     categoriesCache = categories;
     cacheTimestamp = now;
     await saveToStorage(categories);

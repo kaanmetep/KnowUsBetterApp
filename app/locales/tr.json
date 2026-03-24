@@ -11,7 +11,8 @@
     "loading": "Yükleniyor...",
     "error": "Hata",
     "success": "Başarılı",
-    "copied": "Kopyalandı!"
+    "copied": "Kopyalandı!",
+    "new": "YENİ!"
   },
   "startScreen": {
     "createNewRoom": "Yeni Oda Oluştur",

@@ -11,6 +11,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useCoins } from "../contexts/CoinContext";
@@ -55,7 +56,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const { coins } = useCoins();
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { height } = useWindowDimensions();
   const loadingOpacity = useRef(new Animated.Value(0.4)).current;
+  const newBadgeScale = useRef(new Animated.Value(1)).current;
+  const isSmallScreen = height < 760;
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -94,6 +98,29 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
       pulse.reset();
     };
   }, []);
+
+  useEffect(() => {
+    newBadgeScale.setValue(1);
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(newBadgeScale, {
+          toValue: 1.08,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(newBadgeScale, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => {
+      pulse.stop();
+      pulse.reset();
+    };
+  }, [newBadgeScale]);
 
   useEffect(() => {
     if (visible) loadSavedPreferences();
@@ -171,6 +198,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = selectedCategory !== null;
+  const categoryMaxHeight = isSmallScreen ? 300 : 360;
 
   return (
     <Modal
@@ -196,57 +224,64 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
               shadowOpacity: 0.1,
               shadowRadius: 12,
               elevation: 5,
+              maxHeight: "90%",
             }}
           >
-            {/* Header: Close & Back Buttons */}
-            <View className="flex-row justify-between items-center absolute top-4 left-4 right-4 z-20">
-              <View>
-                {step > 1 && (
-                  <TouchableOpacity
-                    onPress={handleBack}
-                    className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
-                  >
-                    <Ionicons name="arrow-back" size={20} color="#374151" />
-                  </TouchableOpacity>
-                )}
+            <ScrollView
+              scrollEnabled={isSmallScreen}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {/* Header: Close & Back Buttons */}
+              <View className="flex-row justify-between items-center absolute top-4 left-4 right-4 z-20">
+                <View>
+                  {step > 1 && (
+                    <TouchableOpacity
+                      onPress={handleBack}
+                      className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
+                    >
+                      <Ionicons name="arrow-back" size={20} color="#374151" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleClose}
+                  className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="close" size={20} color="#374151" />
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={handleClose}
-                className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center"
-              >
-                <Ionicons name="close" size={20} color="#374151" />
-              </TouchableOpacity>
-            </View>
+              <View className="h-8" />
 
-            <View className="h-8" />
+              {/* STEP INDICATOR */}
+              <View className="flex-row justify-center gap-2 mb-6">
+                {[1, 2, 3].map((s) => {
+                  let bgClass = "bg-gray-100";
+                  if (s === step) bgClass = "bg-rose-400";
+                  else if (s < step) bgClass = "bg-rose-200";
 
-            {/* STEP INDICATOR */}
-            <View className="flex-row justify-center gap-2 mb-6">
-              {[1, 2, 3].map((s) => {
-                let bgClass = "bg-gray-100";
-                if (s === step) bgClass = "bg-rose-400";
-                else if (s < step) bgClass = "bg-rose-200";
-
-                return (
-                  <TouchableOpacity
-                    key={s}
-                    onPress={() => {
-                      if (s === 1) setStep(1);
-                      if (s === 2 && isStep1Valid) setStep(2);
-                      if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
-                    }}
-                    disabled={
-                      (s === 2 && !isStep1Valid) ||
-                      (s === 3 && (!isStep1Valid || !isStep2Valid))
-                    }
-                    activeOpacity={0.8}
-                  >
-                    <View className={`w-8 h-1.5 rounded-full ${bgClass}`} />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                  return (
+                    <TouchableOpacity
+                      key={s}
+                      onPress={() => {
+                        if (s === 1) setStep(1);
+                        if (s === 2 && isStep1Valid) setStep(2);
+                        if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
+                      }}
+                      disabled={
+                        (s === 2 && !isStep1Valid) ||
+                        (s === 3 && (!isStep1Valid || !isStep2Valid))
+                      }
+                      activeOpacity={0.8}
+                    >
+                      <View className={`w-8 h-1.5 rounded-full ${bgClass}`} />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
             {/* --- STEP 1: AVATAR --- */}
             {step === 1 && (
@@ -270,11 +305,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
             {/* --- STEP 2: NAME --- */}
             {step === 2 && (
-              <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
+              <View>
                 <View className="pt-2 pb-4">
                   <NameInput
                     userName={userName}
@@ -293,7 +324,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     variant="pink"
                   />
                 </View>
-              </ScrollView>
+              </View>
             )}
 
             {/* --- STEP 3: CATEGORY --- */}
@@ -313,10 +344,14 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   {t("createRoom.pickCategory")}
                 </Text>
 
-                <ScrollView
-                  className="max-h-[300px] mb-4 -mx-2 px-2"
-                  showsVerticalScrollIndicator={false}
-                >
+                <View className="mb-4 -mx-2 px-2 relative">
+                  <ScrollView
+                    className="pr-1"
+                    style={{ maxHeight: categoryMaxHeight }}
+                    scrollEnabled={true}
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={true}
+                  >
                   {categoriesLoading ? (
                     <View className="py-8 items-center">
                       <Animated.Text
@@ -357,7 +392,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         <TouchableOpacity
                           key={category.id}
                           onPress={() => setSelectedCategory(category.id)}
-                          className="mb-3 rounded-2xl p-4 flex-row items-center justify-between"
+                          className="mb-3 rounded-2xl p-4 flex-row items-center justify-between relative overflow-visible"
                           activeOpacity={0.8}
                           style={{
                             backgroundColor: category.color,
@@ -370,6 +405,23 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             elevation: 2,
                           }}
                         >
+                          {category.recentlyAdded && (
+                            <Animated.View
+                              className="absolute -top-2 -right-2 bg-white rounded-full px-2 py-1 z-20"
+                              style={{
+                                transform: [{ scale: newBadgeScale }],
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 1 },
+                                shadowOpacity: 0.12,
+                                shadowRadius: 2,
+                                elevation: 2,
+                              }}
+                            >
+                              <Text className="text-[10px] font-bold text-rose-500">
+                                {t("common.new")}
+                              </Text>
+                            </Animated.View>
+                          )}
                           <View className="flex-row items-center flex-1">
                             <View className="w-10 h-10 rounded-full bg-white/40 items-center justify-center mr-3">
                               {category.iconType ===
@@ -426,7 +478,8 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       );
                     })
                   )}
-                </ScrollView>
+                  </ScrollView>
+                </View>
 
                 <View className="items-center justify-center mb-2 gap-2">
                   <View className="bg-amber-50 rounded-full px-4 py-1.5 border border-amber-100">
@@ -467,6 +520,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 </View>
               </View>
             )}
+            </ScrollView>
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
