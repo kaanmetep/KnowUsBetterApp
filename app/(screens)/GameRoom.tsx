@@ -6,13 +6,13 @@ import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, AppState, AppStateStatus, Platform } from "react-native";
-import AiAnalysisInfoModal from "../(components)/AiAnalysisInfoModal";
-import AiAnalysisResultModal from "../(components)/AiAnalysisResultModal";
-import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
-import Countdown from "../(components)/Countdown";
-import GameFinished from "../(components)/GameFinished";
-import GamePlay from "../(components)/GamePlay";
-import WaitingRoom from "../(components)/WaitingRoom";
+import AiAnalysisInfoModal from "../(components)/ai-match-analysis/AiAnalysisInfoModal";
+import AiAnalysisResultModal from "../(components)/ai-match-analysis/AiAnalysisResultModal";
+import CoinPurchaseModal from "../(components)/coins/CoinPurchaseModal";
+import Countdown from "../(components)/ui/Countdown";
+import GameFinished from "../(components)/game/GameFinished";
+import GamePlay from "../(components)/game/GamePlay";
+import WaitingRoom from "../(components)/game/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
 import {
@@ -700,7 +700,6 @@ const GameRoom = () => {
           onComplete={handleCountdownComplete}
           onCancel={handleLeaveRoom}
           categoryName={categoryDisplayName || undefined}
-          categoryColor={categoryColor || undefined}
         />
       );
     }

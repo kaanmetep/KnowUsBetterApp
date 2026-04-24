@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { CoinStorageService } from "../services/coinStorageService";
+import { DailyRewardService } from "../services/dailyRewardService";
 import { purchaseService } from "../services/purchaseService";
 import socketService from "../services/socketService";
 
@@ -15,6 +16,10 @@ interface CoinContextType {
   spendCoins: (amount: number) => Promise<boolean>;
   refreshCoins: () => Promise<void>;
   isLoading: boolean;
+  dailyRewardEligible: boolean;
+  nextDailyRewardAt: Date | null;
+  checkDailyReward: () => Promise<void>;
+  claimDailyReward: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const CoinContext = createContext<CoinContextType | undefined>(undefined);
@@ -35,11 +40,25 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
   const [coins, setCoins] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [appUserId, setAppUserId] = useState<string | null>(null);
+  const [dailyRewardEligible, setDailyRewardEligible] =
+    useState<boolean>(false);
+  const [nextDailyRewardAt, setNextDailyRewardAt] = useState<Date | null>(null);
 
   // Load coins when the app is opened
   useEffect(() => {
     loadCoins();
   }, []);
+
+  // Check daily reward eligibility once appUserId is resolved
+  useEffect(() => {
+    if (!appUserId) return;
+    (async () => {
+      const { eligible, nextClaimAt } =
+        await DailyRewardService.checkEligibility(appUserId);
+      setDailyRewardEligible(eligible);
+      setNextDailyRewardAt(nextClaimAt);
+    })();
+  }, [appUserId]);
 
   // Connect to socket and listen for coin updates from the backend via webhook
   useEffect(() => {
@@ -295,6 +314,81 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
     }
   };
 
+  const checkDailyReward = async () => {
+    const id = appUserId || (await purchaseService.getAppUserId());
+    if (!id) {
+      console.warn("⚠️ [DailyReward] checkDailyReward: no appUserId");
+      return;
+    }
+    console.log(`🎁 [DailyReward] Checking eligibility for ${id}`);
+    const { eligible, nextClaimAt } =
+      await DailyRewardService.checkEligibility(id);
+    console.log(
+      `🎁 [DailyReward] eligible=${eligible}, nextClaimAt=${nextClaimAt?.toISOString() ?? "null"}`
+    );
+    setDailyRewardEligible(eligible);
+    setNextDailyRewardAt(nextClaimAt);
+  };
+
+  const claimDailyReward = async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    const id = appUserId || (await purchaseService.getAppUserId());
+    if (!id) {
+      console.error("❌ [DailyReward] claimDailyReward: no appUserId");
+      return { success: false, error: "no_user_id" };
+    }
+
+    const isSocketConnected = socketService.getConnectionStatus();
+    console.log(
+      `🎁 [DailyReward] Claiming for ${id} | socket connected: ${isSocketConnected}`
+    );
+
+    return new Promise((resolve) => {
+      let timeoutId: ReturnType<typeof setTimeout>;
+
+      const handleResult = (data: {
+        appUserId: string;
+        success: boolean;
+        newBalance: number;
+        nextClaimAt: string;
+        error?: string;
+      }) => {
+        if (data.appUserId !== id) return;
+        clearTimeout(timeoutId);
+        socketService.offDailyRewardClaimed(handleResult);
+
+        console.log(
+          `🎁 [DailyReward] daily-reward-claimed received: success=${data.success} newBalance=${data.newBalance} error=${data.error ?? "none"}`
+        );
+
+        if (data.success) {
+          setCoins(data.newBalance);
+          CoinStorageService.saveBalance(id, data.newBalance);
+          DailyRewardService.setNextClaimAt(data.nextClaimAt);
+          setDailyRewardEligible(false);
+          setNextDailyRewardAt(new Date(data.nextClaimAt));
+        }
+
+        resolve({ success: data.success, error: data.error });
+      };
+
+      socketService.onDailyRewardClaimed(handleResult);
+
+      timeoutId = setTimeout(() => {
+        socketService.offDailyRewardClaimed(handleResult);
+        console.error(
+          "❌ [DailyReward] Timeout: no response from backend in 10s. Backend may not have the claim-daily-reward handler yet."
+        );
+        resolve({ success: false, error: "timeout" });
+      }, 10000);
+
+      console.log("🎁 [DailyReward] Emitting claim-daily-reward...");
+      socketService.claimDailyReward(id);
+    });
+  };
+
   const refreshCoins = async () => {
     await loadCoins();
   };
@@ -307,6 +401,10 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
         spendCoins,
         refreshCoins,
         isLoading,
+        dailyRewardEligible,
+        nextDailyRewardAt,
+        checkDailyReward,
+        claimDailyReward,
       }}
     >
       {children}

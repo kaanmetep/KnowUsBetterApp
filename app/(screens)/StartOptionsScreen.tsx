@@ -5,13 +5,7 @@ import {
   MerriweatherSans_700Bold,
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
-import {
-  Entypo,
-  Feather,
-  FontAwesome5,
-  FontAwesome6,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -26,112 +20,21 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AnnouncementBanner from "../(components)/AnnouncementBanner";
-import AnnouncementsModal from "../(components)/AnnouncementsModal";
-import CoinBalanceDisplay from "../(components)/CoinBalanceDisplay";
-import CoinPurchaseModal from "../(components)/CoinPurchaseModal";
-import CreateNewRoom from "../(components)/CreateNewRoom";
-import JoinExistingRoom from "../(components)/JoinExistingRoom";
-import LanguageSelector from "../(components)/LanguageSelector";
-import LearnHowToPlay from "../(components)/LearnHowToPlay";
-import Logo from "../(components)/Logo";
-import RateAppFeedbackModal from "../(components)/RateAppFeedbackModal";
-import SettingsButton from "../(components)/SettingsButton";
-import SettingsModal from "../(components)/SettingsModal";
+import AnnouncementBanner from "../(components)/announcements/AnnouncementBanner";
+import AnnouncementsModal from "../(components)/announcements/AnnouncementsModal";
+import CoinPurchaseModal from "../(components)/coins/CoinPurchaseModal";
+import DailyRewardBanner from "../(components)/coins/DailyRewardBanner";
+import CreateNewRoom from "../(components)/game/CreateNewRoom";
+import JoinExistingRoom from "../(components)/game/JoinExistingRoom";
+import LearnHowToPlay from "../(components)/game/LearnHowToPlay";
+import RateAppFeedbackModal from "../(components)/profile/RateAppFeedbackModal";
+import SettingsButton from "../(components)/settings/SettingsButton";
+import SettingsModal from "../(components)/settings/SettingsModal";
+import Logo from "../(components)/ui/Logo";
 import { useTranslation } from "../hooks/useTranslation";
 import socketService from "../services/socketService";
 
 const { width, height } = Dimensions.get("window");
-
-// ARTIRILMIŞ VE KENARLARA SERPİŞTİRİLMİŞ İKONLAR
-const FLOATING_ICONS = [
-  // --- SOL ÜST BÖLGE ---
-  {
-    name: "heart",
-    lib: "FA5",
-    size: 24,
-    color: "#FFDECF",
-    top: "15%",
-    left: "4%",
-    rotate: "-25deg",
-  },
-  {
-    name: "leaf",
-    lib: "Entypo",
-    size: 18,
-    color: "#E0F2F1",
-    top: "20%",
-    left: "22%",
-    rotate: "45deg",
-  },
-  {
-    name: "ghost",
-    lib: "FA5",
-    size: 16,
-    color: "#F3E5F5",
-    top: "22%",
-    left: "48%",
-    rotate: "10deg",
-  },
-
-  // --- SAĞ ÜST BÖLGE ---
-  {
-    name: "heart",
-    lib: "FA5",
-    size: 16,
-    color: "#FFDECF",
-    top: "18%",
-    right: "8%",
-    rotate: "-30deg",
-  },
-  {
-    name: "ladybug",
-    lib: "MCI",
-    size: 22,
-    color: "#FFEBEE",
-    top: "24%",
-    right: "4%",
-    rotate: "20deg",
-  },
-
-  // --- SAĞ ALT BÖLGE ---
-  {
-    name: "ladybug",
-    lib: "MCI",
-    size: 26,
-    color: "#FFEBEE",
-    bottom: "20%",
-    right: "26%",
-    rotate: "45deg",
-  },
-  {
-    name: "heart",
-    lib: "FA5",
-    size: 18,
-    color: "#FFDECF",
-    bottom: "5%",
-    right: "18%",
-    rotate: "-15deg",
-  },
-  {
-    name: "leaf",
-    lib: "Entypo",
-    size: 16,
-    color: "#E0F2F1",
-    bottom: "18%",
-    right: "3%",
-    rotate: "60deg",
-  },
-  {
-    name: "ghost",
-    lib: "FA5",
-    size: 14,
-    color: "#F3E5F5",
-    bottom: "12%",
-    right: "38%",
-    rotate: "-5deg",
-  },
-];
 
 const StartOptionsScreen = () => {
   const router = useRouter();
@@ -145,17 +48,17 @@ const StartOptionsScreen = () => {
   const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Animations
-  const createButtonScale = useRef(new Animated.Value(0.9)).current;
-  const createButtonOpacity = useRef(new Animated.Value(0)).current;
-  const joinButtonScale = useRef(new Animated.Value(0.9)).current;
-  const joinButtonOpacity = useRef(new Animated.Value(0)).current;
-  const learnButtonOpacity = useRef(new Animated.Value(0)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
-
-  // İllüstrasyonların giriş animasyonu için
-  const imageSlideIn = useRef(new Animated.Value(50)).current;
-  const imageOpacity = useRef(new Animated.Value(0)).current;
+  const logoY = useRef(new Animated.Value(-12)).current;
+  const heroOpacity = useRef(new Animated.Value(0)).current;
+  const heroScale = useRef(new Animated.Value(2)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardY = useRef(new Animated.Value(32)).current;
+  const createOpacity = useRef(new Animated.Value(0)).current;
+  const createY = useRef(new Animated.Value(20)).current;
+  const joinOpacity = useRef(new Animated.Value(0)).current;
+  const joinY = useRef(new Animated.Value(20)).current;
+  const helpOpacity = useRef(new Animated.Value(0)).current;
 
   let [fontsLoaded] = useFonts({
     MerriweatherSans_400Regular,
@@ -171,101 +74,80 @@ const StartOptionsScreen = () => {
 
   const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
 
-  // Entrance Animations
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(imageOpacity, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(imageSlideIn, {
-        toValue: 0,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-      Animated.stagger(150, [
+    Animated.stagger(70, [
+      Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1,
-          duration: 600,
+          duration: 500,
           useNativeDriver: true,
         }),
-        Animated.parallel([
-          Animated.spring(createButtonScale, {
-            toValue: 1,
-            friction: 6,
-            useNativeDriver: true,
-          }),
-          Animated.timing(createButtonOpacity, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.spring(joinButtonScale, {
-            toValue: 1,
-            friction: 6,
-            useNativeDriver: true,
-          }),
-          Animated.timing(joinButtonOpacity, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.timing(learnButtonOpacity, {
-          toValue: 1,
-          duration: 400,
-          delay: 200,
+        Animated.spring(logoY, {
+          toValue: 0,
+          friction: 9,
           useNativeDriver: true,
         }),
       ]),
+      Animated.parallel([
+        Animated.timing(heroOpacity, {
+          toValue: 1,
+          duration: 650,
+          useNativeDriver: true,
+        }),
+        Animated.spring(heroScale, {
+          toValue: 1,
+          friction: 9,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(cardY, {
+          toValue: 0,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(createOpacity, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: true,
+        }),
+        Animated.spring(createY, {
+          toValue: 0,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(joinOpacity, {
+          toValue: 1,
+          duration: 350,
+          useNativeDriver: true,
+        }),
+        Animated.spring(joinY, {
+          toValue: 0,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.timing(helpOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
     ]).start();
   }, []);
-
-  const renderIcon = (icon: any, index: number) => {
-    let IconLib: any;
-    switch (icon.lib) {
-      case "FA5":
-        IconLib = FontAwesome5;
-        break;
-      case "MCI":
-        IconLib = MaterialCommunityIcons;
-        break;
-      case "Feather":
-        IconLib = Feather;
-        break;
-      case "Entypo":
-        IconLib = Entypo;
-        break;
-      default:
-        IconLib = FontAwesome5;
-    }
-
-    return (
-      <View
-        key={index}
-        style={{
-          position: "absolute",
-          top: icon.top,
-          left: icon.left,
-          right: icon.right,
-          bottom: icon.bottom,
-          transform: [{ rotate: icon.rotate }],
-          zIndex: 0,
-          opacity: 0.6,
-        }}
-      >
-        <IconLib name={icon.name} size={icon.size} color={icon.color} />
-      </View>
-    );
-  };
 
   const handleCreateRoom = async (
     userName: string,
     category: string,
-    avatar: string = "😊"
+    avatar: string = "😊",
   ): Promise<void> => {
     try {
       setIsLoading(true);
@@ -279,7 +161,7 @@ const StartOptionsScreen = () => {
       Alert.alert(
         t("alerts.oops"),
         error?.message || t("errors.roomCreateError"),
-        [{ text: t("common.ok") }]
+        [{ text: t("common.ok") }],
       );
     } finally {
       setIsLoading(false);
@@ -289,14 +171,14 @@ const StartOptionsScreen = () => {
   const handleJoinRoom = async (
     userName: string,
     roomCode: string,
-    avatar: string = "😊"
+    avatar: string = "😊",
   ): Promise<void> => {
     try {
       setIsLoading(true);
       const result = await socketService.joinRoom(
         roomCode.toUpperCase(),
         userName,
-        avatar
+        avatar,
       );
       setShowJoinModal(false);
       router.push({
@@ -325,296 +207,277 @@ const StartOptionsScreen = () => {
   if (!fontsLoaded) return null;
 
   return (
-    <View className="flex-1 bg-white relative">
+    <View style={{ flex: 1, backgroundColor: "#FFF8F5" }}>
       <StatusBar barStyle="dark-content" />
 
-      {FLOATING_ICONS.map(renderIcon)}
-
+      {/* Header row — DailyReward left, Settings right */}
       <View
-        className="absolute right-6 z-50 flex-row items-center gap-3"
-        style={{ top: headerTop }}
+        style={{
+          position: "absolute",
+          top: headerTop,
+          left: 16,
+          right: 20,
+          zIndex: 50,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
       >
-        <View className="relative">
-          <LanguageSelector position="onboarding" />
-        </View>
-        <CoinBalanceDisplay
-          onBuyCoins={() => {
-            setShowSettingsModal(false);
-            setShowPurchaseModal(true);
-          }}
-        />
-        <SettingsButton onPress={() => setShowSettingsModal(true)} />
+        <Animated.View style={{ opacity: logoOpacity }}>
+          <DailyRewardBanner />
+        </Animated.View>
+        <Animated.View style={{ opacity: logoOpacity }}>
+          <SettingsButton onPress={() => setShowSettingsModal(true)} />
+        </Animated.View>
       </View>
 
-      {/* --- KIZ GÖRSELİ (Arka Planda) --- */}
-      <Animated.View
+      {/* Hero — logo + couple illustration */}
+      <View
         style={{
-          position: "absolute",
-          top: height * 0.1,
-          right: -40,
-          opacity: imageOpacity,
-          transform: [{ translateX: imageSlideIn }],
-          // 3. Z-Index: -1 (En arkaya atıldı)
-
+          flex: 1,
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-end",
+          paddingBottom: 0,
+          paddingTop: headerTop + 128,
         }}
       >
-        {/* Glow Effect */}
-        <View
-          style={{
-            position: "absolute",
-            width: width * 0.7,
-            height: width * 0.7,
-            borderRadius: width * 0.35,
-            backgroundColor: "#FFEEE8",
-            opacity: 0.15, // Glow çok silik
-            transform: [{ scale: 1.2 }],
-            shadowColor: "#FFAB91",
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.2,
-            shadowRadius: 60,
-            zIndex: -1,
-          }}
-        />
-        {/* Resim */}
-        <Image
-          source={require("../../assets/images/step1-girl.webp")}
-          style={{
-            width: width * 0.45,
-            height: height * 0.5,
-            // 2. Opacity: İyice kısıldı (0.3)
-            opacity: 0.3,
-          }}
-          // 1. Blur: Hafif fluluk eklendi (Depth of field)
-          blurRadius={1.5}
-          contentFit="contain"
-        />
-      </Animated.View>
-
-      {/* --- ERKEK GÖRSELİ (Arka Planda) --- */}
-      <Animated.View
-        style={{
-          position: "absolute",
-          bottom: -height * 0.10,
-          left: -30,
-          opacity: imageOpacity,
-          transform: [
-            {
-              translateX: Animated.multiply(
-                imageSlideIn,
-                new Animated.Value(-1)
-              ),
-            },
-          ],
-
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {/* Glow Effect */}
-        <View
-          style={{
-            position: "absolute",
-            width: width * 0.8,
-            height: width * 0.8,
-            borderRadius: width * 0.4,
-            backgroundColor: "#EBF8FF",
-            opacity: 0.15, // Glow çok silik
-            transform: [{ scale: 1.1 }],
-            shadowColor: "#74C0FC",
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.2,
-            shadowRadius: 60,
-            zIndex: -1,
-          }}
-        />
-        {/* Resim */}
-        <Image
-          source={require("../../assets/images/step2-boy.webp")}
-          style={{
-            width: width * 0.5,
-            height: height * 0.55,
-            // 2. Opacity: İyice kısıldı (0.3)
-            opacity: 0.2,
-          }}
-          // 1. Blur: Hafif fluluk eklendi (Depth of field)
-          blurRadius={1.5}
-          contentFit="contain"
-        />
-      </Animated.View>
-
-      {/* --- ANA İÇERİK --- */}
-      <View className="flex-1 justify-center px-6 pb-10 z-10 ">
-        {/* LOGO ALANI - XS BOYUT */}
         <Animated.View
           style={{
             opacity: logoOpacity,
-            marginBottom: 20,
+            transform: [{ translateY: logoY }],
             alignItems: "center",
-            width: "100%",
+            marginBottom: -46,
           }}
         >
-          <Logo size="xs" />
+          <Logo size="sm" />
         </Animated.View>
 
-        {/* BUTONLAR */}
-        <View className="w-full gap-5">
-          {/* Create New Room Button */}
-          <Animated.View
+        <Animated.View
+          style={{
+            opacity: heroOpacity,
+            transform: [{ scale: heroScale }],
+            marginBottom: -82,
+          }}
+        >
+          <Image
+            source={require("../../assets/images/deneme2.png")}
             style={{
-              opacity: createButtonOpacity,
-              transform: [{ scale: createButtonScale }],
+              width: width * 1,
+              height: height * 0.4,
             }}
-          >
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => setShowCreateModal(true)}
-              style={{
-                borderRadius: 24,
-                shadowColor: "#FF8080",
-                shadowOffset: {
-                  width: 0,
-                  height: 8,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
-            >
-              <LinearGradient
-                colors={["#FFF0F0", "#FFE0E0", "#FFD5D5"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  borderRadius: 24,
-                  paddingVertical: 22,
-                  paddingHorizontal: 24,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  borderWidth: 1.5,
-                  borderColor: "#FFBDBD",
-                }}
-              >
-                <View className="flex-row items-center gap-4 flex-1">
-                  <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm shadow-red-100">
-                    <Entypo name="plus" size={24} color="#FF8080" />
-                  </View>
-                  <View>
-                    <Text
-                      className="text-slate-800 text-lg"
-                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                    >
-                      {t("startScreen.createNewRoom")}
-                    </Text>
-                    <Text
-                      className="text-slate-500 text-xs mt-0.5"
-                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                    >
-                      {t("startScreen.hostAGame")}
-                    </Text>
-                  </View>
-                </View>
-                <Feather name="chevron-right" size={20} color="#FF8080" />
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
+            contentFit="contain"
+          />
 
-          {/* Join Existing Room Button */}
-          <Animated.View
+          <LinearGradient
+            colors={["transparent", "white"]}
             style={{
-              opacity: joinButtonOpacity,
-              transform: [{ scale: joinButtonScale }],
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "45%",
             }}
-          >
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => setShowJoinModal(true)}
-              style={{
-                borderRadius: 24,
-                shadowColor: "#74C0FC",
-                shadowOffset: {
-                  width: 0,
-                  height: 8,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
-            >
-              <LinearGradient
-                colors={["#EDF5FF", "#D8ECFF", "#C3E3FF"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  borderRadius: 24,
-                  paddingVertical: 22,
-                  paddingHorizontal: 24,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  borderWidth: 1.5,
-                  borderColor: "#A8D8FF",
-                }}
-              >
-                <View className="flex-row items-center gap-4 flex-1">
-                  <View className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm shadow-blue-100">
-                    <FontAwesome6 name="user-group" size={18} color="#5DB3FF" />
-                  </View>
-                  <View>
-                    <Text
-                      className="text-slate-800 text-lg"
-                      style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                    >
-                      {t("startScreen.joinExistingRoom")}
-                    </Text>
-                    <Text
-                      className="text-slate-500 text-xs mt-0.5"
-                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                    >
-                      {t("startScreen.enterCode")}
-                    </Text>
-                  </View>
-                </View>
-                <Feather name="chevron-right" size={20} color="#5DB3FF" />
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* How to Play Button */}
-          <Animated.View
-            style={{
-              opacity: learnButtonOpacity,
-              alignSelf: "center",
-              marginTop: 15,
-            }}
-          >
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setShowHowToPlayModal(true)}
-              className="bg-white/90 border border-slate-200 rounded-full px-6 py-3 shadow-md shadow-slate-200 flex-row items-center gap-2 backdrop-blur-md"
-            >
-              <Feather name="help-circle" size={16} color="#64748B" />
-              <Text
-                className="text-slate-600 text-sm font-semibold"
-                style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
-              >
-                {t("startScreen.learnHowToPlay")}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-
-        </View>
+            pointerEvents="none"
+          />
+        </Animated.View>
       </View>
 
-      {/* ANNOUNCEMENT BANNER - bottom */}
+      {/* Action card */}
       <Animated.View
-        className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-10"
-        style={{ opacity: learnButtonOpacity }}
+        style={{
+          opacity: cardOpacity,
+          transform: [{ translateY: cardY }],
+          backgroundColor: "white",
+          borderTopLeftRadius: 0,
+          borderTopRightRadius: 0,
+          paddingHorizontal: 24,
+          paddingTop: 16,
+          paddingBottom: 28,
+          shadowColor: "#2D0A14",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 20,
+          elevation: 14,
+        }}
       >
-        <AnnouncementBanner
-          onViewAll={() => setShowAnnouncementsModal(true)}
+        {/* Drag handle */}
+        <View
+          style={{
+            width: 36,
+            height: 4,
+            backgroundColor: "#E9EEF4",
+            borderRadius: 2,
+            alignSelf: "center",
+            marginBottom: 24,
+          }}
         />
+
+        {/* Create New Room */}
+        <Animated.View
+          style={{
+            opacity: createOpacity,
+            transform: [{ translateY: createY }],
+            marginBottom: 12,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setShowCreateModal(true)}
+            style={{
+              backgroundColor: "#C94B6A",
+              borderRadius: 20,
+              paddingVertical: 18,
+              paddingHorizontal: 22,
+              flexDirection: "row",
+              alignItems: "center",
+              shadowColor: "#C94B6A",
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.32,
+              shadowRadius: 14,
+              elevation: 8,
+            }}
+          >
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 13,
+                backgroundColor: "rgba(255,255,255,0.18)",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 16,
+              }}
+            >
+              <Entypo name="plus" size={22} color="white" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 16,
+                  color: "white",
+                  letterSpacing: 0.1,
+                }}
+              >
+                {t("startScreen.createNewRoom")}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_400Regular",
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.7)",
+                  marginTop: 2,
+                }}
+              >
+                {t("startScreen.hostAGame")}
+              </Text>
+            </View>
+            <Feather
+              name="chevron-right"
+              size={19}
+              color="rgba(255,255,255,0.65)"
+            />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Join Existing Room */}
+        <Animated.View
+          style={{
+            opacity: joinOpacity,
+            transform: [{ translateY: joinY }],
+            marginBottom: 20,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => setShowJoinModal(true)}
+            style={{
+              backgroundColor: "white",
+              borderRadius: 20,
+              paddingVertical: 18,
+              paddingHorizontal: 22,
+              flexDirection: "row",
+              alignItems: "center",
+              borderWidth: 1.5,
+              borderColor: "#EDCDD7",
+              shadowColor: "#C94B6A",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.07,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <View
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 13,
+                backgroundColor: "#FFF0F3",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 16,
+              }}
+            >
+              <FontAwesome6 name="user-group" size={17} color="#C94B6A" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 16,
+                  color: "#1E293B",
+                  letterSpacing: 0.1,
+                }}
+              >
+                {t("startScreen.joinExistingRoom")}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_400Regular",
+                  fontSize: 12,
+                  color: "#94A3B8",
+                  marginTop: 2,
+                }}
+              >
+                {t("startScreen.enterCode")}
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={19} color="#C94B6A" />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* How to Play */}
+        <Animated.View
+          style={{
+            opacity: helpOpacity,
+            alignItems: "center",
+            marginBottom: 18,
+          }}
+        >
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setShowHowToPlayModal(true)}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <Feather name="help-circle" size={14} color="#B0BCCA" />
+            <Text
+              style={{
+                fontFamily: "MerriweatherSans_600SemiBold",
+                fontSize: 13,
+                color: "#B0BCCA",
+              }}
+            >
+              {t("startScreen.learnHowToPlay")}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Announcement Banner */}
+        <Animated.View style={{ opacity: helpOpacity, alignItems: "center" }}>
+          <AnnouncementBanner
+            onViewAll={() => setShowAnnouncementsModal(true)}
+          />
+        </Animated.View>
       </Animated.View>
 
       {/* Modals */}
@@ -657,8 +520,6 @@ const StartOptionsScreen = () => {
         visible={showRateAppModal}
         onClose={() => setShowRateAppModal(false)}
       />
-
-
     </View>
   );
 };

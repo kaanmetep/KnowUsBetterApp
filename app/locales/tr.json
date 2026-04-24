@@ -34,7 +34,7 @@
     "step2Description": "Oda kodunu partnerinle paylaş.",
     "step3Label": "Adım 3",
     "step3Title": "Soruları Cevapla",
-    "step3Description": "Soruları cevaplayın ve ne kadar uyumlu olduğunuzu görün.",
+    "step3Description": "Soruları cevaplayın ve partnerinle eşleşme yüzdenizi görün!",
     "startPlaying": "Oynamaya Başla",
     "termsModalTitle": "Kullanım Şartları ve Politikalar",
     "termsModalIntroPrefix": "KnowUsBetter'ı kullanarak ",
@@ -116,9 +116,9 @@
     "emailCopiedToClipboard": "E-posta panoya kopyalandı!"
   },
   "logo": {
-    "message1": "Birlikte Bağlantınızı Test Edin",
-    "message2": "Gerçek İkinizi Keşfedin",
-    "message3": "Cevaplayın, Gülün ve Bağlanın"
+    "message1": "Farklı telefonlardan eş zamanlı oynayın",
+    "message2": "Eşleşme yüzdenizi görün",
+    "message3": "Yapay zeka destekli ilişki analizinizi öğrenin"
   },
   "settings": {
     "title": "Ayarlar",
@@ -292,5 +292,16 @@
     "viewAll": "Tümünü Gör",
     "learnMore": "Daha Fazla",
     "noAnnouncements": "Duyuru yok"
+  },
+  "dailyReward": {
+    "label": "Coin Ödülü",
+    "labelFull": "Ücretsiz Coin Ödülü",
+    "remaining": "Kalan Süre:",
+    "claimTitle": "Günlük Ücretsiz Coin!",
+    "claimSubtitle": "Günlük ödülünü almak için dokun",
+    "claimButton": "Al",
+    "claimSuccess": "Alındı!",
+    "nextReward": "Sonraki ücretsiz coin:",
+    "ready": "HAZIR"
   }
 }

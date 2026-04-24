@@ -34,7 +34,7 @@
     "step2Description": "Comparte el código de la sala con tu pareja.",
     "step3Label": "Paso 3",
     "step3Title": "Responde las preguntas",
-    "step3Description": "Responde preguntas y ve qué tan bien coinciden.",
+    "step3Description": "¡Responde las preguntas y ve tu porcentaje de coincidencia con tu pareja!",
     "startPlaying": "Comenzar a Jugar",
     "termsModalTitle": "Términos y Políticas",
     "termsModalIntroPrefix": "Al usar KnowUsBetter, aceptas nuestros ",
@@ -116,9 +116,9 @@
     "emailCopiedToClipboard": "¡El correo ha sido copiado al portapapeles!"
   },
   "logo": {
-    "message1": "Prueben Su Conexión Juntos",
-    "message2": "Conozcan al Verdadero Ustedes Dos",
-    "message3": "Respondan, Rían y Conéctense"
+    "message1": "Jueguen simultáneamente desde distintos teléfonos",
+    "message2": "Vean su porcentaje de compatibilidad",
+    "message3": "Descubran su análisis de relación con IA"
   },
   "settings": {
     "title": "Configuración",
@@ -292,5 +292,16 @@
     "viewAll": "Ver Todo",
     "learnMore": "Saber Más",
     "noAnnouncements": "No hay anuncios"
+  },
+  "dailyReward": {
+    "label": "Premio Coin",
+    "labelFull": "Premio Coin Gratis",
+    "remaining": "Tiempo:",
+    "claimTitle": "¡Moneda Diaria Gratis!",
+    "claimSubtitle": "Toca para reclamar tu recompensa diaria",
+    "claimButton": "Reclamar",
+    "claimSuccess": "¡Reclamada!",
+    "nextReward": "Próxima moneda gratis en:",
+    "ready": "LISTO"
   }
 }

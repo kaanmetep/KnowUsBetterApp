@@ -34,7 +34,7 @@
     "step2Description": "Share the room code with your partner.",
     "step3Label": "Step 3",
     "step3Title": "Answer the questions",
-    "step3Description": "Answer questions and see how well you match.",
+    "step3Description": "Answer the questions and see your match percentage with your partner!",
     "startPlaying": "Start Playing",
     "termsModalTitle": "Terms & Policies",
     "termsModalIntroPrefix": "By using KnowUsBetter, you agree to our ",
@@ -116,9 +116,9 @@
     "emailCopiedToClipboard": "Email has been copied to clipboard!"
   },
   "logo": {
-    "message1": "Test Your Connection Together",
-    "message2": "Get to Know the Real You Two",
-    "message3": "Answer, Laugh, and Connect"
+    "message1": "Play simultaneously from different phones",
+    "message2": "See your match percentage",
+    "message3": "Discover your AI-powered relationship analysis"
   },
   "settings": {
     "title": "Settings",
@@ -292,5 +292,16 @@
     "viewAll": "View All",
     "learnMore": "Learn More",
     "noAnnouncements": "No announcements"
+  },
+  "dailyReward": {
+    "label": "Coin Reward",
+    "labelFull": "Free Coin Reward",
+    "remaining": "Time Left:",
+    "claimTitle": "Daily Free Coin!",
+    "claimSubtitle": "Tap to claim your daily reward",
+    "claimButton": "Claim",
+    "claimSuccess": "Claimed!",
+    "nextReward": "Next free coin in:",
+    "ready": "READY"
   }
 }

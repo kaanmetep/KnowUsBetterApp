@@ -3,7 +3,7 @@ import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import LoadingScreen from "./(components)/LoadingScreen";
+import LoadingScreen from "./(components)/ui/LoadingScreen";
 import { CoinProvider } from "./contexts/CoinContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import "./globals.css";

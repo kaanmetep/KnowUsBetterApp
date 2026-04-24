@@ -524,6 +524,50 @@ class SocketService {
     }
     this.socket.off("coins-added", callback);
   }
+
+  claimDailyReward(appUserId: string): void {
+    if (!this.socket) {
+      console.error("❌ Socket not connected");
+      return;
+    }
+    this.socket.emit("claim-daily-reward", { appUserId });
+  }
+
+  onDailyRewardClaimed(
+    callback: (data: {
+      appUserId: string;
+      success: boolean;
+      newBalance: number;
+      nextClaimAt: string;
+      error?: string;
+    }) => void
+  ): void {
+    const socket = this.connect();
+    if (!socket) {
+      console.error("❌ Failed to establish socket connection");
+      return;
+    }
+    if (socket.connected) {
+      socket.on("daily-reward-claimed", callback);
+    } else {
+      socket.once("connect", () => {
+        socket.on("daily-reward-claimed", callback);
+      });
+    }
+  }
+
+  offDailyRewardClaimed(
+    callback?: (data: {
+      appUserId: string;
+      success: boolean;
+      newBalance: number;
+      nextClaimAt: string;
+      error?: string;
+    }) => void
+  ): void {
+    if (!this.socket) return;
+    this.socket.off("daily-reward-claimed", callback);
+  }
 }
 
 export default new SocketService();
