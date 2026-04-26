@@ -21,6 +21,7 @@ interface AiAnalysisInfoModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onBuyCoins?: () => void;
 }
 
 const AI_COST = 3;
@@ -29,6 +30,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
   visible,
   onClose,
   onConfirm,
+  onBuyCoins,
 }) => {
   const { t } = useTranslation();
   const { coins } = useCoins();
@@ -150,7 +152,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
           </View>
 
           {/* Coin Balance */}
-          <View className="items-center mb-5">
+          <View className="items-center mb-5 gap-2">
             <View className="bg-amber-50 rounded-full px-4 py-1.5 border border-amber-100">
               <Text
                 className="text-amber-700 text-xs font-medium"
@@ -161,6 +163,20 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
                 <Text>{t("coins.youHave", { coins })}</Text>
               </Text>
             </View>
+            {onBuyCoins && coins < AI_COST && (
+              <TouchableOpacity
+                onPress={onBuyCoins}
+                activeOpacity={0.75}
+                className="flex-row items-center gap-1.5 px-4 py-1.5 rounded-full bg-yellow-400"
+              >
+                <FontAwesome6 name="coins" size={11} color="#713f12" />
+                <Text
+                  style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12, color: "#713f12" }}
+                >
+                  {t("coins.buyCoins")}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Confirm Button */}

@@ -83,7 +83,7 @@
     "yourAnswer": "Cevabınız",
     "yes": "Evet",
     "no": "Hayır",
-    "waitingForPartner": "Partnerinizin cevap vermesini bekliyoruz...",
+    "waitingForPartner": "Partnerinizin cevap vermesini bekliyoruz",
     "opponentAnswered": "{{name}} soruyu yanıtladı.",
     "leaveButton": "Ayrıl",
     "leaveRoomButton": "Odadan Ayrıl",
@@ -229,7 +229,9 @@
     "startGame": "Oyunu Başlat",
     "waitingForPlayers": "Oyuncular Bekleniyor...",
     "leaveRoom": "Odadan Ayrıl",
-    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n"
+    "shareMessage": "🎮 KnowUsBetter odama katıl!\n\nOda Kodu: {{code}}\n\nHemen katılmak için tıkla:\n",
+    "changeCategoryTitle": "Kategoriyi Değiştir",
+    "changeCategorySubtitle": "Odanız için yeni bir kategori seçin"
   },
   "roundResult": {
     "questionLabel": "Soru",
@@ -286,6 +288,27 @@
       "low": "Oldukça farklısınız, ama bazen tam da bu çeşitlilik işe yarar.",
       "veryLow": "Farklarınız belirgin, ama bazen en iyi uyum farklılıklardan çıkar."
     }
+  },
+  "knowMeWell": {
+    "backToRoom": "Odaya Dön",
+    "categoryTitle": "Ne Kadar Tanıyorsun?",
+    "resultsTitle": "Sonuçlar",
+    "aboutLabel": "{{name}} hakkında",
+    "knowledgeQuestion": "{{guesser}}, {{subject}}'i ne kadar tanıyor?",
+    "correctAnswers": "{{score}} / {{total}} doğru",
+    "correctTag": "Doğru",
+    "wrongTag": "Yanlış",
+    "realAnswerLabel": "Gerçek cevap",
+    "guessLabel": "Tahmin",
+    "aiButton": "İlişkinizin Kör Noktaları",
+    "aiButtonSub": "Birbiriniz hakkındaki kör noktaların detaylı yapay zekâ analizi",
+    "aiModalTitle": "İlişkinizdeki Kör Noktaları Keşfedin",
+    "aiModalDesc": "Yapay zeka, birbiriniz hakkında yanıldığınız soruları analiz edecek ve hâlâ keşfetmeniz gereken şeyleri ortaya koyacak.",
+    "aiModalFeature1": "Birbiriniz hakkında henüz bilmediğiniz şeyler",
+    "aiModalFeature2": "Bu boşlukların anlamı",
+    "aiModalFeature3": "Birbirinizi daha iyi anlamak için öneriler",
+    "aiModalConfirm": "Analizi Başlat",
+    "aiModalCancel": "Vazgeç"
   },
   "announcements": {
     "title": "Son Duyurular",

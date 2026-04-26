@@ -5,6 +5,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Dimensions,
   Pressable,
   Text,
   TouchableOpacity,
@@ -17,7 +18,11 @@ import {
   getCategoryById,
   getCategoryLabel,
 } from "../../services/categoryService";
-import { getQuestionAnswers, getQuestionText } from "../../utils/questionUtils";
+import {
+  getQuestionAnswers,
+  getResolvedQuestionText,
+  resolvePlayerName,
+} from "../../utils/questionUtils";
 import Countdown from "../ui/Countdown";
 import LanguageFlag from "../settings/LanguageFlag";
 import Logo from "../ui/Logo";
@@ -25,6 +30,8 @@ import RateAppFeedbackModal from "../profile/RateAppFeedbackModal";
 import RoundResult from "./RoundResult";
 import SettingsButton from "../settings/SettingsButton";
 import SettingsModal from "../settings/SettingsModal";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const GlassPill: React.FC<{
   children: React.ReactNode;
@@ -38,51 +45,212 @@ const GlassPill: React.FC<{
   </View>
 );
 
-const AnswerNotification: React.FC<{ text: string }> = React.memo(
-  ({ text }) => {
-    const animValue = useRef(new Animated.Value(0)).current;
-    const slideValue = useRef(new Animated.Value(20)).current; // Slide up from bottom
-    const hasAnimated = useRef(false);
+const SelectedIcon: React.FC<{ type: "yes" | "no" | "custom" }> = ({ type }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+  }, []);
+  return (
+    <Animated.View style={{ opacity: fadeAnim }}>
+      <Feather
+        name={type === "no" ? "x" : "check"}
+        size={18}
+        color={type === "yes" ? "#10B981" : type === "no" ? "#F43F5E" : "#64748B"}
+      />
+    </Animated.View>
+  );
+};
 
-    useEffect(() => {
-      if (!hasAnimated.current) {
-        hasAnimated.current = true;
-        Animated.parallel([
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.spring(slideValue, {
-            toValue: 0,
-            friction: 6,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }
-    }, []);
+const AnimatedAnswerButton: React.FC<{
+  onPress: () => void;
+  disabled: boolean;
+  children: React.ReactNode;
+}> = ({ onPress, disabled, children }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-    return (
-      <Animated.View
-        style={{
-          opacity: animValue,
-          transform: [{ translateY: slideValue }],
-        }}
-        className="items-center justify-center mt-4"
-      >
-        <View className="bg-slate-800 rounded-2xl px-6 py-3 shadow-lg shadow-slate-300">
-          <Text
-            className="text-white text-center text-sm font-medium"
-            style={{ fontFamily: "MerriweatherSans_400Regular" }}
-          >
-            {text}
-          </Text>
-        </View>
+  return (
+    <TouchableOpacity
+      onPress={(e) => {
+        e.stopPropagation();
+        onPress();
+      }}
+      onPressIn={() => {
+        Animated.spring(scaleAnim, {
+          toValue: 0.96,
+          friction: 8,
+          tension: 200,
+          useNativeDriver: true,
+        }).start();
+      }}
+      onPressOut={() => {
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 6,
+          tension: 200,
+          useNativeDriver: true,
+        }).start();
+      }}
+      disabled={disabled}
+      activeOpacity={1}
+    >
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        {children}
       </Animated.View>
-    );
-  },
-  () => true
-);
+    </TouchableOpacity>
+  );
+};
+
+const ThinkingDots: React.FC = () => {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const bounce = (anim: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(anim, { toValue: -5, duration: 280, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0, duration: 280, useNativeDriver: true }),
+          Animated.delay(560),
+        ])
+      );
+    Animated.parallel([bounce(dot1, 0), bounce(dot2, 140), bounce(dot3, 280)]).start();
+  }, []);
+
+  return (
+    <View style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
+      {[dot1, dot2, dot3].map((anim, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: 3,
+            backgroundColor: "#94A3B8",
+            transform: [{ translateY: anim }],
+          }}
+        />
+      ))}
+    </View>
+  );
+};
+
+const PartnerStatusWidget: React.FC<{
+  hasSubmitted: boolean;
+  opponentAnswered: boolean;
+  waitingText: string;
+  answeredText: string;
+}> = ({ hasSubmitted, opponentAnswered, waitingText, answeredText }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(16)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!hasSubmitted) return;
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, friction: 7, useNativeDriver: true }),
+    ]).start();
+  }, [hasSubmitted]);
+
+  useEffect(() => {
+    if (!opponentAnswered) return;
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.6, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [opponentAnswered]);
+
+  if (!hasSubmitted) return null;
+
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+        marginTop: 16,
+        alignItems: "center",
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+          backgroundColor: "white",
+          borderRadius: 20,
+          paddingVertical: 9,
+          paddingHorizontal: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.07,
+          shadowRadius: 8,
+          elevation: 4,
+          borderWidth: 1,
+          borderColor: opponentAnswered ? "#D1FAE5" : "#F1F5F9",
+        }}
+      >
+        {opponentAnswered ? (
+          <>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Animated.View
+                style={{
+                  position: "absolute",
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  backgroundColor: "#10B981",
+                  opacity: 0.25,
+                  transform: [{ scale: pulseAnim }],
+                }}
+              />
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: "#10B981",
+                }}
+              />
+            </View>
+            <Text
+              style={{
+                fontFamily: "MerriweatherSans_400Regular",
+                fontSize: 12,
+                color: "#1E293B",
+              }}
+            >
+              {answeredText}
+            </Text>
+          </>
+        ) : (
+          <>
+            <ThinkingDots />
+            <Text
+              style={{
+                fontFamily: "MerriweatherSans_400Regular",
+                fontSize: 12,
+                color: "#64748B",
+              }}
+            >
+              {waitingText}
+            </Text>
+          </>
+        )}
+      </View>
+    </Animated.View>
+  );
+};
 
 interface GamePlayProps {
   currentQuestion: any;
@@ -100,6 +268,8 @@ interface GamePlayProps {
   roomCode: string;
   currentPlayerId?: string;
   categoryId?: string;
+  player1Name?: string;
+  player2Name?: string;
 }
 
 const GamePlay: React.FC<GamePlayProps> = ({
@@ -115,6 +285,8 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onSelectAnswer,
   onLeaveRoom,
   categoryId,
+  player1Name,
+  player2Name,
 }) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { t } = useTranslation();
@@ -124,9 +296,45 @@ const GamePlay: React.FC<GamePlayProps> = ({
   const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
 
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const cardSlideAnim = useRef(new Animated.Value(0)).current;
+  const cardFadeAnim = useRef(new Animated.Value(1)).current;
+  const isFirstQuestion = useRef(true);
+
   useEffect(() => {
     setTimerKey((prev) => prev + 1);
   }, [currentQuestionIndex, questionDuration]);
+
+  useEffect(() => {
+    const target = totalQuestions > 0 ? (currentQuestionIndex + 1) / totalQuestions : 0;
+    Animated.timing(progressAnim, {
+      toValue: target,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [currentQuestionIndex, totalQuestions]);
+
+  useEffect(() => {
+    if (isFirstQuestion.current) {
+      isFirstQuestion.current = false;
+      return;
+    }
+    cardSlideAnim.setValue(SCREEN_WIDTH);
+    cardFadeAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(cardSlideAnim, {
+        toValue: 0,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+      Animated.timing(cardFadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [currentQuestionIndex]);
 
   useEffect(() => {
     let isMounted = true;
@@ -158,6 +366,13 @@ const GamePlay: React.FC<GamePlayProps> = ({
     isPremium: false,
     orderIndex: 0,
   };
+
+  const progressColor = categoryInfo?.color || "#C94B6A";
+
+  const currentPlayerName =
+    categoryId === "know_me_well" && player1Name && player2Name
+      ? resolvePlayerName(currentQuestionIndex, player1Name, player2Name)
+      : undefined;
 
   const getButtonStyles = (
     type: "yes" | "no" | "custom",
@@ -191,7 +406,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   return (
     <View className="flex-1 bg-[#F8FAFC]" style={{ flexDirection: "column" }}>
-      {/* Settings Modal */}
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
@@ -200,7 +414,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
       {/* --- Header Section --- */}
       <View className="pt-16 pb-4 px-6 flex-row justify-between items-center z-50">
-        {/* Back Button */}
         {onLeaveRoom && (
           <TouchableOpacity
             onPress={onLeaveRoom}
@@ -211,9 +424,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
           </TouchableOpacity>
         )}
 
-        {/* Right Actions Group */}
         <View className="flex-row gap-3">
-          {/* Language Selector */}
           <View className="relative z-50">
             <TouchableOpacity
               onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
@@ -234,7 +445,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
               />
             </TouchableOpacity>
 
-            {/* Language Dropdown */}
             {isLanguageMenuOpen && (
               <View className="absolute top-12 right-0 w-[140px] bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden py-1">
                 {(Object.keys(languages) as Array<keyof typeof languages>).map(
@@ -267,7 +477,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
             )}
           </View>
 
-          {/* Settings Icon */}
           <SettingsButton
             onPress={() => setShowSettingsModal(true)}
             variant="modern"
@@ -278,7 +487,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
       {/* --- Main Game Area --- */}
       <View className="flex-1 px-6 pt-4">
         {/* Category Badge */}
-        <View className="items-center mb-6">
+        <View className="items-center mb-4">
           <GlassPill className="flex-row items-center gap-2">
             {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
               <MaterialCommunityIcons
@@ -302,6 +511,31 @@ const GamePlay: React.FC<GamePlayProps> = ({
           </GlassPill>
         </View>
 
+        {/* Progress Bar */}
+        {!roundResult && (
+          <View
+            style={{
+              height: 4,
+              backgroundColor: "#F1F5F9",
+              borderRadius: 2,
+              marginBottom: 16,
+              overflow: "hidden",
+            }}
+          >
+            <Animated.View
+              style={{
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: progressColor,
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, SCREEN_WIDTH - 48],
+                }),
+              }}
+            />
+          </View>
+        )}
+
         {roundResult && (
           <RoundResult
             roundResult={roundResult}
@@ -309,171 +543,195 @@ const GamePlay: React.FC<GamePlayProps> = ({
             currentQuestionIndex={currentQuestionIndex}
             totalQuestions={totalQuestions}
             selectedLanguage={selectedLanguage}
+            playerName={currentPlayerName}
+            categoryId={categoryId}
+            player1Name={player1Name}
+            player2Name={player2Name}
           />
         )}
 
         {!roundResult && (
-          <Pressable className="flex-1" onPress={(e) => e.stopPropagation()}>
-            {/* THE CARD */}
-            <View
-              className="bg-white rounded-[32px] p-6 w-full shadow-2xl shadow-blue-100/50"
-              style={{ elevation: 10 }} // Android Shadow
-            >
-              {/* Card Header: Timer & Progress */}
-              <View className="flex-row items-center justify-between mb-8">
-                <View style={{ width: 48, height: 48 }}>
-                  <View key={timerKey}>
-                    <Countdown
-                      duration={questionDuration}
-                      showFullScreen={false}
-                      onComplete={() => {
-                        if (!hasSubmitted && currentQuestion) {
-                          if (!currentQuestion.haveAnswers) {
-                            onSelectAnswer("yes");
-                          } else {
-                            const answers = getQuestionAnswers(
-                              currentQuestion,
-                              selectedLanguage
-                            );
-                            if (answers.length > 0) onSelectAnswer(answers[0]);
+          <Animated.View
+            style={{
+              flex: 1,
+              transform: [{ translateX: cardSlideAnim }],
+              opacity: cardFadeAnim,
+            }}
+          >
+            <Pressable className="flex-1" onPress={(e) => e.stopPropagation()}>
+              {/* THE CARD */}
+              <View
+                className="bg-white rounded-[32px] p-6 w-full shadow-2xl shadow-blue-100/50"
+                style={{ elevation: 10 }}
+              >
+                {/* Card Header: Timer & Progress */}
+                <View className="flex-row items-center justify-between mb-8">
+                  <View style={{ width: 48, height: 48 }}>
+                    <View key={timerKey}>
+                      <Countdown
+                        duration={questionDuration}
+                        showFullScreen={false}
+                        onComplete={() => {
+                          if (!hasSubmitted && currentQuestion) {
+                            if (!currentQuestion.haveAnswers) {
+                              onSelectAnswer("yes");
+                            } else {
+                              const answers = getQuestionAnswers(
+                                currentQuestion,
+                                selectedLanguage
+                              );
+                              if (answers.length > 0) onSelectAnswer(answers[0]);
+                            }
                           }
-                        }
-                      }}
-                    />
+                        }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Question Counter */}
+                  <View className="bg-slate-50 px-4 py-2 rounded-2xl">
+                    <Text className="text-slate-400 font-bold text-xs tracking-widest">
+                      <Text className="text-slate-800 text-lg">
+                        {currentQuestionIndex + 1}
+                      </Text>
+                      /{totalQuestions}
+                    </Text>
                   </View>
                 </View>
 
-                {/* Elegant Question Counter */}
-                <View className="bg-slate-50 px-4 py-2 rounded-2xl">
-                  <Text className="text-slate-400 font-bold text-xs tracking-widest">
-                    <Text className="text-slate-800 text-lg">
-                      {currentQuestionIndex + 1}
-                    </Text>
-                    /{totalQuestions}
+                {/* Question Text */}
+                <View className="mb-10 min-h-[120px] justify-center">
+                  <Text
+                    className="text-[28px] text-slate-800 text-center leading-9"
+                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  >
+                    {getResolvedQuestionText(currentQuestion, selectedLanguage, currentPlayerName)}
                   </Text>
                 </View>
-              </View>
 
-              {/* Question Text */}
-              <View className="mb-10 min-h-[120px] justify-center">
-                <Text
-                  className="text-[28px] text-slate-800 text-center leading-9"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {getQuestionText(currentQuestion, selectedLanguage)}
-                </Text>
-              </View>
-
-              {/* Answers Section */}
-              <View className="gap-4">
-                {!currentQuestion.haveAnswers ? (
-                  // YES / NO Layout
-                  <>
-                    <TouchableOpacity
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        if (!hasSubmitted) onSelectAnswer("yes");
-                      }}
-                      disabled={hasSubmitted}
-                      activeOpacity={0.9}
-                    >
-                      <View
-                        className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
-                          "yes",
-                          selectedAnswer === "yes",
-                          hasSubmitted
-                        )}`}
+                {/* Answers Section */}
+                <View className="gap-4">
+                  {!currentQuestion.haveAnswers ? (
+                    <>
+                      <AnimatedAnswerButton
+                        onPress={() => {
+                          if (!hasSubmitted) onSelectAnswer("yes");
+                        }}
+                        disabled={hasSubmitted}
                       >
-                        <Text
-                          className={`text-center text-lg font-bold ${getButtonTextStyles(
+                        <View
+                          className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
+                            "yes",
                             selectedAnswer === "yes",
                             hasSubmitted
                           )}`}
-                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                        >
-                          {t("gamePlay.yes")}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        if (!hasSubmitted) onSelectAnswer("no");
-                      }}
-                      disabled={hasSubmitted}
-                      activeOpacity={0.9}
-                    >
-                      <View
-                        className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
-                          "no",
-                          selectedAnswer === "no",
-                          hasSubmitted
-                        )}`}
-                      >
-                        <Text
-                          className={`text-center text-lg font-bold ${getButtonTextStyles(
-                            selectedAnswer === "no",
-                            hasSubmitted
-                          )}`}
-                          style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                        >
-                          {t("gamePlay.no")}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  // Custom Answers Layout
-                  getQuestionAnswers(currentQuestion, selectedLanguage).map(
-                    (answer: string, index: number) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          if (!hasSubmitted) onSelectAnswer(answer);
-                        }}
-                        disabled={hasSubmitted}
-                        activeOpacity={0.9}
-                      >
-                        <View
-                          className={`w-full py-4 px-6 rounded-2xl border-b-4 ${getButtonStyles(
-                            "custom",
-                            selectedAnswer === answer,
-                            hasSubmitted
-                          )}`}
+                          style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
                         >
                           <Text
                             className={`text-center text-lg font-bold ${getButtonTextStyles(
-                              selectedAnswer === answer,
+                              selectedAnswer === "yes",
                               hasSubmitted
                             )}`}
                             style={{ fontFamily: "MerriweatherSans_700Bold" }}
                           >
-                            {answer}
+                            {t("gamePlay.yes")}
                           </Text>
+                          {selectedAnswer === "yes" && (
+                            <View style={{ position: "absolute", right: 16 }}>
+                              <SelectedIcon type="yes" />
+                            </View>
+                          )}
                         </View>
-                      </TouchableOpacity>
+                      </AnimatedAnswerButton>
+
+                      <AnimatedAnswerButton
+                        onPress={() => {
+                          if (!hasSubmitted) onSelectAnswer("no");
+                        }}
+                        disabled={hasSubmitted}
+                      >
+                        <View
+                          className={`w-full py-4 rounded-2xl border-b-4 ${getButtonStyles(
+                            "no",
+                            selectedAnswer === "no",
+                            hasSubmitted
+                          )}`}
+                          style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
+                        >
+                          <Text
+                            className={`text-center text-lg font-bold ${getButtonTextStyles(
+                              selectedAnswer === "no",
+                              hasSubmitted
+                            )}`}
+                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                          >
+                            {t("gamePlay.no")}
+                          </Text>
+                          {selectedAnswer === "no" && (
+                            <View style={{ position: "absolute", right: 16 }}>
+                              <SelectedIcon type="no" />
+                            </View>
+                          )}
+                        </View>
+                      </AnimatedAnswerButton>
+                    </>
+                  ) : (
+                    getQuestionAnswers(currentQuestion, selectedLanguage).map(
+                      (answer: string, index: number) => (
+                        <AnimatedAnswerButton
+                          key={index}
+                          onPress={() => {
+                            if (!hasSubmitted) onSelectAnswer(answer);
+                          }}
+                          disabled={hasSubmitted}
+                        >
+                          <View
+                            className={`w-full py-4 px-6 rounded-2xl border-b-4 ${getButtonStyles(
+                              "custom",
+                              selectedAnswer === answer,
+                              hasSubmitted
+                            )}`}
+                            style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
+                          >
+                            <Text
+                              className={`text-center text-lg font-bold ${getButtonTextStyles(
+                                selectedAnswer === answer,
+                                hasSubmitted
+                              )}`}
+                              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                            >
+                              {answer}
+                            </Text>
+                            {selectedAnswer === answer && (
+                              <View style={{ position: "absolute", right: 16 }}>
+                                <SelectedIcon type="custom" />
+                              </View>
+                            )}
+                          </View>
+                        </AnimatedAnswerButton>
+                      )
                     )
-                  )
-                )}
+                  )}
+                </View>
               </View>
-            </View>
-          </Pressable>
+            </Pressable>
+          </Animated.View>
         )}
       </View>
 
-      {/* Notifications Area - Floating at bottom */}
+      {/* Partner Status Widget */}
       {!roundResult && (
-        <View className="px-6 pb-10">
-          {hasSubmitted && !opponentAnswered && (
-            <AnswerNotification text={t("gamePlay.waitingForPartner")} />
-          )}
-          {opponentAnswered && opponentName && (
-            <AnswerNotification
-              text={t("gamePlay.opponentAnswered", { name: opponentName })}
-            />
-          )}
+        <View className="px-6 pb-16">
+          <PartnerStatusWidget
+            hasSubmitted={hasSubmitted}
+            opponentAnswered={opponentAnswered}
+            waitingText={t("gamePlay.waitingForPartner")}
+            answeredText={
+              opponentName
+                ? t("gamePlay.opponentAnswered", { name: opponentName })
+                : t("gamePlay.waitingForPartner")
+            }
+          />
         </View>
       )}
 

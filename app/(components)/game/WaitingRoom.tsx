@@ -8,8 +8,10 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Easing,
+  Modal,
   ScrollView,
   Share,
   Text,
@@ -22,6 +24,7 @@ import { useLanguage } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import {
   Category,
+  getCategories,
   getCategoryById,
   getCategoryLabel,
 } from "../../services/categoryService";
@@ -45,6 +48,7 @@ interface WaitingRoomProps {
   onStartGame: () => void;
   onLeaveRoom: () => void;
   onKickPlayer?: (playerId: string) => void;
+  onChangeCategory?: (categoryId: string) => Promise<void>;
   isStartingGame?: boolean;
 }
 
@@ -56,6 +60,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   onStartGame,
   onLeaveRoom,
   onKickPlayer,
+  onChangeCategory,
   isStartingGame = false,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -63,6 +68,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showRateAppModal, setShowRateAppModal] = useState(false);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const sheetSlideAnim = useRef(new Animated.Value(400)).current;
   const { selectedLanguage } = useLanguage();
   const { coins } = useCoins();
   const { t } = useTranslation();
@@ -187,6 +196,19 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     loadCategoryInfo();
   }, [room.settings?.category]);
 
+  useEffect(() => {
+    if (showCategoryModal) {
+      sheetSlideAnim.setValue(400);
+      Animated.spring(sheetSlideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        damping: 28,
+        stiffness: 320,
+        mass: 0.8,
+      }).start();
+    }
+  }, [showCategoryModal]);
+
   const category = room.settings?.category || "just_friends";
   const displayCategoryInfo = categoryInfo || {
     id: category,
@@ -221,6 +243,22 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
     setShowPurchaseModal(true);
   };
 
+  const handleOpenCategoryModal = async () => {
+    setShowCategoryModal(true);
+    if (allCategories.length === 0) {
+      setLoadingCategories(true);
+      const cats = await getCategories();
+      setAllCategories(cats);
+      setLoadingCategories(false);
+    }
+  };
+
+  const handleSelectCategory = (newCategoryId: string) => {
+    if (newCategoryId === category || !onChangeCategory) return;
+    setShowCategoryModal(false);
+    onChangeCategory(newCategoryId).catch(() => {});
+  };
+
   return (
     <View className="flex-1 bg-white pt-16">
       <CoinPurchaseModal
@@ -242,6 +280,188 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
         visible={showRateAppModal}
         onClose={() => setShowRateAppModal(false)}
       />
+
+      {/* Category Change Modal */}
+      <Modal
+        visible={showCategoryModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View
+          style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.45)" }}
+        >
+          {/* Backdrop tap area */}
+          <TouchableOpacity
+            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            activeOpacity={1}
+            onPress={() => setShowCategoryModal(false)}
+          />
+          <Animated.View
+            style={{
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              maxHeight: "78%",
+              paddingBottom: 32,
+              transform: [{ translateY: sheetSlideAnim }],
+            }}
+          >
+            {/* Handle bar */}
+            <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 8 }}>
+              <View style={{ width: 40, height: 4, borderRadius: 999, backgroundColor: "#e2e8f0" }} />
+            </View>
+
+            {/* Header */}
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 18,
+                  color: "#1e293b",
+                }}
+              >
+                {t("waitingRoom.changeCategoryTitle")}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowCategoryModal(false)}
+                activeOpacity={0.7}
+                style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "#f1f5f9" }}
+              >
+                <Ionicons name="close" size={18} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+            <Text
+              style={{ fontFamily: "MerriweatherSans_400Regular", fontSize: 12, color: "#94a3b8", paddingHorizontal: 24, paddingBottom: 12 }}
+            >
+              {t("waitingRoom.changeCategorySubtitle")}
+            </Text>
+
+            {/* Category List */}
+            {loadingCategories ? (
+              <View style={{ paddingVertical: 40, alignItems: "center" }}>
+                <ActivityIndicator size="small" color="#94a3b8" />
+              </View>
+            ) : (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+              >
+                {allCategories.map((cat) => {
+                  const isSelected = cat.id === category;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      onPress={() => handleSelectCategory(cat.id)}
+                      activeOpacity={0.8}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: cat.color,
+                        borderRadius: 16,
+                        padding: 14,
+                        marginBottom: 10,
+                        borderWidth: isSelected ? 2 : 0,
+                        borderColor: isSelected ? "rgba(0,0,0,0.12)" : "transparent",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      }}
+                    >
+                      {/* Category Icon */}
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 999,
+                          backgroundColor: "rgba(255,255,255,0.4)",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                        }}
+                      >
+                        {cat.iconType === "MaterialCommunityIcons" ? (
+                          <MaterialCommunityIcons
+                            name={cat.iconName as any}
+                            size={20}
+                            color="#1f2937"
+                          />
+                        ) : (
+                          <FontAwesome6
+                            name={cat.iconName as any}
+                            size={18}
+                            color="#1f2937"
+                          />
+                        )}
+                      </View>
+
+                      {/* Category Name */}
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontFamily: "MerriweatherSans_700Bold",
+                          fontSize: 15,
+                          color: "#1f2937",
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
+                        {getCategoryLabel(cat, selectedLanguage)}
+                      </Text>
+
+                      {/* Coin badge for premium categories */}
+                      {cat.isPremium && cat.coinsRequired > 0 && (
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            backgroundColor: "#facc15",
+                            borderRadius: 8,
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            marginRight: isSelected ? 8 : 0,
+                          }}
+                        >
+                          <FontAwesome6 name="coins" size={10} color="#713f12" />
+                          <Text
+                            style={{
+                              fontFamily: "MerriweatherSans_700Bold",
+                              fontSize: 12,
+                              color: "#713f12",
+                              marginLeft: 5,
+                            }}
+                          >
+                            {cat.coinsRequired}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Checkmark */}
+                      {isSelected && (
+                        <View
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 999,
+                            backgroundColor: "rgba(255,255,255,0.4)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Ionicons name="checkmark" size={16} color="#1f2937" />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </Animated.View>
+        </View>
+      </Modal>
 
       <View
         className="absolute left-6 z-50 flex-row items-center gap-2"
@@ -332,7 +552,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 
           {/* Category Badge */}
           <View className="items-center mb-8">
-            <View className="rounded-full px-6 py-3 flex-row items-center gap-3 bg-slate-50 border border-slate-100">
+            <TouchableOpacity
+              onPress={isHost ? handleOpenCategoryModal : undefined}
+              activeOpacity={isHost ? 0.7 : 1}
+              disabled={!isHost}
+              className="rounded-full px-5 py-3 flex-row items-center gap-3 bg-slate-50 border border-slate-200"
+            >
               {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
                 <MaterialCommunityIcons
                   name={displayCategoryInfo.iconName as any}
@@ -352,7 +577,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               >
                 {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
               </Text>
-            </View>
+              {isHost && (
+                <Ionicons name="chevron-down" size={14} color="#94a3b8" />
+              )}
+            </TouchableOpacity>
 
             {/* Coin Warning */}
             {isHost &&

@@ -1,5 +1,21 @@
 import { Language } from "../contexts/LanguageContext";
 
+export const resolvePlayerName = (
+  questionIndex: number,
+  player1Name: string,
+  player2Name: string
+): string => (questionIndex % 2 === 0 ? player1Name : player2Name);
+
+export const getResolvedQuestionText = (
+  question: any,
+  selectedLanguage: Language,
+  playerName?: string
+): string => {
+  const text = getQuestionText(question, selectedLanguage);
+  if (!playerName) return text;
+  return text.replace(/\{\{playerName\}\}/g, playerName);
+};
+
 /**
  * Get question text based on selected language
  * Supports both new format (texts object) and old format (text string)

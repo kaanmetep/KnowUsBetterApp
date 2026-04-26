@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useLanguage } from "../../contexts/LanguageContext";
+import { Language, useLanguage } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import {
   Category,
@@ -39,17 +39,17 @@ const SHORT_LABELS: Record<string, string> = {
   "deep talk": "Deep Talk",
   "long term": "Long Term",
   "long-term": "Long Term",
-  "intimacy": "Intimacy",
-  "arkadaş": "Arkadaşlar",
+  intimacy: "Intimacy",
+  arkadaş: "Arkadaşlar",
   "yeni tanı": "Yeni Tanıştık",
   "derin sohbet": "Derin Sohbet",
   "uzun s": "Uzun Süreli",
-  "yakın": "Yakınlık",
+  yakın: "Yakınlık",
   "solo amig": "Solo Amigos",
-  "recién": "Recién Conocidos",
-  "charla": "Charla Profunda",
+  recién: "Recién Conocidos",
+  charla: "Charla Profunda",
   "largo plazo": "Largo Plazo",
-  "intimidad": "Intimidad",
+  intimidad: "Intimidad",
 };
 
 const getShortCategoryLabel = (label: string): string => {
@@ -59,6 +59,25 @@ const getShortCategoryLabel = (label: string): string => {
   }
   const words = label.trim().split(/\s+/);
   return words.length > 2 ? words.slice(0, 2).join(" ") : label;
+};
+
+const KNOW_ME_WELL_ONBOARDING_TITLE: Record<Language, string> = {
+  en: "Know Me Well?",
+  tr: "Ne kadar tanıyorsun?",
+  es: "¿Qué tan bien se conocen?",
+};
+
+const getOnboardingCategoryTitle = (
+  category: Category,
+  language: Language,
+): string => {
+  if (category.id === "know_me_well") {
+    return (
+      KNOW_ME_WELL_ONBOARDING_TITLE[language] ??
+      KNOW_ME_WELL_ONBOARDING_TITLE.en
+    );
+  }
+  return getShortCategoryLabel(getCategoryLabel(category, language));
 };
 
 const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
@@ -246,11 +265,11 @@ const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
         {/* Left */}
         <Animated.View
           style={{
-            width: "57%",
+            width: "59%",
             height: "100%",
             justifyContent: "center",
             paddingLeft: 28,
-            paddingRight: 10,
+            paddingRight: 6,
             paddingBottom: 100,
             opacity: fadeAnim,
             transform: [{ translateX: slideInAnim }],
@@ -284,7 +303,7 @@ const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
 
           {/* Title */}
           <Text
-            numberOfLines={2}
+            numberOfLines={selectedLanguage === "tr" ? 1 : 2}
             adjustsFontSizeToFit
             style={{
               fontFamily: "LibreBaskerville_700Bold",
@@ -323,7 +342,7 @@ const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
                 backgroundColor: "white",
                 borderRadius: 16,
                 paddingVertical: 12,
-                paddingHorizontal: 14,
+                paddingHorizontal: 12,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.07,
@@ -345,7 +364,7 @@ const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
               >
                 {renderIcon(cat, 18, cat.color)}
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={{
                     fontFamily: "MerriweatherSans_700Bold",
@@ -353,12 +372,11 @@ const OnboardingStep1 = ({ onNext }: OnboardingStep1Props) => {
                     color: "#1E293B",
                   }}
                   numberOfLines={1}
+                  ellipsizeMode="tail"
                   adjustsFontSizeToFit
-                  minimumFontScale={0.75}
+                  minimumFontScale={0.86}
                 >
-                  {getShortCategoryLabel(
-                    getCategoryLabel(cat, selectedLanguage),
-                  )}
+                  {getOnboardingCategoryTitle(cat, selectedLanguage)}
                 </Text>
                 <Text
                   style={{

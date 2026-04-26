@@ -53,6 +53,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
+  const [categoryContainerHeight, setCategoryContainerHeight] = useState(0);
+  const [categoryContentHeight, setCategoryContentHeight] = useState(0);
+  const categoryScrollY = useRef(new Animated.Value(0)).current;
+  const categoryScrollViewRef = useRef<ScrollView>(null);
   const { coins } = useCoins();
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -150,7 +154,13 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     }
   }, [userName]);
 
+  const resetCategoryScroll = () => {
+    categoryScrollY.setValue(0);
+    categoryScrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  };
+
   const handleClose = () => {
+    resetCategoryScroll();
     setStep(1);
     setSelectedAvatar(null);
     setSelectedCategory(null);
@@ -164,7 +174,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   };
 
   const handleContinueFromStep2 = () => {
-    if (userName.trim().length > 0) setStep(3);
+    if (userName.trim().length > 0) {
+      resetCategoryScroll();
+      setStep(3);
+    }
   };
 
   const handleBack = () => {
@@ -199,6 +212,25 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = selectedCategory !== null;
   const categoryMaxHeight = isSmallScreen ? 300 : 360;
+
+  const scrollbarPadding = 8;
+  const trackHeight = Math.max(0, categoryContainerHeight - scrollbarPadding * 2);
+  const categoryThumbHeight =
+    categoryContentHeight > 0 && trackHeight > 0
+      ? Math.min(
+          trackHeight,
+          Math.max(32, (categoryContainerHeight / categoryContentHeight) * trackHeight)
+        )
+      : trackHeight || 32;
+  const categoryMaxScroll = Math.max(1, categoryContentHeight - categoryContainerHeight);
+  const categoryThumbY = categoryScrollY.interpolate({
+    inputRange: [0, categoryMaxScroll],
+    outputRange: [
+      scrollbarPadding,
+      Math.max(scrollbarPadding, categoryContainerHeight - categoryThumbHeight - scrollbarPadding),
+    ],
+    extrapolate: "clamp",
+  });
 
   return (
     <Modal
@@ -344,13 +376,40 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   {t("createRoom.pickCategory")}
                 </Text>
 
-                <View className="mb-4 -mx-2 px-2 relative">
+                <View
+                  className="mb-4"
+                  style={{
+                    borderRadius: 20,
+                    overflow: "hidden",
+                    maxHeight: categoryMaxHeight,
+                    flexDirection: "row",
+                    backgroundColor: "#fdfdfe",
+                    shadowColor: "#475569",
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.22,
+                    shadowRadius: 30,
+                    elevation: 10,
+                  }}
+                >
                   <ScrollView
-                    className="pr-1"
-                    style={{ maxHeight: categoryMaxHeight }}
+                    ref={categoryScrollViewRef}
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{
+                      paddingHorizontal: 10,
+                      paddingTop: 10,
+                      paddingBottom: 10,
+                    }}
                     scrollEnabled={true}
                     nestedScrollEnabled
-                    showsVerticalScrollIndicator={true}
+                    showsVerticalScrollIndicator={false}
+                    onScroll={(e) => {
+                      categoryScrollY.setValue(e.nativeEvent.contentOffset.y);
+                    }}
+                    scrollEventThrottle={16}
+                    onLayout={(e) =>
+                      setCategoryContainerHeight(e.nativeEvent.layout.height)
+                    }
+                    onContentSizeChange={(_, h) => setCategoryContentHeight(h)}
                   >
                   {categoriesLoading ? (
                     <View className="py-8 items-center">
@@ -479,6 +538,38 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     })
                   )}
                   </ScrollView>
+
+                  {/* Custom always-visible scrollbar */}
+                  <View
+                    style={{
+                      width: 12,
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* Track */}
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: scrollbarPadding,
+                        bottom: scrollbarPadding,
+                        width: 2,
+                        backgroundColor: "rgba(0,0,0,0.07)",
+                        borderRadius: 1,
+                      }}
+                    />
+                    {/* Thumb */}
+                    <Animated.View
+                      style={{
+                        position: "absolute",
+                        left: 4,
+                        width: 4,
+                        height: categoryThumbHeight,
+                        backgroundColor: "rgba(100, 116, 139, 0.55)",
+                        borderRadius: 2,
+                        transform: [{ translateY: categoryThumbY }],
+                      }}
+                    />
+                  </View>
                 </View>
 
                 <View className="items-center justify-center mb-2 gap-2">

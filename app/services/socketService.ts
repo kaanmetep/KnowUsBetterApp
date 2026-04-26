@@ -257,6 +257,31 @@ class SocketService {
     this.socket.emit("kick-player", { roomCode, targetPlayerId });
   }
 
+  // Change room category (Host only)
+  changeCategory(roomCode: string, category: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error("Socket connection not found"));
+        return;
+      }
+
+      this.socket.emit("change-category", { roomCode, category });
+
+      this.socket.once("category-changed", () => {
+        resolve();
+      });
+
+      this.socket.once("room-error", (error) => {
+        console.error("❌ Error changing category:", error);
+        reject(error);
+      });
+
+      setTimeout(() => {
+        reject(new Error("Timeout: Change category"));
+      }, 5000);
+    });
+  }
+
   // Event listeners
   onPlayerJoined(callback: (data: { player: Player; room: Room }) => void) {
     this.socket?.on("player-joined", callback);
@@ -374,6 +399,15 @@ class SocketService {
 
   offPlayerKicked(callback?: (...args: any[]) => void) {
     this.socket?.off("player-kicked", callback);
+  }
+
+  // Category changed listener (broadcast to all players in room)
+  onCategoryChanged(callback: (data: { room: Room }) => void) {
+    this.socket?.on("category-changed", callback);
+  }
+
+  offCategoryChanged(callback?: (...args: any[]) => void) {
+    this.socket?.off("category-changed", callback);
   }
 
   // Room error listener (general error handler)

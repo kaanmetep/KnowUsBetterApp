@@ -264,7 +264,7 @@ const OnboardingStep2 = ({ onNext, onPrevious }: OnboardingStep2Props) => {
 
           {/* Title */}
           <Text
-            numberOfLines={2}
+            numberOfLines={selectedLanguage === "tr" ? 1 : 2}
             adjustsFontSizeToFit
             style={{
               fontFamily: "LibreBaskerville_700Bold",

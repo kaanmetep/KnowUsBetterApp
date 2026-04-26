@@ -155,7 +155,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({
         activeOpacity={0.8}
         style={{
           borderRadius: 12,
-          maxWidth: "80%",
+          maxWidth: "92%",
         }}
       >
         <View

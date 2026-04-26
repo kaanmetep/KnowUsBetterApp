@@ -227,7 +227,7 @@ const SpinnerLoading: React.FC<{ size: number; color: string }> = ({
     const spin = Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
-        duration: 1000,
+        duration: 780,
         easing: Easing.linear,
         useNativeDriver: true,
       })
@@ -240,23 +240,39 @@ const SpinnerLoading: React.FC<{ size: number; color: string }> = ({
     };
   }, [spinValue]);
 
-  const spin = spinValue.interpolate({
+  const rotate = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ["0deg", "360deg"],
   });
 
+  const borderWidth = size <= 18 ? 1.5 : 2;
+
   return (
-    <Animated.View
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        borderWidth: 2,
-        borderColor: color,
-        borderTopColor: "transparent",
-        transform: [{ rotate: spin }],
-      }}
-    />
+    <View
+      style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}
+    >
+      <View
+        style={{
+          position: "absolute",
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: borderWidth,
+          borderColor: color + "22",
+        }}
+      />
+      <Animated.View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: borderWidth,
+          borderColor: color,
+          borderTopColor: "transparent",
+          transform: [{ rotate }],
+        }}
+      />
+    </View>
   );
 };
 

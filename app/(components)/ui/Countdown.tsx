@@ -5,6 +5,7 @@ import {
   AppState,
   AppStateStatus,
   Easing,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -157,89 +158,145 @@ const Countdown: React.FC<CountdownProps> = ({
     animateNumber();
   }, [currentNumber, scaleAnim, opacityAnim]);
 
-  const containerStyle = showFullScreen
-    ? "flex-1 bg-white items-center justify-center"
-    : "items-center justify-center";
-
   // --- FULL SCREEN RENDER (Game Start) ---
   if (showFullScreen) {
-    const numberSize = 100;
-    const containerSize = 180;
-
     return (
-      <View className={containerStyle}>
-        {/* Soft UI Background Pulse */}
-        <Animated.View
-          style={{
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
-          }}
-        >
-          {/* Main Floating Circle */}
-          <View
-            className="bg-white items-center justify-center shadow-2xl shadow-blue-200/50"
-            style={{
-              width: containerSize,
-              height: containerSize,
-              borderRadius: containerSize / 2,
-              borderWidth: 8,
-              borderColor: "#eff6ff", // Very subtle blue ring
-            }}
-          >
-            <Text
-              className="text-slate-800 font-bold"
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#FFF8F5",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <StatusBar barStyle="dark-content" />
+
+        {/* Category badge — top */}
+        {categoryName && (
+          <View style={{ position: "absolute", top: 80, alignItems: "center" }}>
+            <View
               style={{
-                fontFamily: "MerriweatherSans_700Bold",
-                fontSize: numberSize,
-                lineHeight: numberSize,
-                textAlign: "center",
-                includeFontPadding: false,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                backgroundColor: "white",
+                borderRadius: 20,
+                paddingVertical: 10,
+                paddingHorizontal: 18,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+                elevation: 3,
+                borderWidth: 1,
+                borderColor: "#F1EEF0",
               }}
             >
-              {currentNumber}
-            </Text>
-          </View>
-        </Animated.View>
-
-        {/* Bottom Text */}
-        <Animated.View
-          style={{ opacity: opacityAnim }}
-          className="mt-10 px-8 items-center"
-        >
-          <Text
-            className="text-slate-400 text-2xl text-center font-medium"
-            style={{ fontFamily: "MerriweatherSans_400Regular" }}
-          >
-            {displayText}
-          </Text>
-        </Animated.View>
-
-        {/* Category Pill */}
-        {categoryName && (
-          <View className="mt-8">
-            <View className="bg-slate-50 rounded-full px-6 py-3 border border-slate-100 shadow-sm flex-row items-center gap-2">
-              <FontAwesome6 name="tag" size={14} color="#64748B" />
+              <FontAwesome6 name="tag" size={12} color="#C94B6A" />
               <Text
-                className="text-slate-600 text-sm font-bold uppercase tracking-wide"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 13,
+                  color: "#1E293B",
+                  letterSpacing: 0.4,
+                }}
               >
-                {t("countdown.categoryLabel", { category: categoryName })}
+                {categoryName}
               </Text>
             </View>
           </View>
         )}
 
-        {/* Cancel Button */}
+        {/* Center: animated number */}
+        <Animated.View
+          style={{
+            transform: [{ scale: scaleAnim }],
+            opacity: opacityAnim,
+            alignItems: "center",
+          }}
+        >
+          {/* Outer soft ring */}
+          <View
+            style={{
+              width: 210,
+              height: 210,
+              borderRadius: 105,
+              backgroundColor: "#FFF0F3",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* Inner white circle */}
+            <View
+              style={{
+                width: 162,
+                height: 162,
+                borderRadius: 81,
+                backgroundColor: "white",
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#C94B6A",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.14,
+                shadowRadius: 24,
+                elevation: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 96,
+                  lineHeight: 96,
+                  color: "#1E293B",
+                  includeFontPadding: false,
+                  textAlign: "center",
+                }}
+              >
+                {currentNumber}
+              </Text>
+            </View>
+          </View>
+
+          {/* "Get Ready" label */}
+          <Text
+            style={{
+              fontFamily: "MerriweatherSans_400Regular",
+              fontSize: 18,
+              color: "#94A3B8",
+              marginTop: 32,
+              letterSpacing: 0.4,
+            }}
+          >
+            {displayText}
+          </Text>
+        </Animated.View>
+
+        {/* Cancel button — bottom */}
         {onCancel && (
-          <View className="mt-8">
+          <View style={{ position: "absolute", bottom: 60, alignItems: "center" }}>
             <TouchableOpacity
               onPress={onCancel}
               activeOpacity={0.7}
-              className="px-8 py-3 rounded-2xl bg-red-50 border border-red-100"
+              style={{
+                paddingVertical: 12,
+                paddingHorizontal: 36,
+                borderRadius: 20,
+                backgroundColor: "white",
+                borderWidth: 1,
+                borderColor: "#F1F5F9",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 6,
+                elevation: 2,
+              }}
             >
               <Text
-                className="text-red-500 text-center font-bold"
-                style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                style={{
+                  fontFamily: "MerriweatherSans_700Bold",
+                  fontSize: 14,
+                  color: "#94A3B8",
+                }}
               >
                 {t("common.cancel")}
               </Text>
@@ -249,6 +306,8 @@ const Countdown: React.FC<CountdownProps> = ({
       </View>
     );
   }
+
+  const containerStyle = "items-center justify-center";
 
   // --- INLINE RENDER (Top Left Timer) ---
   return (

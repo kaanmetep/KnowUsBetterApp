@@ -11,6 +11,7 @@ import AiAnalysisResultModal from "../(components)/ai-match-analysis/AiAnalysisR
 import CoinPurchaseModal from "../(components)/coins/CoinPurchaseModal";
 import Countdown from "../(components)/ui/Countdown";
 import GameFinished from "../(components)/game/GameFinished";
+import KnowMeWellFinished from "../(components)/game/KnowMeWellFinished";
 import GamePlay from "../(components)/game/GamePlay";
 import WaitingRoom from "../(components)/game/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
@@ -319,6 +320,13 @@ const GameRoom = () => {
       setCategoryColor(null);
     };
 
+    // Category changed by host
+    const handleCategoryChanged = (data: any) => {
+      if (data.room) {
+        setRoom(data.room);
+      }
+    };
+
     // Player kicked (for remaining players)
     const handlePlayerKicked = (data: any) => {
       if (data.room) {
@@ -395,6 +403,7 @@ const GameRoom = () => {
     socketService.onKickedFromRoom(handleKickedFromRoom);
     socketService.onRoomError(handleRoomError);
     socketService.onCriticalError(handleCriticalError);
+    socketService.onCategoryChanged(handleCategoryChanged);
 
     // Handle AppState changes - check room status when app comes to foreground
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
@@ -454,6 +463,7 @@ const GameRoom = () => {
       socketService.offKickedFromRoom(handleKickedFromRoom);
       socketService.offRoomError(handleRoomError);
       socketService.offCriticalError(handleCriticalError);
+      socketService.offCategoryChanged(handleCategoryChanged);
       appStateSubscription.remove();
     };
   }, [roomCode, router]);
@@ -620,6 +630,10 @@ const GameRoom = () => {
     }
   };
 
+  const handleChangeCategory = async (categoryId: string): Promise<void> => {
+    await socketService.changeCategory(roomCode, categoryId);
+  };
+
   const handleKickPlayer = (playerId: string) => {
     const player = room?.players.find((p) => p.id === playerId);
     const playerName = player?.name || t("gameRoom.defaultPlayerName");
@@ -723,6 +737,8 @@ const GameRoom = () => {
           roomCode={roomCode}
           currentPlayerId={socketService.getSocketId()}
           categoryId={room?.settings?.category}
+          player1Name={room?.players?.[0]?.name}
+          player2Name={room?.players?.[1]?.name}
         />
       );
     }
@@ -738,6 +754,27 @@ const GameRoom = () => {
       );
       const opponentPlayerName =
         opponentPlayer?.name || t("gameRoom.partnerLabel");
+
+      if (room?.settings?.category === "know_me_well") {
+        const player1 = room?.players?.[0];
+        const player2 = room?.players?.[1];
+        return (
+          <KnowMeWellFinished
+            completedRounds={gameFinishedData.completedRounds}
+            player1Name={player1?.name || t("gameRoom.youLabel")}
+            player2Name={player2?.name || t("gameRoom.partnerLabel")}
+            onComplete={resetToWaitingRoom}
+            onAiAnalysisPress={() => {
+              if (coins < 3) {
+                setShowAiPurchaseModal(true);
+                return;
+              }
+              setShowAiInfoModal(true);
+            }}
+            onBuyCoins={() => setShowAiPurchaseModal(true)}
+          />
+        );
+      }
 
       return (
         <GameFinished
@@ -769,6 +806,7 @@ const GameRoom = () => {
         onStartGame={handleStartGame}
         onLeaveRoom={handleLeaveRoom}
         onKickPlayer={handleKickPlayer}
+        onChangeCategory={handleChangeCategory}
         isStartingGame={isStartingGame}
       />
     );
@@ -783,6 +821,7 @@ const GameRoom = () => {
         visible={showAiInfoModal}
         onClose={() => setShowAiInfoModal(false)}
         onConfirm={handleStartAiAnalysis}
+        onBuyCoins={() => { setShowAiInfoModal(false); setShowAiPurchaseModal(true); }}
       />
       <CoinPurchaseModal
         visible={showAiPurchaseModal}

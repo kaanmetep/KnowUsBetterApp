@@ -83,7 +83,7 @@
     "yourAnswer": "Tu Respuesta",
     "yes": "Sí",
     "no": "No",
-    "waitingForPartner": "Esperando a que tu pareja responda...",
+    "waitingForPartner": "Esperando a que tu pareja responda",
     "opponentAnswered": "{{name}} ha respondido la pregunta.",
     "leaveButton": "Salir",
     "leaveRoomButton": "Salir de la Sala",
@@ -229,7 +229,9 @@
     "startGame": "Iniciar Juego",
     "waitingForPlayers": "Esperando Jugadores...",
     "leaveRoom": "Salir de la Sala",
-    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n"
+    "shareMessage": "🎮 ¡Únete a mi sala de KnowUsBetter!\n\nCódigo de la Sala: {{code}}\n\nHaz clic para unirte al instante:\n",
+    "changeCategoryTitle": "Cambiar Categoría",
+    "changeCategorySubtitle": "Elige una nueva categoría para tu sala"
   },
   "roundResult": {
     "questionLabel": "Pregunta",
@@ -286,6 +288,27 @@
       "low": "Son bastante diferentes. Eso también está bien. A veces eso es lo que funciona.",
       "veryLow": "Son bastante diferentes. Eso también está bien. A veces eso es lo que funciona."
     }
+  },
+  "knowMeWell": {
+    "backToRoom": "Volver a la sala",
+    "categoryTitle": "¿Me conoces bien?",
+    "resultsTitle": "Resultados",
+    "aboutLabel": "Sobre {{name}}",
+    "knowledgeQuestion": "¿Cuánto conoce {{guesser}} a {{subject}}?",
+    "correctAnswers": "{{score}} / {{total}} correctas",
+    "correctTag": "Correcto",
+    "wrongTag": "Incorrecto",
+    "realAnswerLabel": "Respuesta real",
+    "guessLabel": "Suposición",
+    "aiButton": "Los puntos ciegos de su relación",
+    "aiButtonSub": "Un análisis detallado con IA de lo que aún no se conocen",
+    "aiModalTitle": "Descubran los Puntos Ciegos de su Relación",
+    "aiModalDesc": "La IA analizará las preguntas que respondieron mal el uno sobre el otro y revelará lo que aún tienen por descubrir.",
+    "aiModalFeature1": "Lo que aún no saben el uno del otro",
+    "aiModalFeature2": "Por qué existen estas brechas",
+    "aiModalFeature3": "Consejos para conocerse mejor",
+    "aiModalConfirm": "Iniciar Análisis",
+    "aiModalCancel": "Cancelar"
   },
   "announcements": {
     "title": "Últimos Anuncios",

@@ -8,7 +8,6 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Modal,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ButtonLoading from "../ui/ButtonLoading";
 import { PurchasesPackage } from "react-native-purchases";
 import { useCoins } from "../../contexts/CoinContext";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -191,10 +191,10 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
             {/* Content */}
             <View>
               {loading && (
-                <View className="py-12 items-center">
-                  <ActivityIndicator size="large" color="#dc2626" />
+                <View className="py-12 items-center gap-4">
+                  <ButtonLoading size={34} style="spinner" color="#C94B6A" />
                   <Text
-                    className="text-slate-500 mt-4 text-sm"
+                    className="text-slate-400 text-sm"
                     style={{ fontFamily: "MerriweatherSans_400Regular" }}
                   >
                     {t("coins.loadingPackages")}
@@ -280,12 +280,19 @@ const CoinPurchaseModal: React.FC<CoinPurchaseModalProps> = ({
                               </View>
                             </View>
 
-                            <View className="bg-white/60 px-4 py-2 rounded-xl">
+                            <View
+                              style={{
+                                backgroundColor: "rgba(255,255,255,0.6)",
+                                paddingHorizontal: 16,
+                                borderRadius: 12,
+                                height: 38,
+                                minWidth: 72,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
                               {isPurchasing ? (
-                                <ActivityIndicator
-                                  size="small"
-                                  color="#dc2626"
-                                />
+                                <ButtonLoading size={18} style="spinner" color="#C94B6A" />
                               ) : (
                                 <Text
                                   className="text-slate-900 text-base font-bold"

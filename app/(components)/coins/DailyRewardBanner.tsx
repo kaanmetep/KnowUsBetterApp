@@ -2,13 +2,13 @@ import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Easing,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import ButtonLoading from "../ui/ButtonLoading";
 import { useCoins } from "../../contexts/CoinContext";
 import { DAILY_REWARD_INTERVAL_MS } from "../../services/dailyRewardService";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -471,14 +471,14 @@ const DailyRewardBanner = () => {
             end={{ x: 1, y: 0 }}
             style={{
               borderRadius: 8,
-              paddingVertical: 4,
+              height: 26,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             {isClaiming ? (
-              <ActivityIndicator size="small" color="#D97706" />
+              <ButtonLoading size={14} style="spinner" color="#D97706" />
             ) : claimResult === "error" ? (
               <>
                 <MaterialCommunityIcons

@@ -83,7 +83,7 @@
     "yourAnswer": "Your Answer",
     "yes": "Yes",
     "no": "No",
-    "waitingForPartner": "Waiting for your partner to answer...",
+    "waitingForPartner": "Waiting for your partner to answer",
     "opponentAnswered": "{{name}} has answered the question.",
     "leaveButton": "Leave",
     "leaveRoomButton": "Leave Room",
@@ -229,7 +229,9 @@
     "startGame": "Start Game",
     "waitingForPlayers": "Waiting for Players...",
     "leaveRoom": "Leave Room",
-    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n"
+    "shareMessage": "🎮 Join my KnowUsBetter room!\n\nRoom Code: {{code}}\n\nClick to join instantly:\n",
+    "changeCategoryTitle": "Change Category",
+    "changeCategorySubtitle": "Pick a new category for your room"
   },
   "roundResult": {
     "questionLabel": "Question",
@@ -286,6 +288,27 @@
       "low": "You're pretty different. That's fine. Sometimes that's exactly what works.",
       "veryLow": "You're pretty different. That's fine. Sometimes that's exactly what works."
     }
+  },
+  "knowMeWell": {
+    "backToRoom": "Back to Room",
+    "categoryTitle": "Know Me Well?",
+    "resultsTitle": "Results",
+    "aboutLabel": "About {{name}}",
+    "knowledgeQuestion": "How well does {{guesser}} know {{subject}}?",
+    "correctAnswers": "{{score}} / {{total}} correct",
+    "correctTag": "Correct",
+    "wrongTag": "Wrong",
+    "realAnswerLabel": "Real answer",
+    "guessLabel": "Guess",
+    "aiButton": "Your Relationship's Blind Spots",
+    "aiButtonSub": "A detailed AI analysis of what you still don't know about each other",
+    "aiModalTitle": "Discover Your Relationship's Blind Spots",
+    "aiModalDesc": "AI will dig into the questions you got wrong about each other and reveal what you still have to learn.",
+    "aiModalFeature1": "What you don't know about each other yet",
+    "aiModalFeature2": "Why these gaps exist",
+    "aiModalFeature3": "Tips to understand each other better",
+    "aiModalConfirm": "Start Analysis",
+    "aiModalCancel": "Cancel"
   },
   "announcements": {
     "title": "Latest Announcements",
