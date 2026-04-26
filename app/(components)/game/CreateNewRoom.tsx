@@ -211,7 +211,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = selectedCategory !== null;
-  const categoryMaxHeight = isSmallScreen ? 300 : 360;
+  const categoryMaxHeight = isSmallScreen ? 324 : 388;
 
   const scrollbarPadding = 8;
   const trackHeight = Math.max(0, categoryContainerHeight - scrollbarPadding * 2);
@@ -370,7 +370,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 </Text>
 
                 <Text
-                  className="text-sm text-slate-500 text-center mb-6"
+                  className="text-sm text-slate-500 text-center mb-5"
                   style={{ fontFamily: "MerriweatherSans_400Regular" }}
                 >
                   {t("createRoom.pickCategory")}
@@ -395,9 +395,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     ref={categoryScrollViewRef}
                     style={{ flex: 1 }}
                     contentContainerStyle={{
-                      paddingHorizontal: 10,
-                      paddingTop: 10,
-                      paddingBottom: 10,
+                      paddingHorizontal: 9,
+                      paddingTop: 9,
+                      paddingBottom: 9,
                     }}
                     scrollEnabled={true}
                     nestedScrollEnabled
@@ -451,7 +451,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         <TouchableOpacity
                           key={category.id}
                           onPress={() => setSelectedCategory(category.id)}
-                          className="mb-3 rounded-2xl p-4 flex-row items-center justify-between relative overflow-visible"
+                          className="mb-2.5 rounded-2xl px-4 py-3.5 flex-row items-center justify-between relative overflow-visible"
                           activeOpacity={0.8}
                           style={{
                             backgroundColor: category.color,
@@ -466,7 +466,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         >
                           {category.recentlyAdded && (
                             <Animated.View
-                              className="absolute -top-2 -right-2 bg-white rounded-full px-2 py-1 z-20"
+                              className="absolute -top-2 -right-2 bg-white rounded-full px-2 py-0.5 z-20"
                               style={{
                                 transform: [{ scale: newBadgeScale }],
                                 shadowColor: "#000",
@@ -487,20 +487,20 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               "MaterialCommunityIcons" ? (
                                 <MaterialCommunityIcons
                                   name={category.iconName as any}
-                                  size={20}
+                                  size={19}
                                   color="#1f2937"
                                 />
                               ) : (
                                 <FontAwesome6
                                   name={category.iconName as any}
-                                  size={18}
+                                  size={17}
                                   color="#1f2937"
                                 />
                               )}
                             </View>
 
                             <Text
-                              className="text-lg font-semibold text-slate-900 flex-1 mr-2"
+                              className="text-base font-semibold text-slate-900 flex-1 mr-2"
                               style={{
                                 fontFamily: "MerriweatherSans_600SemiBold",
                               }}
@@ -525,10 +525,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
                           {/* Checkmark */}
                           {isSelected && (
-                            <View className="ml-3 w-6 h-6 rounded-full bg-white/40 items-center justify-center">
+                            <View className="ml-3 w-[22px] h-[22px] rounded-full bg-white/40 items-center justify-center">
                               <Ionicons
                                 name="checkmark"
-                                size={16}
+                                size={15}
                                 color="#1f2937"
                               />
                             </View>
