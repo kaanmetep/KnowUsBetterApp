@@ -300,6 +300,7 @@
     "wrongTag": "Wrong",
     "realAnswerLabel": "Real answer",
     "guessLabel": "Guess",
+    "guessLabelWithName": "{{name}}'s guess",
     "aiButton": "Your Relationship's Blind Spots",
     "aiButtonSub": "A detailed AI analysis of what you still don't know about each other",
     "aiModalTitle": "Discover Your Relationship's Blind Spots",

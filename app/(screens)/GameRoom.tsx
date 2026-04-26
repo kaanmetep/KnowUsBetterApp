@@ -4,10 +4,15 @@ import {
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AppState, AppStateStatus, Platform } from "react-native";
 import AiAnalysisInfoModal from "../(components)/ai-match-analysis/AiAnalysisInfoModal";
+import {
+  getAiAnalysisModalContent,
+  type AiAnalysisUiVariant,
+} from "../(components)/ai-match-analysis/aiAnalysisTheme";
 import AiAnalysisResultModal from "../(components)/ai-match-analysis/AiAnalysisResultModal";
+import KnowMeWellAiAnalysisResultModal from "../(components)/ai-match-analysis/KnowMeWellAiAnalysisResultModal";
 import CoinPurchaseModal from "../(components)/coins/CoinPurchaseModal";
 import Countdown from "../(components)/ui/Countdown";
 import GameFinished from "../(components)/game/GameFinished";
@@ -17,7 +22,10 @@ import WaitingRoom from "../(components)/game/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
 import {
+  AI_ANALYSIS_COIN_COST,
   AiAnalysisResult,
+  type AiAnalysisType,
+  type KnowMeWellPercentages,
   generateAiAnalysis,
 } from "../services/aiAnalysisService";
 import {
@@ -75,6 +83,13 @@ const GameRoom = () => {
   const [aiResultLoading, setAiResultLoading] = useState(false);
   const [aiResultError, setAiResultError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AiAnalysisResult | null>(null);
+
+  const aiAnalysisUiVariant: AiAnalysisUiVariant =
+    room?.settings?.category === "know_me_well" ? "know_me_well" : "default";
+  const aiAnalysisInfoContent = useMemo(
+    () => getAiAnalysisModalContent(t, aiAnalysisUiVariant),
+    [t, selectedLanguage, aiAnalysisUiVariant]
+  );
 
   // Track when app goes to background
   const backgroundTimeRef = useRef<number | null>(null);
@@ -494,7 +509,9 @@ const GameRoom = () => {
   const handleStartAiAnalysis = async () => {
     if (!gameFinishedData) return;
 
-    const hasEnoughCoins = await ensureUserHasCoins(3);
+    const hasEnoughCoins = await ensureUserHasCoins(
+      AI_ANALYSIS_COIN_COST
+    );
     if (!hasEnoughCoins) {
       setShowAiInfoModal(false);
       setShowAiPurchaseModal(true);
@@ -516,15 +533,52 @@ const GameRoom = () => {
       opponentPlayer?.name || t("gameRoom.partnerLabel");
 
     try {
+      const analysisType: AiAnalysisType =
+        room?.settings?.category === "know_me_well"
+          ? "know_me_well"
+          : "default";
+      let knowMeWellPercentages: KnowMeWellPercentages | undefined;
+      if (analysisType === "know_me_well") {
+        const roomPlayer1Name = room?.players?.[0]?.name;
+        const roomPlayer2Name = room?.players?.[1]?.name;
+        const evenRounds = gameFinishedData.completedRounds.filter(
+          (_: any, index: number) => index % 2 === 0
+        );
+        const oddRounds = gameFinishedData.completedRounds.filter(
+          (_: any, index: number) => index % 2 === 1
+        );
+        const p2KnowsP1Score = evenRounds.filter((round: any) => round.isMatched).length;
+        const p1KnowsP2Score = oddRounds.filter((round: any) => round.isMatched).length;
+        const p2KnowsP1Percentage = evenRounds.length
+          ? Math.round((p2KnowsP1Score / evenRounds.length) * 100)
+          : 0;
+        const p1KnowsP2Percentage = oddRounds.length
+          ? Math.round((p1KnowsP2Score / oddRounds.length) * 100)
+          : 0;
+
+        if (currentPlayerName === roomPlayer1Name) {
+          knowMeWellPercentages = {
+            player1AboutPlayer2Percentage: p1KnowsP2Percentage,
+            player2AboutPlayer1Percentage: p2KnowsP1Percentage,
+          };
+        } else if (currentPlayerName === roomPlayer2Name) {
+          knowMeWellPercentages = {
+            player1AboutPlayer2Percentage: p2KnowsP1Percentage,
+            player2AboutPlayer1Percentage: p1KnowsP2Percentage,
+          };
+        }
+      }
       const result = await generateAiAnalysis(
         gameFinishedData.completedRounds,
         currentPlayerName,
         opponentPlayerName,
         gameFinishedData.percentage,
-        selectedLanguage
+        selectedLanguage,
+        analysisType,
+        knowMeWellPercentages
       );
 
-      const success = await spendCoins(3);
+      const success = await spendCoins(AI_ANALYSIS_COIN_COST);
       if (!success) {
         setShowAiResultModal(false);
         setShowAiPurchaseModal(true);
@@ -765,13 +819,12 @@ const GameRoom = () => {
             player2Name={player2?.name || t("gameRoom.partnerLabel")}
             onComplete={resetToWaitingRoom}
             onAiAnalysisPress={() => {
-              if (coins < 3) {
+              if (coins < AI_ANALYSIS_COIN_COST) {
                 setShowAiPurchaseModal(true);
                 return;
               }
               setShowAiInfoModal(true);
             }}
-            onBuyCoins={() => setShowAiPurchaseModal(true)}
           />
         );
       }
@@ -786,7 +839,7 @@ const GameRoom = () => {
           opponentPlayerName={opponentPlayerName}
           onComplete={resetToWaitingRoom}
           onAiAnalysisPress={() => {
-            if (coins < 3) {
+            if (coins < AI_ANALYSIS_COIN_COST) {
               setShowAiPurchaseModal(true);
               return;
             }
@@ -822,21 +875,47 @@ const GameRoom = () => {
         onClose={() => setShowAiInfoModal(false)}
         onConfirm={handleStartAiAnalysis}
         onBuyCoins={() => { setShowAiInfoModal(false); setShowAiPurchaseModal(true); }}
+        content={aiAnalysisInfoContent}
       />
       <CoinPurchaseModal
         visible={showAiPurchaseModal}
         onClose={() => setShowAiPurchaseModal(false)}
       />
-      <AiAnalysisResultModal
-        visible={showAiResultModal}
-        onClose={() => setShowAiResultModal(false)}
-        isLoading={aiResultLoading}
-        error={aiResultError}
-        result={aiResult}
-        onRetry={handleStartAiAnalysis}
-        player1Name={room?.players?.find((p: any) => p.id === mySocketId)?.name || t("gameRoom.youLabel")}
-        player2Name={room?.players?.find((p: any) => p.id !== mySocketId)?.name || t("gameRoom.partnerLabel")}
-      />
+      {room?.settings?.category === "know_me_well" ? (
+        <KnowMeWellAiAnalysisResultModal
+          visible={showAiResultModal}
+          onClose={() => setShowAiResultModal(false)}
+          isLoading={aiResultLoading}
+          error={aiResultError}
+          result={aiResult}
+          onRetry={handleStartAiAnalysis}
+          player1Name={
+            room?.players?.find((p: any) => p.id === mySocketId)?.name ||
+            t("gameRoom.youLabel")
+          }
+          player2Name={
+            room?.players?.find((p: any) => p.id !== mySocketId)?.name ||
+            t("gameRoom.partnerLabel")
+          }
+        />
+      ) : (
+        <AiAnalysisResultModal
+          visible={showAiResultModal}
+          onClose={() => setShowAiResultModal(false)}
+          isLoading={aiResultLoading}
+          error={aiResultError}
+          result={aiResult}
+          onRetry={handleStartAiAnalysis}
+          player1Name={
+            room?.players?.find((p: any) => p.id === mySocketId)?.name ||
+            t("gameRoom.youLabel")
+          }
+          player2Name={
+            room?.players?.find((p: any) => p.id !== mySocketId)?.name ||
+            t("gameRoom.partnerLabel")
+          }
+        />
+      )}
     </>
   );
 };

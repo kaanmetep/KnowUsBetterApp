@@ -19,6 +19,8 @@ import {
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getQuestionText } from "../../utils/questionUtils";
+import AiAnalysisEntryButton from "../ai-match-analysis/AiAnalysisEntryButton";
+import { getAiAnalysisButtonCopy } from "../ai-match-analysis/aiAnalysisTheme";
 
 interface GameFinishedProps {
   matchScore: number;
@@ -43,6 +45,7 @@ const GameFinished: React.FC<GameFinishedProps> = ({
 }) => {
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
+  const aiEntryCopy = getAiAnalysisButtonCopy(t, "default");
 
   // Content entrance animation
   const contentOpacity = useRef(new Animated.Value(0)).current;
@@ -413,69 +416,12 @@ const GameFinished: React.FC<GameFinishedProps> = ({
             transform: [{ translateY: contentTranslateY }],
           }}
         >
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <AiAnalysisEntryButton
+            variant="default"
+            title={aiEntryCopy.title}
+            subtitle={aiEntryCopy.subtitle}
             onPress={onAiAnalysisPress}
-            style={{
-              borderRadius: 18,
-              shadowColor: "#FF8080",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 10,
-              elevation: 4,
-            }}
-          >
-            <LinearGradient
-              colors={["#FFF5F5", "#FFE8E8", "#FFDCDC"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 18,
-                paddingVertical: 16,
-                paddingHorizontal: 18,
-                borderWidth: 1.5,
-                borderColor: "#FFBDBD",
-              }}
-            >
-              <View className="flex-row items-center">
-                <View
-                  className="w-11 h-11 rounded-full items-center justify-center mr-3"
-                  style={{
-                    backgroundColor: "rgba(255, 128, 128, 0.15)",
-                  }}
-                >
-                  <FontAwesome6
-                    name="heart-pulse"
-                    size={17}
-                    color="#E05A5A"
-                  />
-                </View>
-                <View className="flex-1 mr-3">
-                  <Text
-                    className="text-slate-800 text-[13px] leading-[18px]"
-                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                  >
-                    {t("gameFinished.aiAnalysisButton")}
-                  </Text>
-                  <Text
-                    className="text-slate-400 text-[10px] mt-0.5"
-                    style={{
-                      fontFamily: "MerriweatherSans_400Regular",
-                      opacity: 0.7,
-                    }}
-                  >
-                    {t("gameFinished.aiAnalysisPowered")}
-                  </Text>
-                </View>
-                <View className="bg-yellow-400 rounded-lg px-2.5 py-1.5 flex-row items-center shadow-sm">
-                  <FontAwesome6 name="coins" size={10} color="#713f12" />
-                  <Text className="text-yellow-900 text-xs font-bold ml-1.5">
-                    3
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
+          />
         </Animated.View>
 
         {/* ===== DIVIDER ===== */}

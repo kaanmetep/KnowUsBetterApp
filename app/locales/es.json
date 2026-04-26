@@ -300,6 +300,7 @@
     "wrongTag": "Incorrecto",
     "realAnswerLabel": "Respuesta real",
     "guessLabel": "Suposición",
+    "guessLabelWithName": "La suposición de {{name}}",
     "aiButton": "Los puntos ciegos de su relación",
     "aiButtonSub": "Un análisis detallado con IA de lo que aún no se conocen",
     "aiModalTitle": "Descubran los Puntos Ciegos de su Relación",

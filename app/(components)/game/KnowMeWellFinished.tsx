@@ -5,18 +5,16 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Easing,
-  Modal,
-  Platform,
-  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useCoins } from "../../contexts/CoinContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getResolvedQuestionText, resolvePlayerName } from "../../utils/questionUtils";
+import AiAnalysisEntryButton from "../ai-match-analysis/AiAnalysisEntryButton";
+import { getAiAnalysisButtonCopy } from "../ai-match-analysis/aiAnalysisTheme";
 
 interface KnowMeWellFinishedProps {
   completedRounds: any[];
@@ -24,7 +22,6 @@ interface KnowMeWellFinishedProps {
   player2Name: string;
   onComplete: () => void;
   onAiAnalysisPress: () => void;
-  onBuyCoins?: () => void;
 }
 
 const CATEGORY_COLOR = "#fdba74";
@@ -241,12 +238,10 @@ const KnowMeWellFinished: React.FC<KnowMeWellFinishedProps> = ({
   player2Name,
   onComplete,
   onAiAnalysisPress,
-  onBuyCoins,
 }) => {
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { coins } = useCoins();
-  const [showAiModal, setShowAiModal] = useState(false);
+  const aiEntryCopy = getAiAnalysisButtonCopy(t, "know_me_well");
 
   const headerOpacity = useRef(new Animated.Value(0)).current;
   const bottomOpacity = useRef(new Animated.Value(0)).current;
@@ -437,87 +432,15 @@ const KnowMeWellFinished: React.FC<KnowMeWellFinishedProps> = ({
           />
         </View>
 
-        {/* AI Analysis Button */}
         <Animated.View
           style={{ paddingHorizontal: 20, marginTop: 4, marginBottom: 4, opacity: headerOpacity }}
         >
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => setShowAiModal(true)}
-            style={{
-              borderRadius: 18,
-              shadowColor: "#f97316",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.14,
-              shadowRadius: 10,
-              elevation: 4,
-            }}
-          >
-            <LinearGradient
-              colors={["#FFF7ED", "#FFEDD5", "#FED7AA"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 18,
-                paddingVertical: 16,
-                paddingHorizontal: 18,
-                borderWidth: 1.5,
-                borderColor: "#FDC78E",
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <View
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "rgba(234,88,12,0.12)",
-                    marginRight: 12,
-                  }}
-                >
-                  <FontAwesome6 name="magnifying-glass" size={17} color="#ea580c" />
-                </View>
-                <View style={{ flex: 1, marginRight: 12 }}>
-                  <Text
-                    style={{
-                      fontFamily: "MerriweatherSans_700Bold",
-                      fontSize: 13,
-                      color: "#1e293b",
-                      lineHeight: 18,
-                    }}
-                  >
-                    {t("knowMeWell.aiButton")}
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: "MerriweatherSans_400Regular",
-                      fontSize: 10,
-                      color: "#94a3b8",
-                      marginTop: 2,
-                    }}
-                  >
-                    {t("knowMeWell.aiButtonSub")}
-                  </Text>
-                </View>
-                <View
-                  style={{
-                    backgroundColor: "#FBBF24",
-                    borderRadius: 10,
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <FontAwesome6 name="coins" size={10} color="#713f12" />
-                  <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12, color: "#713f12" }}>3</Text>
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
+          <AiAnalysisEntryButton
+            variant="know_me_well"
+            title={aiEntryCopy.title}
+            subtitle={aiEntryCopy.subtitle}
+            onPress={onAiAnalysisPress}
+          />
         </Animated.View>
 
         {/* Divider */}
@@ -650,189 +573,6 @@ const KnowMeWellFinished: React.FC<KnowMeWellFinishedProps> = ({
           </Animated.View>
         )}
       </ScrollView>
-
-      {/* AI Info Modal */}
-      <Modal
-        visible={showAiModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowAiModal(false)}
-        statusBarTranslucent
-      >
-        <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(15,23,42,0.6)",
-            justifyContent: "center",
-            alignItems: "center",
-            paddingHorizontal: 24,
-          }}
-          onPress={() => setShowAiModal(false)}
-        >
-          <Pressable
-            style={{
-              width: "100%",
-              maxWidth: 420,
-              backgroundColor: "white",
-              borderRadius: 28,
-              padding: 28,
-              position: "relative",
-              ...(Platform.OS === "ios"
-                ? { shadowColor: "#1e293b", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 16 }
-                : { elevation: 8 }),
-            }}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {/* Close */}
-            <TouchableOpacity
-              onPress={() => setShowAiModal(false)}
-              activeOpacity={0.7}
-              style={{
-                position: "absolute",
-                top: 20,
-                right: 20,
-                backgroundColor: "#f1f5f9",
-                padding: 8,
-                borderRadius: 999,
-                zIndex: 10,
-              }}
-            >
-              <FontAwesome6 name="xmark" size={16} color="#64748b" />
-            </TouchableOpacity>
-
-            {/* Icon */}
-            <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 32,
-                  backgroundColor: "rgba(234,88,12,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FontAwesome6 name="magnifying-glass" size={26} color="#ea580c" />
-              </View>
-            </View>
-
-            {/* Title */}
-            <Text
-              style={{
-                fontFamily: "MerriweatherSans_700Bold",
-                fontSize: 20,
-                color: "#1e293b",
-                textAlign: "center",
-                marginBottom: 8,
-              }}
-            >
-              {t("knowMeWell.aiModalTitle")}
-            </Text>
-
-            {/* Description */}
-            <Text
-              style={{
-                fontFamily: "MerriweatherSans_400Regular",
-                fontSize: 13,
-                color: "#64748b",
-                textAlign: "center",
-                lineHeight: 20,
-                marginBottom: 24,
-                paddingHorizontal: 8,
-              }}
-            >
-              {t("knowMeWell.aiModalDesc")}
-            </Text>
-
-            {/* Features */}
-            <View style={{ gap: 12, marginBottom: 24 }}>
-              {[
-                { icon: "eye-slash" as const, color: "#ea580c", bg: "rgba(234,88,12,0.1)", text: t("knowMeWell.aiModalFeature1") },
-                { icon: "lightbulb" as const, color: "#f59e0b", bg: "rgba(245,158,11,0.1)", text: t("knowMeWell.aiModalFeature2") },
-                { icon: "handshake" as const, color: "#3b82f6", bg: "rgba(59,130,246,0.1)", text: t("knowMeWell.aiModalFeature3") },
-              ].map((f, i) => (
-                <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}>
-                    <FontAwesome6 name={f.icon} size={14} color={f.color} />
-                  </View>
-                  <Text style={{ fontFamily: "MerriweatherSans_400Regular", fontSize: 13, color: "#475569", flex: 1, lineHeight: 18 }}>
-                    {f.text}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Coin balance */}
-            <View style={{ alignItems: "center", marginBottom: 20, gap: 8 }}>
-              <View style={{ backgroundColor: "#fffbeb", borderRadius: 999, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: "#fde68a" }}>
-                <Text style={{ fontFamily: "MerriweatherSans_400Regular", fontSize: 12, color: "#92400e" }}>
-                  <FontAwesome6 name="coins" size={12} color="#b45309" />
-                  {"  "}{t("coins.youHave", { coins })}
-                </Text>
-              </View>
-              {onBuyCoins && coins < 3 && (
-                <TouchableOpacity
-                  onPress={() => { setShowAiModal(false); onBuyCoins(); }}
-                  activeOpacity={0.75}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 999, backgroundColor: "#FBBF24" }}
-                >
-                  <FontAwesome6 name="coins" size={11} color="#713f12" />
-                  <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12, color: "#713f12" }}>
-                    {t("coins.buyCoins")}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Confirm */}
-            <TouchableOpacity
-              onPress={() => {
-                setShowAiModal(false);
-                onAiAnalysisPress();
-              }}
-              activeOpacity={0.9}
-              style={{ borderRadius: 20, marginBottom: 10 }}
-            >
-              <LinearGradient
-                colors={["#FFF7ED", "#FFEDD5", "#FED7AA"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  borderRadius: 20,
-                  paddingVertical: 15,
-                  paddingHorizontal: 24,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "row",
-                  gap: 10,
-                  borderWidth: 1.5,
-                  borderColor: "#FDC78E",
-                }}
-              >
-                <FontAwesome6 name="magnifying-glass" size={15} color="#ea580c" />
-                <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 15, color: "#1e293b", letterSpacing: 0.3 }}>
-                  {t("knowMeWell.aiModalConfirm")}
-                </Text>
-                <View style={{ backgroundColor: "#FBBF24", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5, flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <FontAwesome6 name="coins" size={10} color="#713f12" />
-                  <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12, color: "#713f12" }}>3</Text>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Cancel */}
-            <TouchableOpacity
-              onPress={() => setShowAiModal(false)}
-              activeOpacity={0.8}
-              style={{ paddingVertical: 12, borderRadius: 20, backgroundColor: "#f1f5f9", alignItems: "center" }}
-            >
-              <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 14, color: "#64748b" }}>
-                {t("knowMeWell.aiModalCancel")}
-              </Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </View>
   );
 };

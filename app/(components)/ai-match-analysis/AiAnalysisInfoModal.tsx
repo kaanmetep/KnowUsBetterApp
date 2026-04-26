@@ -16,21 +16,23 @@ import {
 } from "react-native";
 import { useCoins } from "../../contexts/CoinContext";
 import { useTranslation } from "../../hooks/useTranslation";
+import { AI_ANALYSIS_COIN_COST } from "../../services/aiAnalysisService";
+import type { AiAnalysisModalContent } from "./aiAnalysisTheme";
 
 interface AiAnalysisInfoModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void;
   onBuyCoins?: () => void;
+  content: AiAnalysisModalContent;
 }
-
-const AI_COST = 3;
 
 const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
   visible,
   onClose,
   onConfirm,
   onBuyCoins,
+  content,
 }) => {
   const { t } = useTranslation();
   const { coins } = useCoins();
@@ -54,27 +56,6 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
     },
   });
 
-  const features = [
-    {
-      icon: "heart" as const,
-      color: "#E05A5A",
-      bg: "rgba(255, 128, 128, 0.12)",
-      text: t("gameFinished.aiModalFeature1"),
-    },
-    {
-      icon: "shuffle" as const,
-      color: "#3B82F6",
-      bg: "rgba(59, 130, 246, 0.12)",
-      text: t("gameFinished.aiModalFeature2"),
-    },
-    {
-      icon: "lightbulb" as const,
-      color: "#F59E0B",
-      bg: "rgba(245, 158, 11, 0.12)",
-      text: t("gameFinished.aiModalFeature3"),
-    },
-  ];
-
   return (
     <Modal
       visible={visible}
@@ -92,7 +73,6 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
           style={softShadowStyle}
           onPress={(e) => e.stopPropagation()}
         >
-          {/* Close Button */}
           <TouchableOpacity
             onPress={onClose}
             className="absolute top-5 right-5 z-10 bg-slate-100 p-2 rounded-full"
@@ -101,35 +81,35 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
             <FontAwesome6 name="xmark" size={16} color="#64748b" />
           </TouchableOpacity>
 
-          {/* Header Icon */}
           <View className="items-center mb-5">
             <View
               className="w-16 h-16 rounded-full items-center justify-center"
-              style={{ backgroundColor: "rgba(255, 128, 128, 0.15)" }}
+              style={{ backgroundColor: content.headerIconBg }}
             >
-              <FontAwesome6 name="heart-pulse" size={28} color="#E05A5A" />
+              <FontAwesome6
+                name={content.headerIcon}
+                size={28}
+                color={content.headerIconColor}
+              />
             </View>
           </View>
 
-          {/* Title */}
           <Text
             className="text-xl font-bold text-slate-800 text-center mb-2"
             style={{ fontFamily: "MerriweatherSans_700Bold" }}
           >
-            {t("gameFinished.aiModalTitle")}
+            {content.title}
           </Text>
 
-          {/* Description */}
           <Text
             className="text-sm text-slate-500 text-center mb-6 leading-5 px-2"
             style={{ fontFamily: "MerriweatherSans_400Regular" }}
           >
-            {t("gameFinished.aiModalDesc")}
+            {content.description}
           </Text>
 
-          {/* Feature List */}
           <View className="mb-6 gap-3">
-            {features.map((feature, index) => (
+            {content.features.map((feature, index) => (
               <View key={index} className="flex-row items-center gap-3">
                 <View
                   className="w-9 h-9 rounded-full items-center justify-center"
@@ -151,7 +131,6 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
             ))}
           </View>
 
-          {/* Coin Balance */}
           <View className="items-center mb-5 gap-2">
             <View className="bg-amber-50 rounded-full px-4 py-1.5 border border-amber-100">
               <Text
@@ -163,7 +142,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
                 <Text>{t("coins.youHave", { coins })}</Text>
               </Text>
             </View>
-            {onBuyCoins && coins < AI_COST && (
+            {onBuyCoins && coins < AI_ANALYSIS_COIN_COST && (
               <TouchableOpacity
                 onPress={onBuyCoins}
                 activeOpacity={0.75}
@@ -171,7 +150,11 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
               >
                 <FontAwesome6 name="coins" size={11} color="#713f12" />
                 <Text
-                  style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 12, color: "#713f12" }}
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 12,
+                    color: "#713f12",
+                  }}
                 >
                   {t("coins.buyCoins")}
                 </Text>
@@ -179,14 +162,13 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
             )}
           </View>
 
-          {/* Confirm Button */}
           <TouchableOpacity
             onPress={onConfirm}
             activeOpacity={0.9}
             style={{ borderRadius: 20 }}
           >
             <LinearGradient
-              colors={["#FFF5F5", "#FFE8E8", "#FFDCDC"]}
+              colors={content.confirmGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -198,10 +180,14 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
                 flexDirection: "row",
                 gap: 10,
                 borderWidth: 1.5,
-                borderColor: "#FFBDBD",
+                borderColor: content.confirmBorderColor,
               }}
             >
-              <FontAwesome6 name="heart-pulse" size={16} color="#E05A5A" />
+              <FontAwesome6
+                name={content.confirmIcon}
+                size={16}
+                color={content.headerIconColor}
+              />
               <Text
                 className="text-slate-800 text-base font-bold"
                 style={{
@@ -209,18 +195,17 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
                   letterSpacing: 0.3,
                 }}
               >
-                {t("gameFinished.aiModalConfirm")}
+                {content.confirmLabel}
               </Text>
               <View className="bg-yellow-400 rounded-lg px-2.5 py-1 flex-row items-center shadow-sm ml-1">
                 <FontAwesome6 name="coins" size={10} color="#713f12" />
                 <Text className="text-yellow-900 text-xs font-bold ml-1.5">
-                  {AI_COST}
+                  {AI_ANALYSIS_COIN_COST}
                 </Text>
               </View>
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Cancel Button */}
           <TouchableOpacity
             onPress={onClose}
             activeOpacity={0.8}
@@ -230,7 +215,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
               className="text-slate-500 text-sm font-bold"
               style={{ fontFamily: "MerriweatherSans_700Bold" }}
             >
-              {t("gameFinished.aiModalCancel")}
+              {content.cancelLabel}
             </Text>
           </TouchableOpacity>
         </Pressable>

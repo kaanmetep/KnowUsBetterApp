@@ -7,6 +7,14 @@ import { Language } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getAvatarImage } from "../../utils/avatarUtils";
 import { getResolvedQuestionText, resolvePlayerName } from "../../utils/questionUtils";
+import { toTurkishPossessive } from "../../utils/turkishGrammar";
+
+const getKnowMeWellGuessLabel = (name: string, selectedLanguage: Language, t: any) => {
+  if (selectedLanguage === "tr") {
+    return `${toTurkishPossessive(name)} tahmini`;
+  }
+  return t("knowMeWell.guessLabelWithName", { name });
+};
 
 const StatusPill: React.FC<{
   children: React.ReactNode;
@@ -210,7 +218,11 @@ const RoundResult: React.FC<RoundResultProps> = ({
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontFamily: "MerriweatherSans_400Regular", fontSize: 11, color: isMatched ? "#16a34a" : "#e11d48", marginBottom: 1 }}>
-                  {guesserPA?.playerName || guesserName} {t("knowMeWell.guessLabel").toLowerCase()}
+                  {getKnowMeWellGuessLabel(
+                    guesserPA?.playerName || guesserName,
+                    selectedLanguage,
+                    t
+                  )}
                 </Text>
                 <Text style={{ fontFamily: "MerriweatherSans_700Bold", fontSize: 14, color: isMatched ? "#15803d" : "#be123c" }}>
                   {guesserAnswer}

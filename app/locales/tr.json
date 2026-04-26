@@ -300,6 +300,7 @@
     "wrongTag": "Yanlış",
     "realAnswerLabel": "Gerçek cevap",
     "guessLabel": "Tahmin",
+    "guessLabelWithName": "{{name}}'in tahmini",
     "aiButton": "İlişkinizin Kör Noktaları",
     "aiButtonSub": "Birbiriniz hakkındaki kör noktaların detaylı yapay zekâ analizi",
     "aiModalTitle": "İlişkinizdeki Kör Noktaları Keşfedin",
