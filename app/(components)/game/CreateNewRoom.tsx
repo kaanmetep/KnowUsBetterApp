@@ -25,8 +25,8 @@ import {
 import { UserPreferencesService } from "../../services/userPreferencesService";
 import AvatarSelection from "../profile/AvatarSelection";
 import ContactUsButton from "../profile/ContactUsButton";
-import ModalButton from "../ui/ModalButton";
 import NameInput from "../profile/NameInput";
+import ModalButton from "../ui/ModalButton";
 
 interface CreateNewRoomProps {
   visible: boolean;
@@ -34,7 +34,7 @@ interface CreateNewRoomProps {
   onCreateRoom: (
     userName: string,
     category: string,
-    avatar?: string
+    avatar?: string,
   ) => Promise<void>;
   onBuyCoins?: () => void;
 }
@@ -72,7 +72,12 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isIphone = Platform.OS === "ios";
   const isCompactIphoneWidth = isIphone && width <= 393;
   const isLargeIphoneWidth = isIphone && width > 393 && width <= 430;
-  const step3HeadingScale = isCompactIphoneWidth ? 0.9 : isLargeIphoneWidth ? 0.96 : 1;
+  const isBigIphone = isIphone && width >= 393;
+  const step3HeadingScale = isCompactIphoneWidth
+    ? 0.9
+    : isLargeIphoneWidth
+      ? 0.96
+      : 1;
   const categoryDensityScale = isCompactIphoneWidth
     ? 0.86
     : isLargeIphoneWidth
@@ -109,7 +114,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
           duration: 3000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     pulse.start();
     return () => {
@@ -132,7 +137,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
           duration: 700,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
     pulse.start();
     return () => {
@@ -234,25 +239,39 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     ? 252
     : isSmallScreen
       ? 292
-      : isIphone
-        ? 430
+      : isBigIphone
+        ? 386
+        : isIphone
+          ? 410
         : 388;
 
   const scrollbarPadding = 8;
-  const trackHeight = Math.max(0, categoryContainerHeight - scrollbarPadding * 2);
+  const trackHeight = Math.max(
+    0,
+    categoryContainerHeight - scrollbarPadding * 2,
+  );
   const categoryThumbHeight =
     categoryContentHeight > 0 && trackHeight > 0
       ? Math.min(
           trackHeight,
-          Math.max(32, (categoryContainerHeight / categoryContentHeight) * trackHeight)
+          Math.max(
+            32,
+            (categoryContainerHeight / categoryContentHeight) * trackHeight,
+          ),
         )
       : trackHeight || 32;
-  const categoryMaxScroll = Math.max(1, categoryContentHeight - categoryContainerHeight);
+  const categoryMaxScroll = Math.max(
+    1,
+    categoryContentHeight - categoryContainerHeight,
+  );
   const categoryThumbY = categoryScrollY.interpolate({
     inputRange: [0, categoryMaxScroll],
     outputRange: [
       scrollbarPadding,
-      Math.max(scrollbarPadding, categoryContainerHeight - categoryThumbHeight - scrollbarPadding),
+      Math.max(
+        scrollbarPadding,
+        categoryContainerHeight - categoryThumbHeight - scrollbarPadding,
+      ),
     ],
     extrapolate: "clamp",
   });
@@ -313,7 +332,11 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
               shadowOpacity: 0.1,
               shadowRadius: 12,
               elevation: 5,
-              maxHeight: isVerySmallScreen ? "86%" : "90%",
+              maxHeight: isVerySmallScreen
+                ? "86%"
+                : isBigIphone
+                  ? "87%"
+                  : "90%",
             }}
           >
             <ScrollView
@@ -375,377 +398,401 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 })}
               </View>
 
-            {/* --- STEP 1: AVATAR --- */}
-            {step === 1 && (
-              <View>
-                <AvatarSelection
-                  selectedAvatar={selectedAvatar}
-                  onAvatarSelect={setSelectedAvatar}
-                  theme="red"
-                />
-                <View className="mt-8">
-                  <ModalButton
-                    onPress={handleContinueFromStep1}
-                    disabled={!isStep1Valid}
-                    text={t("createRoom.continue")}
-                    disabledText={t("createRoom.selectAvatar")}
-                    variant="pink"
+              {/* --- STEP 1: AVATAR --- */}
+              {step === 1 && (
+                <View>
+                  <AvatarSelection
+                    selectedAvatar={selectedAvatar}
+                    onAvatarSelect={setSelectedAvatar}
+                    theme="red"
                   />
+                  <View className="mt-8">
+                    <ModalButton
+                      onPress={handleContinueFromStep1}
+                      disabled={!isStep1Valid}
+                      text={t("createRoom.continue")}
+                      disabledText={t("createRoom.selectAvatar")}
+                      variant="pink"
+                    />
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
 
-            {/* --- STEP 2: NAME --- */}
-            {step === 2 && (
-              <View>
-                <View className="pt-2 pb-4">
-                  <NameInput
-                    userName={userName}
-                    onUserNameChange={setUserName}
-                    userNameFocused={userNameFocused}
-                    onUserNameFocus={() => setUserNameFocused(true)}
-                    onUserNameBlur={() => setUserNameFocused(false)}
-                  />
+              {/* --- STEP 2: NAME --- */}
+              {step === 2 && (
+                <View>
+                  <View className="pt-2 pb-4">
+                    <NameInput
+                      userName={userName}
+                      onUserNameChange={setUserName}
+                      userNameFocused={userNameFocused}
+                      onUserNameFocus={() => setUserNameFocused(true)}
+                      onUserNameBlur={() => setUserNameFocused(false)}
+                    />
+                  </View>
+                  <View className="mt-6">
+                    <ModalButton
+                      onPress={handleContinueFromStep2}
+                      disabled={!isStep2Valid}
+                      text={t("createRoom.continue")}
+                      disabledText={t("createRoom.enterYourName")}
+                      variant="pink"
+                    />
+                  </View>
                 </View>
-                <View className="mt-6">
-                  <ModalButton
-                    onPress={handleContinueFromStep2}
-                    disabled={!isStep2Valid}
-                    text={t("createRoom.continue")}
-                    disabledText={t("createRoom.enterYourName")}
-                    variant="pink"
-                  />
-                </View>
-              </View>
-            )}
+              )}
 
-            {/* --- STEP 3: CATEGORY --- */}
-            {step === 3 && (
-              <View>
-                <Text
-                  className="font-bold text-slate-800 text-center mb-1"
-                  style={{
-                    fontFamily: "MerriweatherSans_700Bold",
-                    fontSize: 32 * step3Scale * step3HeadingScale,
-                  }}
-                >
-                  {t("createRoom.chooseYourVibe")}
-                </Text>
-
-                <Text
-                  className="text-slate-500 text-center"
-                  style={{
-                    fontFamily: "MerriweatherSans_400Regular",
-                    fontSize: 14 * step3Scale,
-                                marginBottom: 16 * step3Scale,
-                  }}
-                >
-                  {t("createRoom.pickCategory")}
-                </Text>
-
-                <View
-                  className="mb-4"
-                  style={{
-                    borderRadius: 20 * step3Scale,
-                    overflow: "hidden",
-                    maxHeight: categoryMaxHeight,
-                    flexDirection: "row",
-                    backgroundColor: "#fdfdfe",
-                    shadowColor: "#475569",
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.22,
-                    shadowRadius: 30,
-                    elevation: 10,
-                  }}
-                >
-                  <ScrollView
-                    ref={categoryScrollViewRef}
-                    style={{ flex: 1 }}
-                    contentContainerStyle={{
-                      paddingHorizontal: 9 * step3Scale,
-                      paddingTop: 9 * step3Scale,
-                      paddingBottom: 9 * step3Scale,
+              {/* --- STEP 3: CATEGORY --- */}
+              {step === 3 && (
+                <View>
+                  <Text
+                    className="font-bold text-slate-800 text-center mb-1"
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 32 * step3Scale * step3HeadingScale,
                     }}
-                    scrollEnabled={true}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator={false}
-                    onScroll={(e) => {
-                      const offsetY = e.nativeEvent.contentOffset.y;
-                      categoryScrollOffsetRef.current = offsetY;
-                      categoryScrollY.setValue(offsetY);
-                    }}
-                    scrollEventThrottle={16}
-                    onLayout={(e) =>
-                      setCategoryContainerHeight(e.nativeEvent.layout.height)
-                    }
-                    onContentSizeChange={(_, h) => setCategoryContentHeight(h)}
                   >
-                  {categoriesLoading ? (
-                    <View className="py-8 items-center">
-                      <Animated.Text
-                        className="text-slate-400"
-                        style={{
-                          fontFamily: "MerriweatherSans_400Regular",
-                          opacity: loadingOpacity,
-                        }}
-                      >
-                        {t("createRoom.loadingCategories")}
-                      </Animated.Text>
-                    </View>
-                  ) : categories.length === 0 ? (
-                    <View className="py-4 items-center">
-                      <Text
-                        className="text-slate-500"
-                        style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                      >
-                        {t("createRoom.noCategoriesAvailable")}
-                      </Text>
-                      <View className="mt-4">
-                        <ContactUsButton
-                          position="none"
-                          text={t("createRoom.reportIssue")}
-                        />
-                      </View>
-                    </View>
-                  ) : (
-                    categories.map((category, index) => {
-                      const isSelected = selectedCategory === category.id;
+                    {t("createRoom.chooseYourVibe")}
+                  </Text>
 
-                      const borderColor = isSelected
-                        ? "rgba(0,0,0,0.1)"
-                        : "transparent";
-                      const borderWidth = isSelected ? 2 : 0;
+                  <Text
+                    className="text-slate-500 text-center"
+                    style={{
+                      fontFamily: "MerriweatherSans_400Regular",
+                      fontSize: 14 * step3Scale,
+                      marginBottom: 16 * step3Scale,
+                    }}
+                  >
+                    {t("createRoom.pickCategory")}
+                  </Text>
 
-                      return (
-                        <TouchableOpacity
-                          key={category.id}
-                          onPress={() => {
-                            setSelectedCategory(category.id);
-                            if (index >= 3) triggerCategoryDepthHint();
-                          }}
-                          className="mb-2.5 flex-row items-center justify-between relative overflow-visible"
-                          activeOpacity={0.8}
-                          style={{
-                            borderRadius: 16 * step3Scale * categoryDensityScale,
-                            paddingHorizontal: 16 * step3Scale,
-                            paddingVertical: 14 * step3Scale * categoryDensityScale,
-                            backgroundColor: category.color,
-                            borderWidth: borderWidth,
-                            borderColor: borderColor,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: 2,
-                          }}
-                        >
-                          {category.recentlyAdded && (
-                            <Animated.View
-                              className="absolute bg-white rounded-full z-20"
+                  <View
+                    className="mb-4"
+                    style={{
+                      borderRadius: 20 * step3Scale,
+                      overflow: "hidden",
+                      maxHeight: categoryMaxHeight,
+                      flexDirection: "row",
+                      backgroundColor: "#fdfdfe",
+                      shadowColor: "#475569",
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 0.22,
+                      shadowRadius: 30,
+                      elevation: 10,
+                    }}
+                  >
+                    <ScrollView
+                      ref={categoryScrollViewRef}
+                      style={{ flex: 1 }}
+                      contentContainerStyle={{
+                        paddingHorizontal: 9 * step3Scale,
+                        paddingTop: 9 * step3Scale,
+                        paddingBottom: 9 * step3Scale,
+                      }}
+                      scrollEnabled={true}
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                      onScroll={(e) => {
+                        const offsetY = e.nativeEvent.contentOffset.y;
+                        categoryScrollOffsetRef.current = offsetY;
+                        categoryScrollY.setValue(offsetY);
+                      }}
+                      scrollEventThrottle={16}
+                      onLayout={(e) =>
+                        setCategoryContainerHeight(e.nativeEvent.layout.height)
+                      }
+                      onContentSizeChange={(_, h) =>
+                        setCategoryContentHeight(h)
+                      }
+                    >
+                      {categoriesLoading ? (
+                        <View className="py-8 items-center">
+                          <Animated.Text
+                            className="text-slate-400"
+                            style={{
+                              fontFamily: "MerriweatherSans_400Regular",
+                              opacity: loadingOpacity,
+                            }}
+                          >
+                            {t("createRoom.loadingCategories")}
+                          </Animated.Text>
+                        </View>
+                      ) : categories.length === 0 ? (
+                        <View className="py-4 items-center">
+                          <Text
+                            className="text-slate-500"
+                            style={{
+                              fontFamily: "MerriweatherSans_400Regular",
+                            }}
+                          >
+                            {t("createRoom.noCategoriesAvailable")}
+                          </Text>
+                          <View className="mt-4">
+                            <ContactUsButton
+                              position="none"
+                              text={t("createRoom.reportIssue")}
+                            />
+                          </View>
+                        </View>
+                      ) : (
+                        categories.map((category, index) => {
+                          const isSelected = selectedCategory === category.id;
+
+                          const borderColor = isSelected
+                            ? "rgba(0,0,0,0.1)"
+                            : "transparent";
+                          const borderWidth = isSelected ? 2 : 0;
+
+                          return (
+                            <TouchableOpacity
+                              key={category.id}
+                              onPress={() => {
+                                setSelectedCategory(category.id);
+                                if (index >= 3) triggerCategoryDepthHint();
+                              }}
+                              className="mb-3.5 flex-row items-center justify-between relative overflow-visible"
+                              activeOpacity={0.8}
                               style={{
-                                top: -8 * step3Scale,
-                                right: -8 * step3Scale,
-                                paddingHorizontal: 8 * step3Scale,
-                                paddingVertical: 2 * step3Scale,
-                                transform: [{ scale: newBadgeScale }],
+                                borderRadius:
+                                  16 * step3Scale * categoryDensityScale,
+                                paddingHorizontal: 16 * step3Scale,
+                                paddingVertical:
+                                  14 * step3Scale * categoryDensityScale,
+                                backgroundColor: category.color,
+                                borderWidth: borderWidth,
+                                borderColor: borderColor,
                                 shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 1 },
-                                shadowOpacity: 0.12,
-                                shadowRadius: 2,
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.05,
+                                shadowRadius: 4,
                                 elevation: 2,
                               }}
                             >
-                              <Text
-                                className="font-bold text-rose-500"
-                                style={{ fontSize: 10 * step3Scale }}
-                              >
-                                {t("common.new")}
-                              </Text>
-                            </Animated.View>
-                          )}
-                          <View className="flex-row items-center flex-1">
-                            <View
-                              className="bg-white/40 items-center justify-center"
-                              style={{
-                                width: 40 * step3Scale * categoryDensityScale,
-                                height: 40 * step3Scale * categoryDensityScale,
-                                borderRadius: 999,
-                                marginRight: 12 * step3Scale,
-                              }}
-                            >
-                              {category.iconType ===
-                              "MaterialCommunityIcons" ? (
-                                <MaterialCommunityIcons
-                                  name={category.iconName as any}
-                                  size={19 * step3Scale * categoryDensityScale}
-                                  color="#1f2937"
-                                />
-                              ) : (
-                                <FontAwesome6
-                                  name={category.iconName as any}
-                                  size={17 * step3Scale * categoryDensityScale}
-                                  color="#1f2937"
-                                />
-                              )}
-                            </View>
-
-                            <Text
-                              className="font-semibold text-slate-900 flex-1"
-                              style={{
-                                fontFamily: "MerriweatherSans_600SemiBold",
-                                fontSize: 16 * step3Scale * categoryNameScale,
-                                marginRight: 8 * step3Scale,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {getCategoryLabel(category, selectedLanguage)}
-                            </Text>
-
-                            {category.isPremium && (
-                              <View
-                                className="bg-yellow-400 flex-row items-center shadow-sm"
-                                style={{
-                                  borderRadius: 8 * step3Scale * categoryDensityScale,
-                                  paddingHorizontal: 10 * step3Scale,
-                                  paddingVertical: 6 * step3Scale * categoryDensityScale,
-                                }}
-                              >
-                                <FontAwesome6
-                                  name="coins"
-                                  size={10 * step3Scale * categoryDensityScale}
-                                  color="#713f12"
-                                />
-                                <Text
-                                  className="text-yellow-900 font-bold"
+                              {category.recentlyAdded && (
+                                <Animated.View
+                                  className="absolute bg-white rounded-full z-20"
                                   style={{
-                                    fontSize: 12 * step3Scale * categoryDensityScale,
-                                    marginLeft: 6 * step3Scale,
+                                    top: -8 * step3Scale,
+                                    right: -8 * step3Scale,
+                                    paddingHorizontal: 8 * step3Scale,
+                                    paddingVertical: 2 * step3Scale,
+                                    transform: [{ scale: newBadgeScale }],
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.12,
+                                    shadowRadius: 2,
+                                    elevation: 2,
                                   }}
                                 >
-                                  {category.coinsRequired}
+                                  <Text
+                                    className="font-bold text-rose-500"
+                                    style={{ fontSize: 10 * step3Scale }}
+                                  >
+                                    {t("common.new")}
+                                  </Text>
+                                </Animated.View>
+                              )}
+                              <View className="flex-row items-center flex-1">
+                                <View
+                                  className="bg-white/40 items-center justify-center"
+                                  style={{
+                                    width:
+                                      40 * step3Scale * categoryDensityScale,
+                                    height:
+                                      40 * step3Scale * categoryDensityScale,
+                                    borderRadius: 999,
+                                    marginRight: 12 * step3Scale,
+                                  }}
+                                >
+                                  {category.iconType ===
+                                  "MaterialCommunityIcons" ? (
+                                    <MaterialCommunityIcons
+                                      name={category.iconName as any}
+                                      size={
+                                        19 * step3Scale * categoryDensityScale
+                                      }
+                                      color="#1f2937"
+                                    />
+                                  ) : (
+                                    <FontAwesome6
+                                      name={category.iconName as any}
+                                      size={
+                                        17 * step3Scale * categoryDensityScale
+                                      }
+                                      color="#1f2937"
+                                    />
+                                  )}
+                                </View>
+
+                                <Text
+                                  className="font-semibold text-slate-900 flex-1"
+                                  style={{
+                                    fontFamily: "MerriweatherSans_600SemiBold",
+                                    fontSize:
+                                      16 * step3Scale * categoryNameScale,
+                                    marginRight: 8 * step3Scale,
+                                  }}
+                                  numberOfLines={1}
+                                >
+                                  {getCategoryLabel(category, selectedLanguage)}
                                 </Text>
+
+                                {category.isPremium && (
+                                  <View
+                                    className="bg-yellow-400 flex-row items-center shadow-sm"
+                                    style={{
+                                      borderRadius:
+                                        8 * step3Scale * categoryDensityScale,
+                                      paddingHorizontal: 10 * step3Scale,
+                                      paddingVertical:
+                                        6 * step3Scale * categoryDensityScale,
+                                    }}
+                                  >
+                                    <FontAwesome6
+                                      name="coins"
+                                      size={
+                                        10 * step3Scale * categoryDensityScale
+                                      }
+                                      color="#713f12"
+                                    />
+                                    <Text
+                                      className="text-yellow-900 font-bold"
+                                      style={{
+                                        fontSize:
+                                          12 *
+                                          step3Scale *
+                                          categoryDensityScale,
+                                        marginLeft: 6 * step3Scale,
+                                      }}
+                                    >
+                                      {category.coinsRequired}
+                                    </Text>
+                                  </View>
+                                )}
                               </View>
-                            )}
-                          </View>
 
-                          {/* Checkmark */}
-                          {isSelected && (
-                            <View
-                              className="rounded-full bg-white/40 items-center justify-center"
-                              style={{
-                                marginLeft: 12 * step3Scale,
-                                width: 22 * step3Scale * categoryDensityScale,
-                                height: 22 * step3Scale * categoryDensityScale,
-                              }}
-                            >
-                              <Ionicons
-                                name="checkmark"
-                                size={15 * step3Scale * categoryDensityScale}
-                                color="#1f2937"
-                              />
-                            </View>
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })
-                  )}
-                  </ScrollView>
+                              {/* Checkmark */}
+                              {isSelected && (
+                                <View
+                                  className="rounded-full bg-white/40 items-center justify-center"
+                                  style={{
+                                    marginLeft: 12 * step3Scale,
+                                    width:
+                                      22 * step3Scale * categoryDensityScale,
+                                    height:
+                                      22 * step3Scale * categoryDensityScale,
+                                  }}
+                                >
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={
+                                      15 * step3Scale * categoryDensityScale
+                                    }
+                                    color="#1f2937"
+                                  />
+                                </View>
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })
+                      )}
+                    </ScrollView>
 
-                  {/* Custom always-visible scrollbar */}
-                  <View
-                    style={{
-                      width: 12,
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* Track */}
+                    {/* Custom always-visible scrollbar */}
                     <View
                       style={{
-                        position: "absolute",
-                        top: scrollbarPadding,
-                        bottom: scrollbarPadding,
-                        width: 2,
-                        backgroundColor: "rgba(0,0,0,0.07)",
-                        borderRadius: 1,
-                      }}
-                    />
-                    {/* Thumb */}
-                    <Animated.View
-                      style={{
-                        position: "absolute",
-                        left: 4,
-                        width: 4,
-                        height: categoryThumbHeight,
-                        backgroundColor: "rgba(100, 116, 139, 0.55)",
-                        borderRadius: 2,
-                        transform: [{ translateY: categoryThumbY }],
-                      }}
-                    />
-                  </View>
-                </View>
-
-                <View
-                  className="items-center justify-center mb-2"
-                  style={{ gap: 8 * step3Scale }}
-                >
-                  <View
-                    className="bg-amber-50 rounded-full border border-amber-100"
-                    style={{
-                      paddingHorizontal: 16 * step3Scale,
-                      paddingVertical: 6 * step3Scale,
-                    }}
-                  >
-                    <Text
-                      className="text-amber-700 font-medium"
-                      style={{
-                        fontFamily: "MerriweatherSans_400Regular",
-                        fontSize: 12 * step3Scale,
+                        width: 12,
+                        alignItems: "center",
                       }}
                     >
-                      <FontAwesome6
-                        name="coins"
-                        size={12 * step3Scale}
-                        color="#b45309"
+                      {/* Track */}
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: scrollbarPadding,
+                          bottom: scrollbarPadding,
+                          width: 2,
+                          backgroundColor: "rgba(0,0,0,0.07)",
+                          borderRadius: 1,
+                        }}
                       />
-                      {"  "}
-                      <Text>{t("coins.youHave", { coins })}</Text>
-                    </Text>
+                      {/* Thumb */}
+                      <Animated.View
+                        style={{
+                          position: "absolute",
+                          left: 4,
+                          width: 4,
+                          height: categoryThumbHeight,
+                          backgroundColor: "rgba(100, 116, 139, 0.55)",
+                          borderRadius: 2,
+                          transform: [{ translateY: categoryThumbY }],
+                        }}
+                      />
+                    </View>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => onBuyCoins?.()}
-                    className="bg-amber-100 rounded-full border border-amber-200 active:bg-amber-200 mt-2"
-                    style={{
-                      paddingHorizontal: 16 * step3Scale,
-                      paddingVertical: 6 * step3Scale,
-                    }}
-                    activeOpacity={0.7}
+
+                  <View
+                    className="items-center justify-center mb-2"
+                    style={{ gap: 8 * step3Scale }}
                   >
-                    <Text
-                      className="text-amber-700 font-semibold"
+                    <View
+                      className="bg-amber-50 rounded-full border border-amber-100"
                       style={{
-                        fontFamily: "MerriweatherSans_600SemiBold",
-                        fontSize: 12 * step3Scale,
+                        paddingHorizontal: 16 * step3Scale,
+                        paddingVertical: 6 * step3Scale,
                       }}
                     >
-                      {t("coins.buyCoins")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                      <Text
+                        className="text-amber-700 font-medium"
+                        style={{
+                          fontFamily: "MerriweatherSans_400Regular",
+                          fontSize: 12 * step3Scale,
+                        }}
+                      >
+                        <FontAwesome6
+                          name="coins"
+                          size={12 * step3Scale}
+                          color="#b45309"
+                        />
+                        {"  "}
+                        <Text>{t("coins.youHave", { coins })}</Text>
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => onBuyCoins?.()}
+                      className="bg-amber-100 rounded-full border border-amber-200 active:bg-amber-200 mt-2"
+                      style={{
+                        paddingHorizontal: 16 * step3Scale,
+                        paddingVertical: 6 * step3Scale,
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        className="text-amber-700 font-semibold"
+                        style={{
+                          fontFamily: "MerriweatherSans_600SemiBold",
+                          fontSize: 12 * step3Scale,
+                        }}
+                      >
+                        {t("coins.buyCoins")}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
 
-                <View style={{ marginTop: 16 * step3Scale }}>
-                  <ModalButton
-                    onPress={handleCreate}
-                    disabled={!isStep3Valid}
-                    isLoading={isCreating}
-                    text={t("createRoom.createRoom")}
-                    disabledText={t("createRoom.selectCategory")}
-                    loadingText={t("createRoom.creating")}
-                    variant="pink"
-                    showLoadingIndicator={true}
-                  />
+                  <View style={{ marginTop: 16 * step3Scale }}>
+                    <ModalButton
+                      onPress={handleCreate}
+                      disabled={!isStep3Valid}
+                      isLoading={isCreating}
+                      text={t("createRoom.createRoom")}
+                      disabledText={t("createRoom.selectCategory")}
+                      loadingText={t("createRoom.creating")}
+                      variant="pink"
+                      showLoadingIndicator={true}
+                    />
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
             </ScrollView>
           </Pressable>
         </Pressable>

@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { Language } from "../contexts/LanguageContext";
 import { getSupabaseClient } from "../lib/supabaseClient";
 
@@ -21,12 +22,30 @@ export interface Category {
   orderIndex: number;
 }
 
-const CATEGORIES_STORAGE_KEY = "@KnowUsBetter:categories";
-const CATEGORIES_TIMESTAMP_KEY = "@KnowUsBetter:categories_timestamp";
+const APP_ENV =
+  (Constants.expoConfig?.extra?.environment as string | undefined) || "prod";
+const CATEGORIES_STORAGE_KEY = `@KnowUsBetter:categories:${APP_ENV}`;
+const CATEGORIES_TIMESTAMP_KEY = `@KnowUsBetter:categories_timestamp:${APP_ENV}`;
+const LEGACY_CATEGORIES_STORAGE_KEY = "@KnowUsBetter:categories";
+const LEGACY_CATEGORIES_TIMESTAMP_KEY = "@KnowUsBetter:categories_timestamp";
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
 let categoriesCache: Category[] | null = null;
 let cacheTimestamp: number | null = null;
+let legacyKeysCleared = false;
+
+const clearLegacyCacheKeysIfNeeded = async (): Promise<void> => {
+  if (legacyKeysCleared) return;
+  legacyKeysCleared = true;
+  try {
+    await AsyncStorage.multiRemove([
+      LEGACY_CATEGORIES_STORAGE_KEY,
+      LEGACY_CATEGORIES_TIMESTAMP_KEY,
+    ]);
+  } catch (error) {
+    console.warn("Failed to clear legacy categories cache:", error);
+  }
+};
 
 const loadFromStorage = async (): Promise<Category[] | null> => {
   try {
@@ -61,6 +80,7 @@ const saveToStorage = async (categories: Category[]): Promise<void> => {
 
 export const getCategories = async (): Promise<Category[]> => {
   const now = Date.now();
+  await clearLegacyCacheKeysIfNeeded();
 
   // Check memory cache
   if (

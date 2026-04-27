@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import Constants from "expo-constants";
 
+const APP_ENV = (Constants.expoConfig?.extra?.environment as string | undefined) || "";
 const EXPO_PUBLIC_SUPABASE_URL = Constants.expoConfig?.extra?.supabaseUrl || "";
 const EXPO_PUBLIC_SUPABASE_KEY =
   Constants.expoConfig?.extra?.supabaseAnonKey || "";
@@ -34,6 +35,10 @@ export const getSupabaseClient = (): SupabaseClient | null => {
       },
     }
   );
+  console.log("Supabase initialized", {
+    environment: APP_ENV || "unknown",
+    url: EXPO_PUBLIC_SUPABASE_URL,
+  });
 
   return supabaseClient;
 };
