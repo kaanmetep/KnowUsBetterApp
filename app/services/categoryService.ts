@@ -82,6 +82,10 @@ export const getCategories = async (): Promise<Category[]> => {
   const now = Date.now();
   await clearLegacyCacheKeysIfNeeded();
 
+  if (__DEV__) {
+    await clearCategoriesCache();
+  }
+
   // Check memory cache
   if (
     categoriesCache &&

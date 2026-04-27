@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   KeyboardAvoidingView,
@@ -86,6 +86,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const categoryNameScale = categoryDensityScale;
 
   useEffect(() => {
+    if (__DEV__) return;
     const loadCategories = async () => {
       setCategoriesLoading(true);
       try {
@@ -99,6 +100,26 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     };
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (!__DEV__ || !visible || step !== 3) return;
+    let cancelled = false;
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      try {
+        const categoriesData = await getCategories();
+        if (!cancelled) setCategories(categoriesData);
+      } catch (error) {
+        console.error("❌ Error loading categories:", error);
+      } finally {
+        if (!cancelled) setCategoriesLoading(false);
+      }
+    };
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, step]);
 
   useEffect(() => {
     loadingOpacity.setValue(0.1);
@@ -174,9 +195,33 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     }
   }, [userName]);
 
-  const resetCategoryScroll = () => {
+  const resetCategoryScroll = useCallback(() => {
+    categoryHintAnimRef.stopAnimation();
+    categoryHintAnimRef.setValue(0);
+    categoryScrollOffsetRef.current = 0;
     categoryScrollY.setValue(0);
     categoryScrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, []);
+
+  useEffect(() => {
+    if (step !== 3) {
+      categoryHintAnimRef.stopAnimation();
+      categoryHintAnimRef.setValue(0);
+      categoryScrollOffsetRef.current = 0;
+      categoryScrollY.setValue(0);
+      return;
+    }
+    const id = requestAnimationFrame(() => {
+      resetCategoryScroll();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [step, resetCategoryScroll]);
+
+  const enterStep2 = () => {
+    setSelectedCategory(null);
+    resetCategoryScroll();
+    hasShownCategoryDepthHintRef.current = false;
+    setStep(2);
   };
 
   const handleClose = () => {
@@ -191,7 +236,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   };
 
   const handleContinueFromStep1 = () => {
-    if (selectedAvatar) setStep(2);
+    if (selectedAvatar) enterStep2();
   };
 
   const handleContinueFromStep2 = () => {
@@ -203,10 +248,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
   const handleBack = () => {
     if (step === 2) setStep(1);
-    else if (step === 3) {
-      hasShownCategoryDepthHintRef.current = false;
-      setStep(2);
-    }
+    else if (step === 3) enterStep2();
   };
 
   const handleCreate = async () => {
@@ -278,13 +320,15 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
   useEffect(() => {
     const listenerId = categoryHintAnimRef.addListener(({ value }) => {
+      categoryScrollOffsetRef.current = value;
+      categoryScrollY.setValue(value);
       categoryScrollViewRef.current?.scrollTo({ y: value, animated: false });
     });
 
     return () => {
       categoryHintAnimRef.removeListener(listenerId);
     };
-  }, [categoryHintAnimRef]);
+  }, [categoryHintAnimRef, categoryScrollY]);
 
   const triggerCategoryDepthHint = () => {
     if (hasShownCategoryDepthHintRef.current) return;
@@ -383,7 +427,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       key={s}
                       onPress={() => {
                         if (s === 1) setStep(1);
-                        if (s === 2 && isStep1Valid) setStep(2);
+                        if (s === 2 && isStep1Valid) enterStep2();
                         if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
                       }}
                       disabled={
