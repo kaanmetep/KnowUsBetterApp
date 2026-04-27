@@ -13,7 +13,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.knowusbetter.app",
-      buildNumber: "6",
+      buildNumber: "8",
       googleServicesFile: "./GoogleService-Info.plist",
       associatedDomains: ["applinks:knowusbetter.app"],
       infoPlist: {

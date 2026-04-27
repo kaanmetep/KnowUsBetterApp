@@ -69,6 +69,16 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isSmallScreen = height < 760;
   const isVerySmallScreen = width <= 350 || height <= 670;
   const step3Scale = isVerySmallScreen ? 0.84 : isSmallScreen ? 0.92 : 1;
+  const isIphone = Platform.OS === "ios";
+  const isCompactIphoneWidth = isIphone && width <= 393;
+  const isLargeIphoneWidth = isIphone && width > 393 && width <= 430;
+  const step3HeadingScale = isCompactIphoneWidth ? 0.9 : isLargeIphoneWidth ? 0.96 : 1;
+  const categoryDensityScale = isCompactIphoneWidth
+    ? 0.86
+    : isLargeIphoneWidth
+      ? 0.92
+      : 1;
+  const categoryNameScale = categoryDensityScale;
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -220,7 +230,13 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = selectedCategory !== null;
-  const categoryMaxHeight = isVerySmallScreen ? 252 : isSmallScreen ? 292 : 388;
+  const categoryMaxHeight = isVerySmallScreen
+    ? 252
+    : isSmallScreen
+      ? 292
+      : isIphone
+        ? 430
+        : 388;
 
   const scrollbarPadding = 8;
   const trackHeight = Math.max(0, categoryContainerHeight - scrollbarPadding * 2);
@@ -410,7 +426,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   className="font-bold text-slate-800 text-center mb-1"
                   style={{
                     fontFamily: "MerriweatherSans_700Bold",
-                    fontSize: 32 * step3Scale,
+                    fontSize: 32 * step3Scale * step3HeadingScale,
                   }}
                 >
                   {t("createRoom.chooseYourVibe")}
@@ -421,7 +437,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   style={{
                     fontFamily: "MerriweatherSans_400Regular",
                     fontSize: 14 * step3Scale,
-                    marginBottom: 20 * step3Scale,
+                                marginBottom: 16 * step3Scale,
                   }}
                 >
                   {t("createRoom.pickCategory")}
@@ -510,9 +526,9 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                           className="mb-2.5 flex-row items-center justify-between relative overflow-visible"
                           activeOpacity={0.8}
                           style={{
-                            borderRadius: 16 * step3Scale,
+                            borderRadius: 16 * step3Scale * categoryDensityScale,
                             paddingHorizontal: 16 * step3Scale,
-                            paddingVertical: 14 * step3Scale,
+                            paddingVertical: 14 * step3Scale * categoryDensityScale,
                             backgroundColor: category.color,
                             borderWidth: borderWidth,
                             borderColor: borderColor,
@@ -551,8 +567,8 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             <View
                               className="bg-white/40 items-center justify-center"
                               style={{
-                                width: 40 * step3Scale,
-                                height: 40 * step3Scale,
+                                width: 40 * step3Scale * categoryDensityScale,
+                                height: 40 * step3Scale * categoryDensityScale,
                                 borderRadius: 999,
                                 marginRight: 12 * step3Scale,
                               }}
@@ -561,13 +577,13 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               "MaterialCommunityIcons" ? (
                                 <MaterialCommunityIcons
                                   name={category.iconName as any}
-                                  size={19 * step3Scale}
+                                  size={19 * step3Scale * categoryDensityScale}
                                   color="#1f2937"
                                 />
                               ) : (
                                 <FontAwesome6
                                   name={category.iconName as any}
-                                  size={17 * step3Scale}
+                                  size={17 * step3Scale * categoryDensityScale}
                                   color="#1f2937"
                                 />
                               )}
@@ -577,7 +593,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               className="font-semibold text-slate-900 flex-1"
                               style={{
                                 fontFamily: "MerriweatherSans_600SemiBold",
-                                fontSize: 16 * step3Scale,
+                                fontSize: 16 * step3Scale * categoryNameScale,
                                 marginRight: 8 * step3Scale,
                               }}
                               numberOfLines={1}
@@ -589,20 +605,20 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               <View
                                 className="bg-yellow-400 flex-row items-center shadow-sm"
                                 style={{
-                                  borderRadius: 8 * step3Scale,
+                                  borderRadius: 8 * step3Scale * categoryDensityScale,
                                   paddingHorizontal: 10 * step3Scale,
-                                  paddingVertical: 6 * step3Scale,
+                                  paddingVertical: 6 * step3Scale * categoryDensityScale,
                                 }}
                               >
                                 <FontAwesome6
                                   name="coins"
-                                  size={10 * step3Scale}
+                                  size={10 * step3Scale * categoryDensityScale}
                                   color="#713f12"
                                 />
                                 <Text
                                   className="text-yellow-900 font-bold"
                                   style={{
-                                    fontSize: 12 * step3Scale,
+                                    fontSize: 12 * step3Scale * categoryDensityScale,
                                     marginLeft: 6 * step3Scale,
                                   }}
                                 >
@@ -618,13 +634,13 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                               className="rounded-full bg-white/40 items-center justify-center"
                               style={{
                                 marginLeft: 12 * step3Scale,
-                                width: 22 * step3Scale,
-                                height: 22 * step3Scale,
+                                width: 22 * step3Scale * categoryDensityScale,
+                                height: 22 * step3Scale * categoryDensityScale,
                               }}
                             >
                               <Ionicons
                                 name="checkmark"
-                                size={15 * step3Scale}
+                                size={15 * step3Scale * categoryDensityScale}
                                 color="#1f2937"
                               />
                             </View>
