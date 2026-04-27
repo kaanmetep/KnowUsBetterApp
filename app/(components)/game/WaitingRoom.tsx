@@ -3,7 +3,6 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import * as Clipboard from "expo-clipboard";
-import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
@@ -16,8 +15,10 @@ import {
   Share,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Rect } from "react-native-svg";
 import { useCoins } from "../../contexts/CoinContext";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -30,13 +31,13 @@ import {
 } from "../../services/categoryService";
 import { Room } from "../../services/socketService";
 import { getAvatarImage } from "../../utils/avatarUtils";
-import ButtonLoading from "../ui/ButtonLoading";
 import CoinBalanceDisplay from "../coins/CoinBalanceDisplay";
 import CoinPurchaseModal from "../coins/CoinPurchaseModal";
-import Logo from "../ui/Logo";
 import RateAppFeedbackModal from "../profile/RateAppFeedbackModal";
 import SettingsButton from "../settings/SettingsButton";
 import SettingsModal from "../settings/SettingsModal";
+import ButtonLoading from "../ui/ButtonLoading";
+import Logo from "../ui/Logo";
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
@@ -80,9 +81,16 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   const startButtonGlowAnim = useRef(new Animated.Value(0)).current;
   const dashAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
   const coinWarningPulseAnim = useRef(new Animated.Value(1)).current;
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const participants = room.players || [];
-  const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
+  const isSmallPhone = width <= 375 && height <= 700;
+  const isVerySmallPhone = width <= 350 || height <= 640;
+  const uiScale = isVerySmallPhone ? 0.78 : isSmallPhone ? 0.88 : 1;
+  const roomCodeScale = isVerySmallPhone ? 0.72 : isSmallPhone ? 0.8 : 1;
+  const categorySheetScale = isVerySmallPhone ? 0.8 : isSmallPhone ? 0.9 : 1;
+  const headerTop = Math.max(insets.top + 12, 16);
   const logoTopSpacing = Math.max(headerTop - 12, 31);
   const isHost = participants.find((p) => p.id === mySocketId)?.isHost || false;
   const hasEnoughPlayers = participants.length >= 2;
@@ -260,7 +268,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-white pt-16">
+    <View
+      className="flex-1 bg-white"
+      style={{ paddingTop: isSmallPhone ? 10 : 16 }}
+    >
       <CoinPurchaseModal
         visible={showPurchaseModal}
         onClose={() => setShowPurchaseModal(false)}
@@ -300,24 +311,46 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           <Animated.View
             style={{
               backgroundColor: "#fff",
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              maxHeight: "78%",
-              paddingBottom: 32,
+              borderTopLeftRadius: 28 * categorySheetScale,
+              borderTopRightRadius: 28 * categorySheetScale,
+              maxHeight: isVerySmallPhone ? "68%" : isSmallPhone ? "72%" : "78%",
+              paddingBottom: 24 * categorySheetScale,
               transform: [{ translateY: sheetSlideAnim }],
             }}
           >
             {/* Handle bar */}
-            <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 8 }}>
-              <View style={{ width: 40, height: 4, borderRadius: 999, backgroundColor: "#e2e8f0" }} />
+            <View
+              style={{
+                alignItems: "center",
+                paddingTop: 12 * categorySheetScale,
+                paddingBottom: 8 * categorySheetScale,
+              }}
+            >
+              <View
+                style={{
+                  width: 40 * categorySheetScale,
+                  height: 4 * categorySheetScale,
+                  borderRadius: 999,
+                  backgroundColor: "#e2e8f0",
+                }}
+              />
             </View>
 
             {/* Header */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 8, paddingBottom: 4 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 24 * categorySheetScale,
+                paddingTop: 8 * categorySheetScale,
+                paddingBottom: 4 * categorySheetScale,
+              }}
+            >
               <Text
                 style={{
                   fontFamily: "MerriweatherSans_700Bold",
-                  fontSize: 18,
+                  fontSize: 18 * categorySheetScale,
                   color: "#1e293b",
                 }}
               >
@@ -326,13 +359,30 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               <TouchableOpacity
                 onPress={() => setShowCategoryModal(false)}
                 activeOpacity={0.7}
-                style={{ width: 32, height: 32, alignItems: "center", justifyContent: "center", borderRadius: 999, backgroundColor: "#f1f5f9" }}
+                style={{
+                  width: 32 * categorySheetScale,
+                  height: 32 * categorySheetScale,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 999,
+                  backgroundColor: "#f1f5f9",
+                }}
               >
-                <Ionicons name="close" size={18} color="#64748b" />
+                <Ionicons
+                  name="close"
+                  size={18 * categorySheetScale}
+                  color="#64748b"
+                />
               </TouchableOpacity>
             </View>
             <Text
-              style={{ fontFamily: "MerriweatherSans_400Regular", fontSize: 12, color: "#94a3b8", paddingHorizontal: 24, paddingBottom: 12 }}
+              style={{
+                fontFamily: "MerriweatherSans_400Regular",
+                fontSize: 12 * categorySheetScale,
+                color: "#94a3b8",
+                paddingHorizontal: 24 * categorySheetScale,
+                paddingBottom: 12 * categorySheetScale,
+              }}
             >
               {t("waitingRoom.changeCategorySubtitle")}
             </Text>
@@ -346,7 +396,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 bounces={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+                contentContainerStyle={{
+                  paddingHorizontal: 16 * categorySheetScale,
+                  paddingBottom: 8 * categorySheetScale,
+                }}
               >
                 {allCategories.map((cat) => {
                   const isSelected = cat.id === category;
@@ -359,9 +412,9 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         flexDirection: "row",
                         alignItems: "center",
                         backgroundColor: cat.color,
-                        borderRadius: 16,
-                        padding: 14,
-                        marginBottom: 10,
+                        borderRadius: 16 * categorySheetScale,
+                        padding: 14 * categorySheetScale,
+                        marginBottom: 10 * categorySheetScale,
                         borderWidth: isSelected ? 2 : 0,
                         borderColor: isSelected ? "rgba(0,0,0,0.12)" : "transparent",
                         shadowColor: "#000",
@@ -374,25 +427,25 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       {/* Category Icon */}
                       <View
                         style={{
-                          width: 40,
-                          height: 40,
+                          width: 40 * categorySheetScale,
+                          height: 40 * categorySheetScale,
                           borderRadius: 999,
                           backgroundColor: "rgba(255,255,255,0.4)",
                           alignItems: "center",
                           justifyContent: "center",
-                          marginRight: 12,
+                          marginRight: 12 * categorySheetScale,
                         }}
                       >
                         {cat.iconType === "MaterialCommunityIcons" ? (
                           <MaterialCommunityIcons
                             name={cat.iconName as any}
-                            size={20}
+                            size={20 * categorySheetScale}
                             color="#1f2937"
                           />
                         ) : (
                           <FontAwesome6
                             name={cat.iconName as any}
-                            size={18}
+                            size={18 * categorySheetScale}
                             color="#1f2937"
                           />
                         )}
@@ -403,10 +456,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                         numberOfLines={1}
                         style={{
                           fontFamily: "MerriweatherSans_700Bold",
-                          fontSize: 15,
+                          fontSize: 15 * categorySheetScale,
                           color: "#1f2937",
                           flex: 1,
-                          marginRight: 8,
+                          marginRight: 8 * categorySheetScale,
                         }}
                       >
                         {getCategoryLabel(cat, selectedLanguage)}
@@ -419,19 +472,23 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                             flexDirection: "row",
                             alignItems: "center",
                             backgroundColor: "#facc15",
-                            borderRadius: 8,
-                            paddingHorizontal: 10,
-                            paddingVertical: 6,
-                            marginRight: isSelected ? 8 : 0,
+                            borderRadius: 8 * categorySheetScale,
+                            paddingHorizontal: 10 * categorySheetScale,
+                            paddingVertical: 6 * categorySheetScale,
+                            marginRight: isSelected ? 8 * categorySheetScale : 0,
                           }}
                         >
-                          <FontAwesome6 name="coins" size={10} color="#713f12" />
+                          <FontAwesome6
+                            name="coins"
+                            size={10 * categorySheetScale}
+                            color="#713f12"
+                          />
                           <Text
                             style={{
                               fontFamily: "MerriweatherSans_700Bold",
-                              fontSize: 12,
+                              fontSize: 12 * categorySheetScale,
                               color: "#713f12",
-                              marginLeft: 5,
+                              marginLeft: 5 * categorySheetScale,
                             }}
                           >
                             {cat.coinsRequired}
@@ -443,15 +500,19 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                       {isSelected && (
                         <View
                           style={{
-                            width: 24,
-                            height: 24,
+                            width: 24 * categorySheetScale,
+                            height: 24 * categorySheetScale,
                             borderRadius: 999,
                             backgroundColor: "rgba(255,255,255,0.4)",
                             alignItems: "center",
                             justifyContent: "center",
                           }}
                         >
-                          <Ionicons name="checkmark" size={16} color="#1f2937" />
+                          <Ionicons
+                            name="checkmark"
+                            size={16 * categorySheetScale}
+                            color="#1f2937"
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -465,7 +526,11 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 
       <View
         className="absolute left-6 z-50 flex-row items-center gap-2"
-        style={{ top: headerTop }}
+        style={{
+          top: headerTop,
+          left: isSmallPhone ? 12 : 24,
+          transform: [{ scale: isVerySmallPhone ? 0.9 : isSmallPhone ? 0.96 : 1 }],
+        }}
       >
         <CoinBalanceDisplay onBuyCoins={handleBuyCoins} />
         <TouchableOpacity
@@ -487,31 +552,54 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
 
       <View
         className="absolute right-6 z-50 flex-row items-center justify-end gap-3"
-        style={{ top: headerTop }}
+        style={{ top: headerTop, right: isSmallPhone ? 12 : 24 }}
       >
         <SettingsButton onPress={() => setShowSettingsModal(true)} />
       </View>
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingTop: isVerySmallPhone ? headerTop + 38 : isSmallPhone ? headerTop + 30 : 0,
+          paddingBottom:
+            (isVerySmallPhone ? 104 : isSmallPhone ? 84 : 40) +
+            Math.max(insets.bottom - 4, 0),
+          flexGrow: 1,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ marginTop: logoTopSpacing }}>
-          <Logo size="tiny" />
-        </View>
-        <View className="px-6 mt-4">
+        {!isSmallPhone && (
+          <View style={{ marginTop: logoTopSpacing + 36 }}>
+            <Logo size="tiny" />
+          </View>
+        )}
+        <View
+          className="px-6 mt-4"
+          style={{
+            paddingHorizontal: isSmallPhone ? 16 : 24,
+            marginTop: isSmallPhone ? 6 : 16,
+          }}
+        >
           {/* Room Code Section */}
-          <View className="mb-8 items-center">
+          <View
+            className="items-center"
+            style={{ marginBottom: (isSmallPhone ? 16 : 32) * uiScale }}
+          >
             <Text
-              className="text-center text-slate-500 text-sm mb-4"
-              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+              className="text-center text-slate-500 mb-4"
+              style={{
+                fontFamily: "MerriweatherSans_400Regular",
+                fontSize: 14 * roomCodeScale,
+              }}
             >
               {t("waitingRoom.shareCodeWithPartner")}
             </Text>
             <View
-              className="bg-white w-full rounded-[32px] p-8 items-center"
+              className="bg-white w-full items-center"
               style={{
+                borderRadius: 32 * roomCodeScale,
+                paddingHorizontal: 32 * roomCodeScale,
+                paddingVertical: 28 * roomCodeScale,
                 shadowColor: "#fe9ea2",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.3,
@@ -520,9 +608,10 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               }}
             >
               <Text
-                className="text-5xl font-bold text-slate-800 tracking-widest mb-4"
+                className="font-bold text-slate-800 mb-4"
                 style={{
-                  letterSpacing: 8,
+                  fontSize: 46 * roomCodeScale,
+                  letterSpacing: 8 * roomCodeScale,
                   fontFamily: "MerriweatherSans_700Bold",
                 }}
               >
@@ -532,17 +621,25 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
               {/* Copy Button */}
               <TouchableOpacity
                 onPress={handleCopyCode}
-                className="bg-amber-50 rounded-full px-6 py-3 flex-row items-center gap-2"
+                className="bg-amber-50 rounded-full flex-row items-center"
+                style={{
+                  paddingHorizontal: 24 * roomCodeScale,
+                  paddingVertical: 12 * roomCodeScale,
+                  gap: 8 * roomCodeScale,
+                }}
                 activeOpacity={0.7}
               >
                 <Ionicons
                   name={copied ? "checkmark-circle" : "copy-outline"}
-                  size={18}
+                  size={18 * roomCodeScale}
                   color="#d97706"
                 />
                 <Text
                   className="text-amber-700 font-semibold"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 14 * roomCodeScale,
+                  }}
                 >
                   {copied ? t("waitingRoom.copied") : t("waitingRoom.copyCode")}
                 </Text>
@@ -611,7 +708,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           </View>
 
           {/* Participants Section */}
-          <View className="mb-8">
+          <View style={{ marginBottom: (isSmallPhone ? 14 : 32) * uiScale }}>
             <View className="flex-row items-center justify-between mb-4 px-1">
               <Text
                 className="text-slate-800 text-lg font-bold"
@@ -791,7 +888,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                 disabled={!hasEnoughPlayers || isStartingGame}
                 activeOpacity={0.9}
                 style={{
-                  borderRadius: 24,
+                  borderRadius: 24 * uiScale,
                   shadowColor: "#FECACA",
                   shadowOffset: { width: 0, height: 8 },
                   shadowOpacity: !hasEnoughPlayers || isStartingGame ? 0 : 0.4,
@@ -808,8 +905,8 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={{
-                    borderRadius: 24,
-                    paddingVertical: 18,
+                    borderRadius: 24 * uiScale,
+                    paddingVertical: 18 * uiScale,
                     alignItems: "center",
                     borderWidth: 1,
                     borderColor:
@@ -823,7 +920,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
                     <Text
                       style={{
                         fontFamily: "MerriweatherSans_700Bold",
-                        fontSize: 18,
+                        fontSize: 18 * uiScale,
                         color:
                           !hasEnoughPlayers || isStartingGame
                             ? "#94A3B8"
@@ -846,12 +943,16 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({
           {/* Leave Room Button */}
           <TouchableOpacity
             onPress={onLeaveRoom}
-            className="py-4 items-center"
+            className="items-center"
+            style={{ paddingVertical: 16 * uiScale }}
             activeOpacity={0.7}
           >
             <Text
               className="text-slate-400 font-semibold"
-              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+              style={{
+                fontFamily: "MerriweatherSans_700Bold",
+                fontSize: 15 * uiScale,
+              }}
             >
               {t("waitingRoom.leaveRoom")}
             </Text>

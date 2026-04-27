@@ -2,7 +2,7 @@
   "expo": {
     "name": "KnowUsBetter",
     "slug": "KnowUsBetter",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
     "scheme": "knowusbetter",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.knowusbetter.app",
-      "buildNumber": "4",
+      "buildNumber": "6",
       "googleServicesFile": "./GoogleService-Info.plist",
       "associatedDomains": ["applinks:knowusbetter.app"],
       "infoPlist": {

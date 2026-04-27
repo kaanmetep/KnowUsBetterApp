@@ -6,18 +6,18 @@ import {
 } from "@expo-google-fonts/merriweather-sans";
 import { useFonts } from "@expo-google-fonts/merriweather-sans/useFonts";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
-import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Alert,
   Animated,
-  Dimensions,
   StatusBar,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import AnnouncementBanner from "../(components)/announcements/AnnouncementBanner";
@@ -34,11 +34,14 @@ import Logo from "../(components)/ui/Logo";
 import { useTranslation } from "../hooks/useTranslation";
 import socketService from "../services/socketService";
 
-const { width, height } = Dimensions.get("window");
-
 const StartOptionsScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const isSmallPhone = width <= 375 && height <= 700;
+  const isVerySmallPhone = width <= 350 || height <= 620;
+  const scale = isVerySmallPhone ? 0.86 : isSmallPhone ? 0.93 : 1;
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showHowToPlayModal, setShowHowToPlayModal] = useState(false);
@@ -72,7 +75,10 @@ const StartOptionsScreen = () => {
     return () => {};
   }, []);
 
-  const headerTop = Math.max(Constants.statusBarHeight + 12, 16);
+  const headerTop = Math.max(
+    insets.top + (isSmallPhone ? 8 : 12),
+    isSmallPhone ? 12 : 16,
+  );
 
   useEffect(() => {
     Animated.stagger(70, [
@@ -215,8 +221,8 @@ const StartOptionsScreen = () => {
         style={{
           position: "absolute",
           top: headerTop,
-          left: 16,
-          right: 20,
+          left: isSmallPhone ? 12 : 16,
+          right: isSmallPhone ? 14 : 20,
           zIndex: 50,
           flexDirection: "row",
           alignItems: "center",
@@ -238,15 +244,18 @@ const StartOptionsScreen = () => {
           alignItems: "center",
           justifyContent: "flex-end",
           paddingBottom: 0,
-          paddingTop: headerTop + 128,
+          paddingTop: headerTop + (isSmallPhone ? 96 : 128),
         }}
       >
         <Animated.View
           style={{
             opacity: logoOpacity,
-            transform: [{ translateY: logoY }],
+            transform: [
+              { translateY: logoY },
+              { scale: isVerySmallPhone ? 0.82 : isSmallPhone ? 0.9 : 1 },
+            ],
             alignItems: "center",
-            marginBottom: -46,
+            marginBottom: isVerySmallPhone ? -32 : isSmallPhone ? -30 : -46,
           }}
         >
           <Logo size="sm" />
@@ -256,14 +265,14 @@ const StartOptionsScreen = () => {
           style={{
             opacity: heroOpacity,
             transform: [{ scale: heroScale }],
-            marginBottom: -82,
+            marginBottom: isSmallPhone ? -56 : -82,
           }}
         >
           <Image
             source={require("../../assets/images/deneme2.png")}
             style={{
-              width: width * 1,
-              height: height * 0.4,
+              width: width,
+              height: height * (isSmallPhone ? 0.34 : 0.4),
             }}
             contentFit="contain"
           />
@@ -290,9 +299,9 @@ const StartOptionsScreen = () => {
           backgroundColor: "white",
           borderTopLeftRadius: 0,
           borderTopRightRadius: 0,
-          paddingHorizontal: 24,
-          paddingTop: 16,
-          paddingBottom: 28,
+          paddingHorizontal: isSmallPhone ? 18 : 24,
+          paddingTop: isSmallPhone ? 12 : 16,
+          paddingBottom: (isSmallPhone ? 20 : 28) + Math.max(insets.bottom - 4, 0),
           shadowColor: "#2D0A14",
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.06,
@@ -308,7 +317,7 @@ const StartOptionsScreen = () => {
             backgroundColor: "#E9EEF4",
             borderRadius: 2,
             alignSelf: "center",
-            marginBottom: 24,
+            marginBottom: isSmallPhone ? 16 : 24,
           }}
         />
 
@@ -317,7 +326,7 @@ const StartOptionsScreen = () => {
           style={{
             opacity: createOpacity,
             transform: [{ translateY: createY }],
-            marginBottom: 12,
+            marginBottom: isSmallPhone ? 10 : 12,
           }}
         >
           <TouchableOpacity
@@ -325,9 +334,9 @@ const StartOptionsScreen = () => {
             onPress={() => setShowCreateModal(true)}
             style={{
               backgroundColor: "#C94B6A",
-              borderRadius: 20,
-              paddingVertical: 18,
-              paddingHorizontal: 22,
+              borderRadius: 20 * scale,
+              paddingVertical: 18 * scale,
+              paddingHorizontal: 22 * scale,
               flexDirection: "row",
               alignItems: "center",
               shadowColor: "#C94B6A",
@@ -339,22 +348,22 @@ const StartOptionsScreen = () => {
           >
             <View
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 13,
+                width: 42 * scale,
+                height: 42 * scale,
+                borderRadius: 13 * scale,
                 backgroundColor: "rgba(255,255,255,0.18)",
                 alignItems: "center",
                 justifyContent: "center",
-                marginRight: 16,
+                marginRight: 16 * scale,
               }}
             >
-              <Entypo name="plus" size={22} color="white" />
+              <Entypo name="plus" size={22 * scale} color="white" />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontFamily: "MerriweatherSans_700Bold",
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   color: "white",
                   letterSpacing: 0.1,
                 }}
@@ -364,7 +373,7 @@ const StartOptionsScreen = () => {
               <Text
                 style={{
                   fontFamily: "MerriweatherSans_400Regular",
-                  fontSize: 12,
+                  fontSize: 12 * scale,
                   color: "rgba(255,255,255,0.7)",
                   marginTop: 2,
                 }}
@@ -374,7 +383,7 @@ const StartOptionsScreen = () => {
             </View>
             <Feather
               name="chevron-right"
-              size={19}
+              size={19 * scale}
               color="rgba(255,255,255,0.65)"
             />
           </TouchableOpacity>
@@ -385,7 +394,7 @@ const StartOptionsScreen = () => {
           style={{
             opacity: joinOpacity,
             transform: [{ translateY: joinY }],
-            marginBottom: 20,
+            marginBottom: isSmallPhone ? 14 : 20,
           }}
         >
           <TouchableOpacity
@@ -393,9 +402,9 @@ const StartOptionsScreen = () => {
             onPress={() => setShowJoinModal(true)}
             style={{
               backgroundColor: "white",
-              borderRadius: 20,
-              paddingVertical: 18,
-              paddingHorizontal: 22,
+              borderRadius: 20 * scale,
+              paddingVertical: 18 * scale,
+              paddingHorizontal: 22 * scale,
               flexDirection: "row",
               alignItems: "center",
               borderWidth: 1.5,
@@ -409,22 +418,22 @@ const StartOptionsScreen = () => {
           >
             <View
               style={{
-                width: 42,
-                height: 42,
-                borderRadius: 13,
+                width: 42 * scale,
+                height: 42 * scale,
+                borderRadius: 13 * scale,
                 backgroundColor: "#FFF0F3",
                 alignItems: "center",
                 justifyContent: "center",
-                marginRight: 16,
+                marginRight: 16 * scale,
               }}
             >
-              <FontAwesome6 name="user-group" size={17} color="#C94B6A" />
+              <FontAwesome6 name="user-group" size={17 * scale} color="#C94B6A" />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontFamily: "MerriweatherSans_700Bold",
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   color: "#1E293B",
                   letterSpacing: 0.1,
                 }}
@@ -434,7 +443,7 @@ const StartOptionsScreen = () => {
               <Text
                 style={{
                   fontFamily: "MerriweatherSans_400Regular",
-                  fontSize: 12,
+                  fontSize: 12 * scale,
                   color: "#94A3B8",
                   marginTop: 2,
                 }}
@@ -442,7 +451,7 @@ const StartOptionsScreen = () => {
                 {t("startScreen.enterCode")}
               </Text>
             </View>
-            <Feather name="chevron-right" size={19} color="#C94B6A" />
+            <Feather name="chevron-right" size={19 * scale} color="#C94B6A" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -451,19 +460,19 @@ const StartOptionsScreen = () => {
           style={{
             opacity: helpOpacity,
             alignItems: "center",
-            marginBottom: 18,
+            marginBottom: isSmallPhone ? 12 : 18,
           }}
         >
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => setShowHowToPlayModal(true)}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 * scale }}
           >
-            <Feather name="help-circle" size={14} color="#B0BCCA" />
+            <Feather name="help-circle" size={14 * scale} color="#B0BCCA" />
             <Text
               style={{
                 fontFamily: "MerriweatherSans_600SemiBold",
-                fontSize: 13,
+                fontSize: 13 * scale,
                 color: "#B0BCCA",
               }}
             >

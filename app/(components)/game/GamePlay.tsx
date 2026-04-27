@@ -5,12 +5,13 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
   Pressable,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTranslation } from "../../hooks/useTranslation";
 import {
@@ -31,15 +32,20 @@ import RoundResult from "./RoundResult";
 import SettingsButton from "../settings/SettingsButton";
 import SettingsModal from "../settings/SettingsModal";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
 const GlassPill: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className = "" }) => (
+  scale?: number;
+}> = ({ children, className = "", scale = 1 }) => (
   <View
-    className={`bg-white/80 rounded-full px-4 py-2 border border-blue-50 shadow-sm ${className}`}
-    style={{ shadowColor: "#93C5FD", shadowOpacity: 0.2, shadowRadius: 8 }}
+    className={`bg-white/80 rounded-full border border-blue-50 shadow-sm ${className}`}
+    style={{
+      paddingHorizontal: 16 * scale,
+      paddingVertical: 8 * scale,
+      shadowColor: "#93C5FD",
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    }}
   >
     {children}
   </View>
@@ -290,6 +296,12 @@ const GamePlay: React.FC<GamePlayProps> = ({
 }) => {
   const { selectedLanguage, setSelectedLanguage, languages } = useLanguage();
   const { t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const isSmallPhone = width <= 375 && height <= 700;
+  const isVerySmallPhone = width <= 350 || height <= 640;
+  const uiScale = isVerySmallPhone ? 0.8 : isSmallPhone ? 0.9 : 1;
+  const cardScale = isVerySmallPhone ? 0.76 : isSmallPhone ? 0.86 : 1;
   const [timerKey, setTimerKey] = useState(0);
   const [categoryInfo, setCategoryInfo] = useState<Category | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -319,7 +331,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
       isFirstQuestion.current = false;
       return;
     }
-    cardSlideAnim.setValue(SCREEN_WIDTH);
+    cardSlideAnim.setValue(width);
     cardFadeAnim.setValue(0);
     Animated.parallel([
       Animated.spring(cardSlideAnim, {
@@ -334,7 +346,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, width]);
 
   useEffect(() => {
     let isMounted = true;
@@ -413,40 +425,65 @@ const GamePlay: React.FC<GamePlayProps> = ({
       />
 
       {/* --- Header Section --- */}
-      <View className="pt-16 pb-4 px-6 flex-row justify-between items-center z-50">
+      <View
+        className="flex-row justify-between items-center z-50"
+        style={{
+          paddingTop: insets.top + (isSmallPhone ? 8 : 14),
+          paddingBottom: 16 * uiScale,
+          paddingHorizontal: isSmallPhone ? 16 : 24,
+        }}
+      >
         {onLeaveRoom && (
           <TouchableOpacity
             onPress={onLeaveRoom}
-            className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm shadow-slate-200 border border-slate-100"
+            className="bg-white rounded-full items-center justify-center shadow-sm shadow-slate-200 border border-slate-100"
+            style={{ width: 40 * uiScale, height: 40 * uiScale }}
             activeOpacity={0.7}
           >
-            <FontAwesome5 name="arrow-left" size={14} color="#64748B" />
+            <FontAwesome5 name="arrow-left" size={14 * uiScale} color="#64748B" />
           </TouchableOpacity>
         )}
 
-        <View className="flex-row gap-3">
+        <View className="flex-row" style={{ gap: 12 * uiScale }}>
           <View className="relative z-50">
             <TouchableOpacity
               onPress={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
               activeOpacity={0.7}
-              className="bg-white border border-slate-100 rounded-full px-4 py-2 flex-row items-center gap-2 shadow-sm shadow-slate-200"
+              className="bg-white border border-slate-100 rounded-full flex-row items-center shadow-sm shadow-slate-200"
+              style={{
+                paddingHorizontal: 16 * uiScale,
+                paddingVertical: 8 * uiScale,
+                gap: 8 * uiScale,
+              }}
             >
               <LanguageFlag language={selectedLanguage} size="md" />
               <Text
                 className="text-slate-600 text-xs"
-                style={{ fontFamily: "System", fontWeight: "700" }}
+                style={{
+                  fontFamily: "System",
+                  fontWeight: "700",
+                  fontSize: 12 * uiScale,
+                }}
               >
                 {selectedLanguage.toUpperCase()}
               </Text>
               <Feather
                 name={isLanguageMenuOpen ? "chevron-up" : "chevron-down"}
-                size={14}
+                size={14 * uiScale}
                 color="#94A3B8"
               />
             </TouchableOpacity>
 
             {isLanguageMenuOpen && (
-              <View className="absolute top-12 right-0 w-[140px] bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden py-1">
+              <View
+                className="absolute right-0 bg-white shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden"
+                style={{
+                  top: 48 * uiScale,
+                  width: 140 * uiScale,
+                  borderRadius: 16 * uiScale,
+                  paddingVertical: 4 * uiScale,
+                }}
+              >
                 {(Object.keys(languages) as Array<keyof typeof languages>).map(
                   (lang) => (
                     <TouchableOpacity
@@ -485,26 +522,35 @@ const GamePlay: React.FC<GamePlayProps> = ({
       </View>
 
       {/* --- Main Game Area --- */}
-      <View className="flex-1 px-6 pt-4">
+      <View
+        className="flex-1"
+        style={{
+          paddingHorizontal: isSmallPhone ? 16 : 24,
+          paddingTop: 16 * uiScale,
+        }}
+      >
         {/* Category Badge */}
-        <View className="items-center mb-4">
-          <GlassPill className="flex-row items-center gap-2">
+        <View className="items-center" style={{ marginBottom: 16 * uiScale }}>
+          <GlassPill className="flex-row items-center" scale={uiScale}>
             {displayCategoryInfo.iconType === "MaterialCommunityIcons" ? (
               <MaterialCommunityIcons
                 name={displayCategoryInfo.iconName as any}
-                size={14}
+                size={14 * uiScale}
                 color="#64748B"
               />
             ) : (
               <FontAwesome6
                 name={displayCategoryInfo.iconName as any}
-                size={12}
+                size={12 * uiScale}
                 color="#64748B"
               />
             )}
             <Text
-              className="text-slate-500 text-xs font-semibold tracking-wide uppercase"
-              style={{ fontFamily: "MerriweatherSans_400Regular" }}
+              className="text-slate-500 font-semibold tracking-wide uppercase"
+              style={{
+                fontFamily: "MerriweatherSans_400Regular",
+                fontSize: 12 * uiScale,
+              }}
             >
               {getCategoryLabel(displayCategoryInfo, selectedLanguage)}
             </Text>
@@ -529,7 +575,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                 backgroundColor: progressColor,
                 width: progressAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, SCREEN_WIDTH - 48],
+                  outputRange: [0, width - (isSmallPhone ? 32 : 48)],
                 }),
               }}
             />
@@ -561,12 +607,19 @@ const GamePlay: React.FC<GamePlayProps> = ({
             <Pressable className="flex-1" onPress={(e) => e.stopPropagation()}>
               {/* THE CARD */}
               <View
-                className="bg-white rounded-[32px] p-6 w-full shadow-2xl shadow-blue-100/50"
-                style={{ elevation: 10 }}
+                className="bg-white w-full shadow-2xl shadow-blue-100/50"
+                style={{
+                  borderRadius: 32 * cardScale,
+                  padding: 24 * cardScale,
+                  elevation: 10,
+                }}
               >
                 {/* Card Header: Timer & Progress */}
-                <View className="flex-row items-center justify-between mb-8">
-                  <View style={{ width: 48, height: 48 }}>
+                <View
+                  className="flex-row items-center justify-between"
+                  style={{ marginBottom: 32 * cardScale }}
+                >
+                  <View style={{ width: 48 * cardScale, height: 48 * cardScale }}>
                     <View key={timerKey}>
                       <Countdown
                         duration={questionDuration}
@@ -589,9 +642,21 @@ const GamePlay: React.FC<GamePlayProps> = ({
                   </View>
 
                   {/* Question Counter */}
-                  <View className="bg-slate-50 px-4 py-2 rounded-2xl">
-                    <Text className="text-slate-400 font-bold text-xs tracking-widest">
-                      <Text className="text-slate-800 text-lg">
+                  <View
+                    className="bg-slate-50 rounded-2xl"
+                    style={{
+                      paddingHorizontal: 16 * cardScale,
+                      paddingVertical: 8 * cardScale,
+                    }}
+                  >
+                    <Text
+                      className="text-slate-400 font-bold tracking-widest"
+                      style={{ fontSize: 12 * cardScale }}
+                    >
+                      <Text
+                        className="text-slate-800"
+                        style={{ fontSize: 18 * cardScale }}
+                      >
                         {currentQuestionIndex + 1}
                       </Text>
                       /{totalQuestions}
@@ -600,17 +665,24 @@ const GamePlay: React.FC<GamePlayProps> = ({
                 </View>
 
                 {/* Question Text */}
-                <View className="mb-10 min-h-[120px] justify-center">
+                <View
+                  className="justify-center"
+                  style={{ marginBottom: 40 * cardScale, minHeight: 120 * cardScale }}
+                >
                   <Text
-                    className="text-[28px] text-slate-800 text-center leading-9"
-                    style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                    className="text-slate-800 text-center"
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 28 * cardScale,
+                      lineHeight: 36 * cardScale,
+                    }}
                   >
                     {getResolvedQuestionText(currentQuestion, selectedLanguage, currentPlayerName)}
                   </Text>
                 </View>
 
                 {/* Answers Section */}
-                <View className="gap-4">
+                <View style={{ gap: 16 * cardScale }}>
                   {!currentQuestion.haveAnswers ? (
                     <>
                       <AnimatedAnswerButton
@@ -625,19 +697,28 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             selectedAnswer === "yes",
                             hasSubmitted
                           )}`}
-                          style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
+                          style={{
+                            position: "relative",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingVertical: 16 * cardScale,
+                            borderRadius: 16 * cardScale,
+                          }}
                         >
                           <Text
-                            className={`text-center text-lg font-bold ${getButtonTextStyles(
+                            className={`text-center font-bold ${getButtonTextStyles(
                               selectedAnswer === "yes",
                               hasSubmitted
                             )}`}
-                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                            style={{
+                              fontFamily: "MerriweatherSans_700Bold",
+                              fontSize: 18 * cardScale,
+                            }}
                           >
                             {t("gamePlay.yes")}
                           </Text>
                           {selectedAnswer === "yes" && (
-                            <View style={{ position: "absolute", right: 16 }}>
+                            <View style={{ position: "absolute", right: 16 * cardScale }}>
                               <SelectedIcon type="yes" />
                             </View>
                           )}
@@ -656,19 +737,28 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             selectedAnswer === "no",
                             hasSubmitted
                           )}`}
-                          style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
+                          style={{
+                            position: "relative",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingVertical: 16 * cardScale,
+                            borderRadius: 16 * cardScale,
+                          }}
                         >
                           <Text
-                            className={`text-center text-lg font-bold ${getButtonTextStyles(
+                            className={`text-center font-bold ${getButtonTextStyles(
                               selectedAnswer === "no",
                               hasSubmitted
                             )}`}
-                            style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                            style={{
+                              fontFamily: "MerriweatherSans_700Bold",
+                              fontSize: 18 * cardScale,
+                            }}
                           >
                             {t("gamePlay.no")}
                           </Text>
                           {selectedAnswer === "no" && (
-                            <View style={{ position: "absolute", right: 16 }}>
+                            <View style={{ position: "absolute", right: 16 * cardScale }}>
                               <SelectedIcon type="no" />
                             </View>
                           )}
@@ -691,19 +781,29 @@ const GamePlay: React.FC<GamePlayProps> = ({
                               selectedAnswer === answer,
                               hasSubmitted
                             )}`}
-                            style={{ position: "relative", alignItems: "center", justifyContent: "center" }}
+                            style={{
+                              position: "relative",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              paddingVertical: 16 * cardScale,
+                              paddingHorizontal: 24 * cardScale,
+                              borderRadius: 16 * cardScale,
+                            }}
                           >
                             <Text
-                              className={`text-center text-lg font-bold ${getButtonTextStyles(
+                              className={`text-center font-bold ${getButtonTextStyles(
                                 selectedAnswer === answer,
                                 hasSubmitted
                               )}`}
-                              style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                              style={{
+                                fontFamily: "MerriweatherSans_700Bold",
+                                fontSize: 18 * cardScale,
+                              }}
                             >
                               {answer}
                             </Text>
                             {selectedAnswer === answer && (
-                              <View style={{ position: "absolute", right: 16 }}>
+                              <View style={{ position: "absolute", right: 16 * cardScale }}>
                                 <SelectedIcon type="custom" />
                               </View>
                             )}
@@ -721,7 +821,13 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
       {/* Partner Status Widget */}
       {!roundResult && (
-        <View className="px-6 pb-16">
+        <View
+          style={{
+            paddingHorizontal: isSmallPhone ? 16 : 24,
+            paddingBottom:
+              (isVerySmallPhone ? 52 : isSmallPhone ? 58 : 64) + insets.bottom,
+          }}
+        >
           <PartnerStatusWidget
             hasSubmitted={hasSubmitted}
             opponentAnswered={opponentAnswered}
@@ -736,7 +842,10 @@ const GamePlay: React.FC<GamePlayProps> = ({
       )}
 
       {/* Footer Logo */}
-      <View className="absolute bottom-4 left-0 right-0 items-center opacity-30 pointer-events-none">
+      <View
+        className="absolute left-0 right-0 items-center opacity-30 pointer-events-none"
+        style={{ bottom: (isSmallPhone ? 2 : 16) + insets.bottom * 0.35 }}
+      >
         <Logo size="mini" />
       </View>
 

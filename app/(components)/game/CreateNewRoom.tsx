@@ -57,13 +57,18 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const [categoryContentHeight, setCategoryContentHeight] = useState(0);
   const categoryScrollY = useRef(new Animated.Value(0)).current;
   const categoryScrollViewRef = useRef<ScrollView>(null);
+  const categoryScrollOffsetRef = useRef(0);
+  const hasShownCategoryDepthHintRef = useRef(false);
+  const categoryHintAnimRef = useRef(new Animated.Value(0)).current;
   const { coins } = useCoins();
   const { selectedLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const loadingOpacity = useRef(new Animated.Value(0.4)).current;
   const newBadgeScale = useRef(new Animated.Value(1)).current;
   const isSmallScreen = height < 760;
+  const isVerySmallScreen = width <= 350 || height <= 670;
+  const step3Scale = isVerySmallScreen ? 0.84 : isSmallScreen ? 0.92 : 1;
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -161,6 +166,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
   const handleClose = () => {
     resetCategoryScroll();
+    hasShownCategoryDepthHintRef.current = false;
     setStep(1);
     setSelectedAvatar(null);
     setSelectedCategory(null);
@@ -182,7 +188,10 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
   const handleBack = () => {
     if (step === 2) setStep(1);
-    else if (step === 3) setStep(2);
+    else if (step === 3) {
+      hasShownCategoryDepthHintRef.current = false;
+      setStep(2);
+    }
   };
 
   const handleCreate = async () => {
@@ -211,7 +220,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
   const isStep1Valid = selectedAvatar !== null;
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = selectedCategory !== null;
-  const categoryMaxHeight = isSmallScreen ? 324 : 388;
+  const categoryMaxHeight = isVerySmallScreen ? 252 : isSmallScreen ? 292 : 388;
 
   const scrollbarPadding = 8;
   const trackHeight = Math.max(0, categoryContainerHeight - scrollbarPadding * 2);
@@ -231,6 +240,38 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
     ],
     extrapolate: "clamp",
   });
+
+  useEffect(() => {
+    const listenerId = categoryHintAnimRef.addListener(({ value }) => {
+      categoryScrollViewRef.current?.scrollTo({ y: value, animated: false });
+    });
+
+    return () => {
+      categoryHintAnimRef.removeListener(listenerId);
+    };
+  }, [categoryHintAnimRef]);
+
+  const triggerCategoryDepthHint = () => {
+    if (hasShownCategoryDepthHintRef.current) return;
+    if (categoryContentHeight <= categoryContainerHeight + 8) return;
+
+    const startY = categoryScrollOffsetRef.current;
+    const targetY = Math.min(
+      categoryMaxScroll,
+      startY + Math.max(80, categoryContainerHeight * 0.3),
+    );
+
+    if (targetY <= startY + 4) return;
+
+    hasShownCategoryDepthHintRef.current = true;
+    categoryHintAnimRef.stopAnimation();
+    categoryHintAnimRef.setValue(startY);
+    Animated.timing(categoryHintAnimRef, {
+      toValue: targetY,
+      duration: 950,
+      useNativeDriver: false,
+    }).start();
+  };
 
   return (
     <Modal
@@ -256,14 +297,17 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
               shadowOpacity: 0.1,
               shadowRadius: 12,
               elevation: 5,
-              maxHeight: "90%",
+              maxHeight: isVerySmallScreen ? "86%" : "90%",
             }}
           >
             <ScrollView
               scrollEnabled={isSmallScreen}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ flexGrow: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                paddingBottom: isSmallScreen ? 12 : 0,
+              }}
             >
               {/* Header: Close & Back Buttons */}
               <View className="flex-row justify-between items-center absolute top-4 left-4 right-4 z-20">
@@ -363,15 +407,22 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
             {step === 3 && (
               <View>
                 <Text
-                  className="text-2xl font-bold text-slate-800 text-center mb-1"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
+                  className="font-bold text-slate-800 text-center mb-1"
+                  style={{
+                    fontFamily: "MerriweatherSans_700Bold",
+                    fontSize: 32 * step3Scale,
+                  }}
                 >
                   {t("createRoom.chooseYourVibe")}
                 </Text>
 
                 <Text
-                  className="text-sm text-slate-500 text-center mb-5"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                  className="text-slate-500 text-center"
+                  style={{
+                    fontFamily: "MerriweatherSans_400Regular",
+                    fontSize: 14 * step3Scale,
+                    marginBottom: 20 * step3Scale,
+                  }}
                 >
                   {t("createRoom.pickCategory")}
                 </Text>
@@ -379,7 +430,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                 <View
                   className="mb-4"
                   style={{
-                    borderRadius: 20,
+                    borderRadius: 20 * step3Scale,
                     overflow: "hidden",
                     maxHeight: categoryMaxHeight,
                     flexDirection: "row",
@@ -395,15 +446,17 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                     ref={categoryScrollViewRef}
                     style={{ flex: 1 }}
                     contentContainerStyle={{
-                      paddingHorizontal: 9,
-                      paddingTop: 9,
-                      paddingBottom: 9,
+                      paddingHorizontal: 9 * step3Scale,
+                      paddingTop: 9 * step3Scale,
+                      paddingBottom: 9 * step3Scale,
                     }}
                     scrollEnabled={true}
                     nestedScrollEnabled
                     showsVerticalScrollIndicator={false}
                     onScroll={(e) => {
-                      categoryScrollY.setValue(e.nativeEvent.contentOffset.y);
+                      const offsetY = e.nativeEvent.contentOffset.y;
+                      categoryScrollOffsetRef.current = offsetY;
+                      categoryScrollY.setValue(offsetY);
                     }}
                     scrollEventThrottle={16}
                     onLayout={(e) =>
@@ -439,7 +492,7 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       </View>
                     </View>
                   ) : (
-                    categories.map((category) => {
+                    categories.map((category, index) => {
                       const isSelected = selectedCategory === category.id;
 
                       const borderColor = isSelected
@@ -450,10 +503,16 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                       return (
                         <TouchableOpacity
                           key={category.id}
-                          onPress={() => setSelectedCategory(category.id)}
-                          className="mb-2.5 rounded-2xl px-4 py-3.5 flex-row items-center justify-between relative overflow-visible"
+                          onPress={() => {
+                            setSelectedCategory(category.id);
+                            if (index >= 3) triggerCategoryDepthHint();
+                          }}
+                          className="mb-2.5 flex-row items-center justify-between relative overflow-visible"
                           activeOpacity={0.8}
                           style={{
+                            borderRadius: 16 * step3Scale,
+                            paddingHorizontal: 16 * step3Scale,
+                            paddingVertical: 14 * step3Scale,
                             backgroundColor: category.color,
                             borderWidth: borderWidth,
                             borderColor: borderColor,
@@ -466,8 +525,12 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                         >
                           {category.recentlyAdded && (
                             <Animated.View
-                              className="absolute -top-2 -right-2 bg-white rounded-full px-2 py-0.5 z-20"
+                              className="absolute bg-white rounded-full z-20"
                               style={{
+                                top: -8 * step3Scale,
+                                right: -8 * step3Scale,
+                                paddingHorizontal: 8 * step3Scale,
+                                paddingVertical: 2 * step3Scale,
                                 transform: [{ scale: newBadgeScale }],
                                 shadowColor: "#000",
                                 shadowOffset: { width: 0, height: 1 },
@@ -476,33 +539,46 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                                 elevation: 2,
                               }}
                             >
-                              <Text className="text-[10px] font-bold text-rose-500">
+                              <Text
+                                className="font-bold text-rose-500"
+                                style={{ fontSize: 10 * step3Scale }}
+                              >
                                 {t("common.new")}
                               </Text>
                             </Animated.View>
                           )}
                           <View className="flex-row items-center flex-1">
-                            <View className="w-10 h-10 rounded-full bg-white/40 items-center justify-center mr-3">
+                            <View
+                              className="bg-white/40 items-center justify-center"
+                              style={{
+                                width: 40 * step3Scale,
+                                height: 40 * step3Scale,
+                                borderRadius: 999,
+                                marginRight: 12 * step3Scale,
+                              }}
+                            >
                               {category.iconType ===
                               "MaterialCommunityIcons" ? (
                                 <MaterialCommunityIcons
                                   name={category.iconName as any}
-                                  size={19}
+                                  size={19 * step3Scale}
                                   color="#1f2937"
                                 />
                               ) : (
                                 <FontAwesome6
                                   name={category.iconName as any}
-                                  size={17}
+                                  size={17 * step3Scale}
                                   color="#1f2937"
                                 />
                               )}
                             </View>
 
                             <Text
-                              className="text-base font-semibold text-slate-900 flex-1 mr-2"
+                              className="font-semibold text-slate-900 flex-1"
                               style={{
                                 fontFamily: "MerriweatherSans_600SemiBold",
+                                fontSize: 16 * step3Scale,
+                                marginRight: 8 * step3Scale,
                               }}
                               numberOfLines={1}
                             >
@@ -510,13 +586,26 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                             </Text>
 
                             {category.isPremium && (
-                              <View className="bg-yellow-400 rounded-lg px-2.5 py-1.5 flex-row items-center shadow-sm">
+                              <View
+                                className="bg-yellow-400 flex-row items-center shadow-sm"
+                                style={{
+                                  borderRadius: 8 * step3Scale,
+                                  paddingHorizontal: 10 * step3Scale,
+                                  paddingVertical: 6 * step3Scale,
+                                }}
+                              >
                                 <FontAwesome6
                                   name="coins"
-                                  size={10}
+                                  size={10 * step3Scale}
                                   color="#713f12"
                                 />
-                                <Text className="text-yellow-900 text-xs font-bold ml-1.5">
+                                <Text
+                                  className="text-yellow-900 font-bold"
+                                  style={{
+                                    fontSize: 12 * step3Scale,
+                                    marginLeft: 6 * step3Scale,
+                                  }}
+                                >
                                   {category.coinsRequired}
                                 </Text>
                               </View>
@@ -525,10 +614,17 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
 
                           {/* Checkmark */}
                           {isSelected && (
-                            <View className="ml-3 w-[22px] h-[22px] rounded-full bg-white/40 items-center justify-center">
+                            <View
+                              className="rounded-full bg-white/40 items-center justify-center"
+                              style={{
+                                marginLeft: 12 * step3Scale,
+                                width: 22 * step3Scale,
+                                height: 22 * step3Scale,
+                              }}
+                            >
                               <Ionicons
                                 name="checkmark"
-                                size={15}
+                                size={15 * step3Scale}
                                 color="#1f2937"
                               />
                             </View>
@@ -572,32 +668,55 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                   </View>
                 </View>
 
-                <View className="items-center justify-center mb-2 gap-2">
-                  <View className="bg-amber-50 rounded-full px-4 py-1.5 border border-amber-100">
+                <View
+                  className="items-center justify-center mb-2"
+                  style={{ gap: 8 * step3Scale }}
+                >
+                  <View
+                    className="bg-amber-50 rounded-full border border-amber-100"
+                    style={{
+                      paddingHorizontal: 16 * step3Scale,
+                      paddingVertical: 6 * step3Scale,
+                    }}
+                  >
                     <Text
-                      className="text-amber-700 text-xs font-medium"
-                      style={{ fontFamily: "MerriweatherSans_400Regular" }}
+                      className="text-amber-700 font-medium"
+                      style={{
+                        fontFamily: "MerriweatherSans_400Regular",
+                        fontSize: 12 * step3Scale,
+                      }}
                     >
-                      <FontAwesome6 name="coins" size={12} color="#b45309" />
+                      <FontAwesome6
+                        name="coins"
+                        size={12 * step3Scale}
+                        color="#b45309"
+                      />
                       {"  "}
                       <Text>{t("coins.youHave", { coins })}</Text>
                     </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => onBuyCoins?.()}
-                    className="bg-amber-100 rounded-full px-4 py-1.5 border border-amber-200 active:bg-amber-200 mt-2"
+                    className="bg-amber-100 rounded-full border border-amber-200 active:bg-amber-200 mt-2"
+                    style={{
+                      paddingHorizontal: 16 * step3Scale,
+                      paddingVertical: 6 * step3Scale,
+                    }}
                     activeOpacity={0.7}
                   >
                     <Text
-                      className="text-amber-700 text-xs font-semibold"
-                      style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
+                      className="text-amber-700 font-semibold"
+                      style={{
+                        fontFamily: "MerriweatherSans_600SemiBold",
+                        fontSize: 12 * step3Scale,
+                      }}
                     >
                       {t("coins.buyCoins")}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                <View className="mt-4">
+                <View style={{ marginTop: 16 * step3Scale }}>
                   <ModalButton
                     onPress={handleCreate}
                     disabled={!isStep3Valid}
