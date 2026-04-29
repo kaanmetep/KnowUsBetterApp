@@ -301,7 +301,7 @@ const StartOptionsScreen = () => {
           borderTopRightRadius: 0,
           paddingHorizontal: isSmallPhone ? 18 : 24,
           paddingTop: isSmallPhone ? 12 : 16,
-          paddingBottom: (isSmallPhone ? 11 : 13) + Math.max(insets.bottom - 19, 0),
+          paddingBottom: (isSmallPhone ? 12 : 14) + Math.max(insets.bottom - 18, 0),
           shadowColor: "#2D0A14",
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.06,
