@@ -579,166 +579,248 @@ const CreateNewRoom: React.FC<CreateNewRoomProps> = ({
                           </View>
                         </View>
                       ) : (
-                        categories.map((category, index) => {
-                          const isSelected = selectedCategory === category.id;
+                        (() => {
+                          const groupedCategories = [
+                            {
+                              key: "shared_questions",
+                              title: t("createRoom.sharedQuestionsGroupTitle"),
+                              icon: "people-outline",
+                              items: categories.filter(
+                                (category) => category.id !== "know_me_well",
+                              ),
+                            },
+                            {
+                              key: "know_me_well",
+                              title: t("createRoom.knowMeWellGroupTitle"),
+                              icon: "chatbubbles-outline",
+                              items: categories.filter(
+                                (category) => category.id === "know_me_well",
+                              ),
+                            },
+                          ].filter((group) => group.items.length > 0);
 
-                          const borderColor = isSelected
-                            ? "rgba(0,0,0,0.1)"
-                            : "transparent";
-                          const borderWidth = isSelected ? 2 : 0;
+                          let globalIndex = -1;
 
-                          return (
-                            <TouchableOpacity
-                              key={category.id}
-                              onPress={() => {
-                                setSelectedCategory(category.id);
-                                if (index >= 3) triggerCategoryDepthHint();
-                              }}
-                              className="mb-3.5 flex-row items-center justify-between relative overflow-visible"
-                              activeOpacity={0.8}
-                              style={{
-                                borderRadius:
-                                  16 * step3Scale * categoryDensityScale,
-                                paddingHorizontal: 16 * step3Scale,
-                                paddingVertical:
-                                  14 * step3Scale * categoryDensityScale,
-                                backgroundColor: category.color,
-                                borderWidth: borderWidth,
-                                borderColor: borderColor,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.05,
-                                shadowRadius: 4,
-                                elevation: 2,
-                              }}
-                            >
-                              {category.recentlyAdded && (
-                                <Animated.View
-                                  className="absolute bg-white rounded-full z-20"
-                                  style={{
-                                    top: -8 * step3Scale,
-                                    right: -8 * step3Scale,
-                                    paddingHorizontal: 8 * step3Scale,
-                                    paddingVertical: 2 * step3Scale,
-                                    transform: [{ scale: newBadgeScale }],
-                                    shadowColor: "#000",
-                                    shadowOffset: { width: 0, height: 1 },
-                                    shadowOpacity: 0.12,
-                                    shadowRadius: 2,
-                                    elevation: 2,
-                                  }}
-                                >
-                                  <Text
-                                    className="font-bold text-rose-500"
-                                    style={{ fontSize: 10 * step3Scale }}
-                                  >
-                                    {t("common.new")}
-                                  </Text>
-                                </Animated.View>
-                              )}
-                              <View className="flex-row items-center flex-1">
-                                <View
-                                  className="bg-white/40 items-center justify-center"
-                                  style={{
-                                    width:
-                                      40 * step3Scale * categoryDensityScale,
-                                    height:
-                                      40 * step3Scale * categoryDensityScale,
-                                    borderRadius: 999,
-                                    marginRight: 12 * step3Scale,
-                                  }}
-                                >
-                                  {category.iconType ===
-                                  "MaterialCommunityIcons" ? (
-                                    <MaterialCommunityIcons
-                                      name={category.iconName as any}
-                                      size={
-                                        19 * step3Scale * categoryDensityScale
-                                      }
-                                      color="#1f2937"
-                                    />
-                                  ) : (
-                                    <FontAwesome6
-                                      name={category.iconName as any}
-                                      size={
-                                        17 * step3Scale * categoryDensityScale
-                                      }
-                                      color="#1f2937"
-                                    />
-                                  )}
-                                </View>
-
+                          return groupedCategories.map((group, groupIndex) => (
+                            <View key={group.key}>
+                              <View
+                                className="flex-row items-center"
+                                style={{
+                                  marginBottom: 10 * step3Scale,
+                                  marginTop:
+                                    groupIndex === 0 ? 2 * step3Scale : 6 * step3Scale,
+                                  paddingHorizontal: 2 * step3Scale,
+                                }}
+                              >
+                                <Ionicons
+                                  name={group.icon as any}
+                                  size={13 * step3Scale}
+                                  color="#94a3b8"
+                                />
                                 <Text
-                                  className="font-semibold text-slate-900 flex-1"
+                                  className="text-slate-400"
                                   style={{
+                                    marginLeft: 6 * step3Scale,
                                     fontFamily: "MerriweatherSans_600SemiBold",
-                                    fontSize:
-                                      16 * step3Scale * categoryNameScale,
-                                    marginRight: 8 * step3Scale,
+                                    fontSize: 11.5 * step3Scale,
                                   }}
-                                  numberOfLines={1}
                                 >
-                                  {getCategoryLabel(category, selectedLanguage)}
+                                  {group.title}
                                 </Text>
-
-                                {category.isPremium && (
-                                  <View
-                                    className="bg-yellow-400 flex-row items-center shadow-sm"
-                                    style={{
-                                      borderRadius:
-                                        8 * step3Scale * categoryDensityScale,
-                                      paddingHorizontal: 10 * step3Scale,
-                                      paddingVertical:
-                                        6 * step3Scale * categoryDensityScale,
-                                    }}
-                                  >
-                                    <FontAwesome6
-                                      name="coins"
-                                      size={
-                                        10 * step3Scale * categoryDensityScale
-                                      }
-                                      color="#713f12"
-                                    />
-                                    <Text
-                                      className="text-yellow-900 font-bold"
-                                      style={{
-                                        fontSize:
-                                          12 *
-                                          step3Scale *
-                                          categoryDensityScale,
-                                        marginLeft: 6 * step3Scale,
-                                      }}
-                                    >
-                                      {category.coinsRequired}
-                                    </Text>
-                                  </View>
-                                )}
                               </View>
 
-                              {/* Checkmark */}
-                              {isSelected && (
-                                <View
-                                  className="rounded-full bg-white/40 items-center justify-center"
-                                  style={{
-                                    marginLeft: 12 * step3Scale,
-                                    width:
-                                      22 * step3Scale * categoryDensityScale,
-                                    height:
-                                      22 * step3Scale * categoryDensityScale,
-                                  }}
-                                >
-                                  <Ionicons
-                                    name="checkmark"
-                                    size={
-                                      15 * step3Scale * categoryDensityScale
-                                    }
-                                    color="#1f2937"
-                                  />
-                                </View>
-                              )}
-                            </TouchableOpacity>
-                          );
-                        })
+                              {group.items.map((category) => {
+                                globalIndex += 1;
+                                const isSelected =
+                                  selectedCategory === category.id;
+
+                                const borderColor = isSelected
+                                  ? "rgba(0,0,0,0.1)"
+                                  : "transparent";
+                                const borderWidth = isSelected ? 2 : 0;
+
+                                return (
+                                  <TouchableOpacity
+                                    key={category.id}
+                                    onPress={() => {
+                                      setSelectedCategory(category.id);
+                                      if (globalIndex >= 3)
+                                        triggerCategoryDepthHint();
+                                    }}
+                                    className="mb-3 flex-row items-center justify-between relative overflow-visible"
+                                    activeOpacity={0.8}
+                                    style={{
+                                      borderRadius:
+                                        16 * step3Scale * categoryDensityScale,
+                                      paddingHorizontal: 16 * step3Scale,
+                                      paddingVertical:
+                                        14 *
+                                        step3Scale *
+                                        categoryDensityScale,
+                                      backgroundColor: category.color,
+                                      borderWidth: borderWidth,
+                                      borderColor: borderColor,
+                                      shadowColor: "#000",
+                                      shadowOffset: { width: 0, height: 2 },
+                                      shadowOpacity: 0.05,
+                                      shadowRadius: 4,
+                                      elevation: 2,
+                                    }}
+                                  >
+                                    {category.recentlyAdded && (
+                                      <Animated.View
+                                        className="absolute bg-white rounded-full z-20"
+                                        style={{
+                                          top: -8 * step3Scale,
+                                          right: -8 * step3Scale,
+                                          paddingHorizontal: 8 * step3Scale,
+                                          paddingVertical: 2 * step3Scale,
+                                          transform: [{ scale: newBadgeScale }],
+                                          shadowColor: "#000",
+                                          shadowOffset: { width: 0, height: 1 },
+                                          shadowOpacity: 0.12,
+                                          shadowRadius: 2,
+                                          elevation: 2,
+                                        }}
+                                      >
+                                        <Text
+                                          className="font-bold text-rose-500"
+                                          style={{ fontSize: 10 * step3Scale }}
+                                        >
+                                          {t("common.new")}
+                                        </Text>
+                                      </Animated.View>
+                                    )}
+                                    <View className="flex-row items-center flex-1">
+                                      <View
+                                        className="bg-white/40 items-center justify-center"
+                                        style={{
+                                          width:
+                                            40 *
+                                            step3Scale *
+                                            categoryDensityScale,
+                                          height:
+                                            40 *
+                                            step3Scale *
+                                            categoryDensityScale,
+                                          borderRadius: 999,
+                                          marginRight: 12 * step3Scale,
+                                        }}
+                                      >
+                                        {category.iconType ===
+                                        "MaterialCommunityIcons" ? (
+                                          <MaterialCommunityIcons
+                                            name={category.iconName as any}
+                                            size={
+                                              19 *
+                                              step3Scale *
+                                              categoryDensityScale
+                                            }
+                                            color="#1f2937"
+                                          />
+                                        ) : (
+                                          <FontAwesome6
+                                            name={category.iconName as any}
+                                            size={
+                                              17 *
+                                              step3Scale *
+                                              categoryDensityScale
+                                            }
+                                            color="#1f2937"
+                                          />
+                                        )}
+                                      </View>
+
+                                      <Text
+                                        className="font-semibold text-slate-900 flex-1"
+                                        style={{
+                                          fontFamily:
+                                            "MerriweatherSans_600SemiBold",
+                                          fontSize:
+                                            16 * step3Scale * categoryNameScale,
+                                          marginRight: 8 * step3Scale,
+                                        }}
+                                        numberOfLines={1}
+                                      >
+                                        {getCategoryLabel(
+                                          category,
+                                          selectedLanguage,
+                                        )}
+                                      </Text>
+
+                                      {category.isPremium && (
+                                        <View
+                                          className="bg-yellow-400 flex-row items-center shadow-sm"
+                                          style={{
+                                            borderRadius:
+                                              8 *
+                                              step3Scale *
+                                              categoryDensityScale,
+                                            paddingHorizontal:
+                                              10 * step3Scale,
+                                            paddingVertical:
+                                              6 *
+                                              step3Scale *
+                                              categoryDensityScale,
+                                          }}
+                                        >
+                                          <FontAwesome6
+                                            name="coins"
+                                            size={
+                                              10 *
+                                              step3Scale *
+                                              categoryDensityScale
+                                            }
+                                            color="#713f12"
+                                          />
+                                          <Text
+                                            className="text-yellow-900 font-bold"
+                                            style={{
+                                              fontSize:
+                                                12 *
+                                                step3Scale *
+                                                categoryDensityScale,
+                                              marginLeft: 6 * step3Scale,
+                                            }}
+                                          >
+                                            {category.coinsRequired}
+                                          </Text>
+                                        </View>
+                                      )}
+                                    </View>
+
+                                    {isSelected && (
+                                      <View
+                                        className="rounded-full bg-white/40 items-center justify-center"
+                                        style={{
+                                          marginLeft: 12 * step3Scale,
+                                          width:
+                                            22 *
+                                            step3Scale *
+                                            categoryDensityScale,
+                                          height:
+                                            22 *
+                                            step3Scale *
+                                            categoryDensityScale,
+                                        }}
+                                      >
+                                        <Ionicons
+                                          name="checkmark"
+                                          size={
+                                            15 *
+                                            step3Scale *
+                                            categoryDensityScale
+                                          }
+                                          color="#1f2937"
+                                        />
+                                      </View>
+                                    )}
+                                  </TouchableOpacity>
+                                );
+                              })}
+                            </View>
+                          ));
+                        })()
                       )}
                     </ScrollView>
 

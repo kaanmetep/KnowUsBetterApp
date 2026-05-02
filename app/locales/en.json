@@ -187,7 +187,9 @@
     "pickAvatar": "Pick an avatar that represents you",
     "enterYourNameTitle": "Enter Your Name",
     "tellUsHowToCallYou": "Tell us how we should call you",
-    "enterYourNamePlaceholder": "Enter your name"
+    "enterYourNamePlaceholder": "Enter your name",
+    "sharedQuestionsGroupTitle": "Answer the questions and see your match",
+    "knowMeWellGroupTitle": "How well do you know each other?"
   },
   "joinRoom": {
     "continue": "Continue →",

@@ -187,7 +187,9 @@
     "pickAvatar": "Sizi temsil eden bir avatar seçin",
     "enterYourNameTitle": "Adınızı Girin",
     "tellUsHowToCallYou": "Size nasıl hitap edelim?",
-    "enterYourNamePlaceholder": "Adınızı girin"
+    "enterYourNamePlaceholder": "Adınızı girin",
+    "sharedQuestionsGroupTitle": "Soruları cevaplayın, uyumunuzu görün",
+    "knowMeWellGroupTitle": "Birbirinizi ne kadar tanıyorsunuz?"
   },
   "joinRoom": {
     "continue": "Devam Et →",
