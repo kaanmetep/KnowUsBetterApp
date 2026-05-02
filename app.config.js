@@ -18,6 +18,8 @@ module.exports = {
       associatedDomains: ["applinks:knowusbetter.app"],
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        NSUserNotificationUsageDescription:
+          "We use notifications to remind you when daily rewards are ready and to announce new content.",
       },
     },
     android: {
@@ -76,16 +78,24 @@ module.exports = {
         },
       ],
       [
-        "@react-native-firebase/app",
+        "expo-notifications",
         {
-          android: {
-            googleServicesFile: "./google-services.json",
-          },
-          ios: {
-            googleServicesFile: "./GoogleService-Info.plist",
+          sounds: [],
+        },
+      ],
+      [
+        "./plugins/withLocalizedIosNotificationsPermission",
+        {
+          translations: {
+            en: "We use notifications to remind you when daily rewards are ready and to announce new content.",
+            tr: "Günlük ödülleriniz hazır olduğunda sizi bilgilendirmek ve yeni içerikleri duyurmak için bildirimleri kullanıyoruz.",
+            es: "Usamos notificaciones para avisarte cuando tus recompensas diarias estén listas y para anunciar contenido nuevo.",
           },
         },
       ],
+      "@sentry/react-native",
+      "expo-localization",
+      "expo-web-browser",
     ],
     experiments: {
       typedRoutes: true,

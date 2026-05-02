@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { CoinStorageService } from "../services/coinStorageService";
 import { DailyRewardService } from "../services/dailyRewardService";
+import { NotificationService } from "../services/notificationService";
 import { purchaseService } from "../services/purchaseService";
 import socketService from "../services/socketService";
 
@@ -59,6 +60,20 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       setNextDailyRewardAt(nextClaimAt);
     })();
   }, [appUserId]);
+
+  useEffect(() => {
+    const syncDailyRewardNotification = async () => {
+      if (dailyRewardEligible || !nextDailyRewardAt) {
+        await NotificationService.cancelDailyRewardReminder();
+        return;
+      }
+      await NotificationService.scheduleDailyRewardReminder(nextDailyRewardAt);
+    };
+
+    syncDailyRewardNotification().catch((error) => {
+      console.warn("⚠️ Failed to sync daily reward reminder:", error);
+    });
+  }, [dailyRewardEligible, nextDailyRewardAt]);
 
   // Connect to socket and listen for coin updates from the backend via webhook
   useEffect(() => {

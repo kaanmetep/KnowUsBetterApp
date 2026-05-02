@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "./(components)/ui/LoadingScreen";
 import { CoinProvider } from "./contexts/CoinContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { NotificationService } from "./services/notificationService";
 import "./globals.css";
 import { AnalyticsService } from "./services/analyticsService";
 import { purchaseService } from "./services/purchaseService";
@@ -44,6 +45,8 @@ function RootLayout() {
         await purchaseService.initialize().catch((error) => {
           console.error("Failed to initialize RevenueCat:", error);
         });
+
+        NotificationService.initialize();
 
         // Initialize Firebase Analytics and set user ID
         try {

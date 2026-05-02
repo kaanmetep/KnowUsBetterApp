@@ -110,6 +110,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const handleOpenNotificationSettings = () => {
+    Linking.openSettings().catch((err) => {
+      console.error("❌ Error opening app settings:", err);
+      Alert.alert(t("common.error"), t("settings.couldNotOpenNotificationSettings"));
+    });
+  };
+
   const handleRequestDataDeletion = () => {
     Alert.alert(
       t("settings.requestDataDeletion"),
@@ -438,6 +445,35 @@ User ID: ${userId || appUserId}`;
                     }}
                   >
                     {t("settings.rateApp")}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenNotificationSettings}
+                activeOpacity={0.7}
+                className="bg-white rounded-2xl p-4 flex-row items-center justify-between border border-slate-100"
+                style={{
+                  shadowColor: "#94a3b8",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2,
+                }}
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-violet-50 items-center justify-center">
+                    <Feather name="bell" size={14} color="#8b5cf6" />
+                  </View>
+                  <Text
+                    style={{
+                      fontFamily: "MerriweatherSans_700Bold",
+                      fontSize: 14,
+                      color: "#334155",
+                    }}
+                  >
+                    {t("settings.enableNotifications")}
                   </Text>
                 </View>
                 <Feather name="chevron-right" size={18} color="#94a3b8" />

@@ -32,6 +32,8 @@ import SettingsButton from "../(components)/settings/SettingsButton";
 import SettingsModal from "../(components)/settings/SettingsModal";
 import Logo from "../(components)/ui/Logo";
 import { useTranslation } from "../hooks/useTranslation";
+import { NotificationService } from "../services/notificationService";
+import { purchaseService } from "../services/purchaseService";
 import socketService from "../services/socketService";
 
 const StartOptionsScreen = () => {
@@ -73,6 +75,20 @@ const StartOptionsScreen = () => {
   useEffect(() => {
     socketService.connect();
     return () => {};
+  }, []);
+
+  useEffect(() => {
+    const registerNotificationToken = async () => {
+      try {
+        const userId = await purchaseService.getAppUserId();
+        if (!userId) return;
+        await NotificationService.registerPushToken(userId);
+      } catch (error) {
+        console.warn("⚠️ Failed to register push token:", error);
+      }
+    };
+
+    registerNotificationToken();
   }, []);
 
   const headerTop = Math.max(
