@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import ButtonLoading from "../ui/ButtonLoading";
 import { useCoins } from "../../contexts/CoinContext";
-import { DAILY_REWARD_INTERVAL_MS } from "../../services/dailyRewardService";
+import {
+  getDailyRewardAmount,
+  getDailyRewardIntervalMs,
+} from "../../services/dailyRewardService";
 import { useTranslation } from "../../hooks/useTranslation";
 import DailyRewardSuccessOverlay from "./DailyRewardSuccessOverlay";
 
@@ -198,9 +201,9 @@ const DailyRewardBanner = () => {
           animateToProgress(1);
           checkDailyReward();
         } else {
-          const elapsed = DAILY_REWARD_INTERVAL_MS - remaining;
+          const elapsed = getDailyRewardIntervalMs() - remaining;
           animateToProgress(
-            Math.max(0, Math.min(1, elapsed / DAILY_REWARD_INTERVAL_MS))
+            Math.max(0, Math.min(1, elapsed / getDailyRewardIntervalMs()))
           );
           setCountdown(formatCountdown(remaining));
         }
@@ -329,7 +332,7 @@ const DailyRewardBanner = () => {
                 lineHeight: 12,
               }}
             >
-              +1
+              +{getDailyRewardAmount()}
             </Text>
           </View>
         </Animated.View>

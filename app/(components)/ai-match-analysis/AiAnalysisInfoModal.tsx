@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useCoins } from "../../contexts/CoinContext";
 import { useTranslation } from "../../hooks/useTranslation";
-import { AI_ANALYSIS_COIN_COST } from "../../services/aiAnalysisService";
+import { getAiAnalysisCoinCost } from "../../services/aiAnalysisService";
 import type { AiAnalysisModalContent } from "./aiAnalysisTheme";
 
 interface AiAnalysisInfoModalProps {
@@ -142,7 +142,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
                 <Text>{t("coins.youHave", { coins })}</Text>
               </Text>
             </View>
-            {onBuyCoins && coins < AI_ANALYSIS_COIN_COST && (
+            {onBuyCoins && coins < getAiAnalysisCoinCost() && (
               <TouchableOpacity
                 onPress={onBuyCoins}
                 activeOpacity={0.75}
@@ -200,7 +200,7 @@ const AiAnalysisInfoModal: React.FC<AiAnalysisInfoModalProps> = ({
               <View className="bg-yellow-400 rounded-lg px-2.5 py-1 flex-row items-center shadow-sm ml-1">
                 <FontAwesome6 name="coins" size={10} color="#713f12" />
                 <Text className="text-yellow-900 text-xs font-bold ml-1.5">
-                  {AI_ANALYSIS_COIN_COST}
+                  {getAiAnalysisCoinCost()}
                 </Text>
               </View>
             </LinearGradient>

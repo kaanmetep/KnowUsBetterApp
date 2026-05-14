@@ -7,7 +7,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { AI_ANALYSIS_COIN_COST } from "../../services/aiAnalysisService";
+import { getAiAnalysisCoinCost } from "../../services/aiAnalysisService";
 import {
   AI_ANALYSIS_BUTTON_VISUAL,
   type AiAnalysisUiVariant,
@@ -117,7 +117,7 @@ const AiAnalysisEntryButton: React.FC<AiAnalysisEntryButtonProps> = ({
                 color: "#713f12",
               }}
             >
-              {AI_ANALYSIS_COIN_COST}
+              {getAiAnalysisCoinCost()}
             </Text>
           </View>
         </View>

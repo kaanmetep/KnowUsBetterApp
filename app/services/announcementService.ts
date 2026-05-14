@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Language } from "../contexts/LanguageContext";
 import { getSupabaseClient } from "../lib/supabaseClient";
+import { getAppConfig } from "./appConfigService";
 
 export interface AnnouncementTranslations {
   en?: string;
@@ -25,8 +26,6 @@ export interface Announcement {
 const ANNOUNCEMENT_LATEST_KEY = "@KnowUsBetter:announcement_latest";
 const ANNOUNCEMENT_ALL_KEY = "@KnowUsBetter:announcement_all";
 const ANNOUNCEMENT_TIMESTAMP_KEY = "@KnowUsBetter:announcement_timestamp";
-const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
-const STALE_WHILE_REVALIDATE = 24 * 60 * 60 * 1000; // 24 hours
 
 let latestAnnouncementCache: Announcement | null = null;
 let allAnnouncementsCache: Announcement[] | null = null;
@@ -49,7 +48,7 @@ const loadFromStorage = async (): Promise<{
     const timestamp = parseInt(timestampData, 10);
     const age = Date.now() - timestamp;
 
-    if (age < STALE_WHILE_REVALIDATE) {
+    if (age < getAppConfig().content.announcements.staleWhileRevalidateMs) {
       return {
         latest: JSON.parse(latestData) as Announcement,
         all: JSON.parse(allData) as Announcement[],
@@ -169,7 +168,7 @@ export const getLatestAnnouncement = async (
   if (
     latestAnnouncementCache &&
     cacheTimestamp &&
-    now - cacheTimestamp < CACHE_DURATION
+    now - cacheTimestamp < getAppConfig().content.announcements.cacheTtlMs
   ) {
     return latestAnnouncementCache;
   }
@@ -178,12 +177,12 @@ export const getLatestAnnouncement = async (
   const stored = await loadFromStorage();
   if (stored.latest && stored.timestamp) {
     const age = now - stored.timestamp;
-    if (age < CACHE_DURATION) {
+    if (age < getAppConfig().content.announcements.cacheTtlMs) {
       latestAnnouncementCache = stored.latest;
       allAnnouncementsCache = stored.all;
       cacheTimestamp = stored.timestamp;
       return stored.latest;
-    } else if (age < STALE_WHILE_REVALIDATE) {
+    } else if (age < getAppConfig().content.announcements.staleWhileRevalidateMs) {
       // Stale but usable - return it and fetch in background
       fetchFromSupabase().catch(console.error);
       return stored.latest;
@@ -202,7 +201,7 @@ export const getAllAnnouncements = async (): Promise<Announcement[]> => {
   if (
     allAnnouncementsCache &&
     cacheTimestamp &&
-    now - cacheTimestamp < CACHE_DURATION
+    now - cacheTimestamp < getAppConfig().content.announcements.cacheTtlMs
   ) {
     return allAnnouncementsCache;
   }
@@ -211,12 +210,12 @@ export const getAllAnnouncements = async (): Promise<Announcement[]> => {
   const stored = await loadFromStorage();
   if (stored.all.length > 0 && stored.timestamp) {
     const age = now - stored.timestamp;
-    if (age < CACHE_DURATION) {
+    if (age < getAppConfig().content.announcements.cacheTtlMs) {
       allAnnouncementsCache = stored.all;
       latestAnnouncementCache = stored.latest;
       cacheTimestamp = stored.timestamp;
       return stored.all;
-    } else if (age < STALE_WHILE_REVALIDATE) {
+    } else if (age < getAppConfig().content.announcements.staleWhileRevalidateMs) {
       // Stale but usable - return it and fetch in background
       fetchFromSupabase().catch(console.error);
       return stored.all;

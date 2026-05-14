@@ -189,7 +189,8 @@
     "tellUsHowToCallYou": "Size nasıl hitap edelim?",
     "enterYourNamePlaceholder": "Adınızı girin",
     "sharedQuestionsGroupTitle": "Soruları cevaplayın, uyumunuzu görün",
-    "knowMeWellGroupTitle": "Birbirinizi ne kadar tanıyorsunuz?"
+    "knowMeWellGroupTitle": "Birbirinizi ne kadar tanıyorsunuz?",
+    "challengeGroupTitle": "Kim Daha Bilgili?"
   },
   "joinRoom": {
     "continue": "Devam Et →",

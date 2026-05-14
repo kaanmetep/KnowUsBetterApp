@@ -37,8 +37,8 @@ const OnboardingSteps = () => {
       const hasCompleted =
         await UserPreferencesService.hasCompletedOnboarding();
       if (hasCompleted) {
-        // User has already completed onboarding, redirect to StartOptionsScreen
-        router.replace("/StartOptionsScreen");
+        // User has already completed onboarding, redirect to MainMenuScreen
+        router.replace("/MainMenuScreen");
       } else {
         // Show onboarding
         setIsLoading(false);
@@ -79,7 +79,7 @@ const OnboardingSteps = () => {
         console.warn("⚠️ Failed to save onboarding completion:", error);
       }
     }
-    router.replace("/StartOptionsScreen");
+    router.replace("/MainMenuScreen");
   };
 
   if (isLoading) {

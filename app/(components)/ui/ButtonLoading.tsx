@@ -65,7 +65,7 @@ const ColorfulDotsLoading: React.FC<{ size: number }> = ({ size }) => {
 
   const dotSize = size;
   const dotSpacing = size * 0.5;
-  const dotColor = "#6b7280"; // gray-500
+  const dotColor = "#6b7280";
 
   return (
     <View

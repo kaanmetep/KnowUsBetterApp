@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import { io, Socket } from "socket.io-client";
+import { getAppConfig } from "./appConfigService";
 
 // Get backend URL: process.env works on all platforms (including web)
 const SOCKET_URL =
@@ -61,9 +62,9 @@ class SocketService {
       this.socket = io(SOCKET_URL, {
         transports: ["websocket", "polling"],
         reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        timeout: 10000,
+        reconnectionAttempts: getAppConfig().network.socket.reconnectAttempts,
+        reconnectionDelay: getAppConfig().network.socket.reconnectDelayMs,
+        timeout: getAppConfig().network.socket.connectTimeoutMs,
       });
 
       this.socket.on("connect", async () => {
@@ -127,7 +128,7 @@ class SocketService {
             "Looks like the room couldn’t be created. Could you try again? If it still doesn’t work, just let us know and we’ll fix it right away."
           )
         );
-      }, 5000);
+      }, getAppConfig().network.rpcTimeoutMs.default);
     });
   }
 
@@ -157,7 +158,7 @@ class SocketService {
       // Timeout
       setTimeout(() => {
         reject(new Error("Timeout: Joined room"));
-      }, 5000);
+      }, getAppConfig().network.rpcTimeoutMs.default);
     });
   }
 
@@ -181,7 +182,7 @@ class SocketService {
 
       setTimeout(() => {
         reject(new Error("Timeout: Room information not found"));
-      }, 5000);
+      }, getAppConfig().network.rpcTimeoutMs.default);
     });
   }
 
@@ -207,7 +208,7 @@ class SocketService {
       // Timeout
       setTimeout(() => {
         reject(new Error("Timeout: Leave room"));
-      }, 5000);
+      }, getAppConfig().network.rpcTimeoutMs.default);
     });
   }
 
@@ -233,7 +234,7 @@ class SocketService {
       // Timeout
       setTimeout(() => {
         reject(new Error("Timeout: Start game"));
-      }, 10000);
+      }, getAppConfig().network.rpcTimeoutMs.startGame);
     });
   }
 
@@ -278,7 +279,7 @@ class SocketService {
 
       setTimeout(() => {
         reject(new Error("Timeout: Change category"));
-      }, 5000);
+      }, getAppConfig().network.rpcTimeoutMs.default);
     });
   }
 
@@ -419,7 +420,7 @@ class SocketService {
     this.socket?.off("room-error", callback);
   }
 
-  // Critical error listener (redirects to StartOptionsScreen)
+  // Critical error listener (redirects to MainMenuScreen)
   onCriticalError(callback: (error: { message: string }) => void) {
     this.socket?.on("critical-error", callback);
   }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "./(components)/ui/LoadingScreen";
 import { CoinProvider } from "./contexts/CoinContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { loadAppConfig } from "./services/appConfigService";
 import { NotificationService } from "./services/notificationService";
 import "./globals.css";
 import { AnalyticsService } from "./services/analyticsService";
@@ -41,6 +42,8 @@ function RootLayout() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        await loadAppConfig();
+
         // Initialize RevenueCat
         await purchaseService.initialize().catch((error) => {
           console.error("Failed to initialize RevenueCat:", error);

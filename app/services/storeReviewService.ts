@@ -1,12 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as StoreReview from "expo-store-review";
+import { getAppConfig } from "./appConfigService";
 
 const STORAGE_KEYS = {
   GAMES_COMPLETED: "store_review_games_completed",
 };
-
-// Ask for review after these game counts: 2nd, 5th, 8th game
-const REVIEW_TRIGGER_GAMES = [2, 5, 8];
 
 class StoreReviewService {
   /**
@@ -25,7 +23,7 @@ class StoreReviewService {
     try {
       // Only ask for review if the user had a good experience (>= 60%)
       // If score is low, don't even count this game for review purposes.
-      if (matchPercentage < 60) {
+      if (matchPercentage < getAppConfig().growth.storeReview.minMatchPercent) {
         return; // Exit early - no popup, no counting
       }
 
@@ -54,7 +52,9 @@ class StoreReviewService {
 
   private async shouldRequestReview(gamesCompleted: number): Promise<boolean> {
     // Check if we're at a trigger point
-    if (!REVIEW_TRIGGER_GAMES.includes(gamesCompleted)) return false;
+    if (!getAppConfig().growth.storeReview.triggerGames.includes(gamesCompleted)) {
+      return false;
+    }
     return true;
   }
 
@@ -63,7 +63,9 @@ class StoreReviewService {
     if (!isAvailable) return;
 
     // Small delay so the review prompt doesn't feel abrupt.
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) =>
+      setTimeout(resolve, getAppConfig().growth.storeReview.promptDelayMs)
+    );
 
     await StoreReview.requestReview();
   }

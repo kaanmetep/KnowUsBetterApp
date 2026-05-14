@@ -22,12 +22,13 @@ import WaitingRoom from "../(components)/game/WaitingRoom";
 import { useCoins } from "../contexts/CoinContext";
 import { useTranslation } from "../hooks/useTranslation";
 import {
-  AI_ANALYSIS_COIN_COST,
   AiAnalysisResult,
   type AiAnalysisType,
   type KnowMeWellPercentages,
   generateAiAnalysis,
+  getAiAnalysisCoinCost,
 } from "../services/aiAnalysisService";
+import { getAppConfig } from "../services/appConfigService";
 import {
   getCategoryById,
   getCategoryCoinsRequired,
@@ -56,7 +57,9 @@ const GameRoom = () => {
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questionDuration, setQuestionDuration] = useState<number>(15); // Default 15 seconds
+  const [questionDuration, setQuestionDuration] = useState<number>(
+    getAppConfig().gameplay.defaults.questionDurationSec
+  );
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [opponentAnswered, setOpponentAnswered] = useState(false);
@@ -138,7 +141,7 @@ const GameRoom = () => {
         throw new Error("Missing app user id");
       }
 
-      const balance = await CoinStorageService.fetchBalanceFromSupabase(
+      const balance = await CoinStorageService.fetchAuthoritativeBalance(
         appUserId
       );
 
@@ -242,7 +245,9 @@ const GameRoom = () => {
       setCurrentQuestion(data.question);
       setTotalQuestions(data.totalQuestions);
       setCurrentQuestionIndex(0);
-      setQuestionDuration(data.duration || 15); // Default to 15 seconds if not provided
+      setQuestionDuration(
+        data.duration || getAppConfig().gameplay.defaults.questionDurationSec
+      );
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setOpponentAnswered(false);
@@ -383,7 +388,7 @@ const GameRoom = () => {
       }
     };
 
-    // Critical error handler (redirects to StartOptionsScreen)
+    // Critical error handler (redirects to MainMenuScreen)
     const handleCriticalError = (error: any) => {
       const errorMessage = error?.message || t("gameRoom.criticalErrorMessage");
 
@@ -401,8 +406,8 @@ const GameRoom = () => {
         );
       }
 
-      // Navigate to StartOptionsScreen
-      router.replace("/StartOptionsScreen");
+      // Navigate to MainMenuScreen
+      router.replace("/MainMenuScreen");
     };
 
     // Register event listeners
@@ -439,15 +444,15 @@ const GameRoom = () => {
             );
 
             if (!isUserInRoom) {
-              // User was removed from room, redirect to StartOptionsScreen
-              router.replace("/StartOptionsScreen");
+              // User was removed from room, redirect to MainMenuScreen
+              router.replace("/MainMenuScreen");
             } else {
               // User is still in room, update room state
               setRoom(roomData);
             }
           } catch (error) {
             // If we can't check room status, assume user was removed
-            router.replace("/StartOptionsScreen");
+            router.replace("/MainMenuScreen");
           }
 
           backgroundTimeRef.current = null;
@@ -510,7 +515,7 @@ const GameRoom = () => {
     if (!gameFinishedData) return;
 
     const hasEnoughCoins = await ensureUserHasCoins(
-      AI_ANALYSIS_COIN_COST
+      getAiAnalysisCoinCost()
     );
     if (!hasEnoughCoins) {
       setShowAiInfoModal(false);
@@ -578,7 +583,7 @@ const GameRoom = () => {
         knowMeWellPercentages
       );
 
-      const success = await spendCoins(AI_ANALYSIS_COIN_COST);
+      const success = await spendCoins(getAiAnalysisCoinCost());
       if (!success) {
         setShowAiResultModal(false);
         setShowAiPurchaseModal(true);
@@ -819,7 +824,7 @@ const GameRoom = () => {
             player2Name={player2?.name || t("gameRoom.partnerLabel")}
             onComplete={resetToWaitingRoom}
             onAiAnalysisPress={() => {
-              if (coins < AI_ANALYSIS_COIN_COST) {
+              if (coins < getAiAnalysisCoinCost()) {
                 setShowAiPurchaseModal(true);
                 return;
               }
@@ -839,7 +844,7 @@ const GameRoom = () => {
           opponentPlayerName={opponentPlayerName}
           onComplete={resetToWaitingRoom}
           onAiAnalysisPress={() => {
-            if (coins < AI_ANALYSIS_COIN_COST) {
+            if (coins < getAiAnalysisCoinCost()) {
               setShowAiPurchaseModal(true);
               return;
             }

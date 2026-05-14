@@ -1,7 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getSupabaseClient } from "../lib/supabaseClient";
+import { getAppConfig } from "./appConfigService";
 
-export const DAILY_REWARD_INTERVAL_MS = 6 * 60 * 60 * 1000;
+export const getDailyRewardIntervalMs = (): number =>
+  getAppConfig().economy.dailyReward.intervalMs;
+export const getDailyRewardAmount = (): number =>
+  getAppConfig().economy.dailyReward.amount;
 
 const NEXT_CLAIM_KEY = "@KnowUsBetter:dailyReward:nextClaimAt";
 
@@ -23,7 +27,7 @@ export class DailyRewardService {
       if (stored) {
         const nextClaimAt = new Date(stored);
         const remainingMs = nextClaimAt.getTime() - Date.now();
-        if (remainingMs > 0 && remainingMs <= DAILY_REWARD_INTERVAL_MS) {
+        if (remainingMs > 0 && remainingMs <= getDailyRewardIntervalMs()) {
           return { eligible: false, nextClaimAt };
         }
       }
@@ -47,7 +51,7 @@ export class DailyRewardService {
 
       const lastClaimedAt = new Date(data.last_daily_reward_at);
       const nextClaimAt = new Date(
-        lastClaimedAt.getTime() + DAILY_REWARD_INTERVAL_MS
+        lastClaimedAt.getTime() + getDailyRewardIntervalMs()
       );
 
       if (nextClaimAt <= new Date()) {

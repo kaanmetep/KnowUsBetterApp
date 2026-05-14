@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { getAppConfig } from "./appConfigService";
 
 const BACKEND_URL =
   process.env.EXPO_PUBLIC_BACKEND_URL ||
@@ -14,7 +15,8 @@ export interface AiAnalysisResult {
   player2AboutPlayer1?: string;
 }
 
-export const AI_ANALYSIS_COIN_COST = 3;
+export const getAiAnalysisCoinCost = (): number =>
+  getAppConfig().economy.aiAnalysis.coinCost;
 export type AiAnalysisType = "default" | "know_me_well";
 export interface KnowMeWellPercentages {
   player1AboutPlayer2Percentage: number;

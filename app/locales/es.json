@@ -189,7 +189,8 @@
     "tellUsHowToCallYou": "Dinos cómo deberíamos llamarte",
     "enterYourNamePlaceholder": "Ingresa tu nombre",
     "sharedQuestionsGroupTitle": "Respondan las preguntas y vean su compatibilidad",
-    "knowMeWellGroupTitle": "Que tan bien se conocen?"
+    "knowMeWellGroupTitle": "Que tan bien se conocen?",
+    "challengeGroupTitle": "¿Quién sabe más?"
   },
   "joinRoom": {
     "continue": "Continuar →",

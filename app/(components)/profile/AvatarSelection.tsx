@@ -6,7 +6,6 @@ import { useTranslation } from "../../hooks/useTranslation";
 interface AvatarSelectionProps {
   selectedAvatar: string | null;
   onAvatarSelect: (avatarId: string) => void;
-  theme?: "red" | "blue";
 }
 
 const avatars = [
@@ -47,7 +46,6 @@ const avatars = [
 const AvatarSelection: React.FC<AvatarSelectionProps> = ({
   selectedAvatar,
   onAvatarSelect,
-  theme = "red",
 }) => {
   const { t } = useTranslation();
   const borderColor = "#9ca3af";

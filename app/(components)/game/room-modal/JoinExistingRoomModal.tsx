@@ -6,18 +6,18 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
-import { useTranslation } from "../../hooks/useTranslation";
-import { UserPreferencesService } from "../../services/userPreferencesService";
-import AvatarSelection from "../profile/AvatarSelection";
-import ModalButton from "../ui/ModalButton";
-import NameInput from "../profile/NameInput";
+import { useTranslation } from "../../../hooks/useTranslation";
+import { UserPreferencesService } from "../../../services/userPreferencesService";
+import AvatarStep from "./AvatarStep";
+import JoinRoomCodeStep from "./JoinRoomCodeStep";
+import NameStep from "./NameStep";
+import StepIndicator from "./StepIndicator";
 
-interface JoinExistingRoomProps {
+interface JoinExistingRoomModalProps {
   visible: boolean;
   onClose: () => void;
   onJoinRoom: (
@@ -27,12 +27,17 @@ interface JoinExistingRoomProps {
   ) => Promise<void>;
 }
 
-const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
+const JoinExistingRoomModal: React.FC<JoinExistingRoomModalProps> = ({
   visible,
   onClose,
   onJoinRoom,
 }) => {
   const { t } = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const isSmallScreen = height < 760;
+  const isVerySmallScreen = width <= 350 || height <= 670;
+  const step3Scale = isVerySmallScreen ? 0.84 : isSmallScreen ? 0.92 : 1;
+  const modalButtonMarginTop = 16 * step3Scale;
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
@@ -136,34 +141,6 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   const isStep2Valid = userName.trim().length > 0;
   const isStep3Valid = roomCode.trim().length > 0;
 
-  const StepIndicator = ({ currentStep }: { currentStep: number }) => (
-    <View className="flex-row justify-center gap-2 mb-3">
-      {[1, 2, 3].map((s) => {
-        let bgClass = "bg-gray-100";
-        if (s === currentStep) bgClass = "bg-blue-400";
-        else if (s < currentStep) bgClass = "bg-blue-200";
-
-        return (
-          <TouchableOpacity
-            key={s}
-            onPress={() => {
-              if (s === 1) setStep(1);
-              if (s === 2 && isStep1Valid) setStep(2);
-              if (s === 3 && isStep1Valid && isStep2Valid) setStep(3);
-            }}
-            disabled={
-              (s === 2 && !isStep1Valid) ||
-              (s === 3 && (!isStep1Valid || !isStep2Valid))
-            }
-            activeOpacity={0.8}
-          >
-            <View className={`w-8 h-1.5 rounded-full ${bgClass}`} />
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-
   return (
     <Modal
       visible={visible}
@@ -216,19 +193,27 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
             {/* STEP 1: Avatar Selection */}
             {step === 1 && (
               <View>
-                <StepIndicator currentStep={1} />
-                <AvatarSelection
+                <StepIndicator
+                  currentStep={1}
+                  isStep1Valid={isStep1Valid}
+                  isStep2Valid={isStep2Valid}
+                  onStepPress={(pressedStep) => {
+                    if (pressedStep === 1) setStep(1);
+                    if (pressedStep === 2 && isStep1Valid) setStep(2);
+                    if (pressedStep === 3 && isStep1Valid && isStep2Valid) setStep(3);
+                  }}
+                  variant="blue"
+                  className="mb-3"
+                />
+                <AvatarStep
                   selectedAvatar={selectedAvatar}
                   onAvatarSelect={setSelectedAvatar}
-                  theme="blue"
-                />
-                <ModalButton
-                  onPress={handleContinueFromStep1}
-                  disabled={!isStep1Valid}
-                  text={t("joinRoom.continue")}
-                  disabledText={t("joinRoom.selectAvatar")}
+                  onContinue={handleContinueFromStep1}
+                  isValid={isStep1Valid}
                   variant="blue"
-                  className="mt-8"
+                  modalButtonMarginTop={modalButtonMarginTop}
+                  buttonText={t("joinRoom.continue")}
+                  buttonDisabledText={t("joinRoom.selectAvatar")}
                 />
               </View>
             )}
@@ -240,105 +225,51 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <StepIndicator currentStep={2} />
-
-                <View className="pt-2 pb-4">
-                  <NameInput
-                    userName={userName}
-                    onUserNameChange={setUserName}
-                    userNameFocused={userNameFocused}
-                    onUserNameFocus={() => setUserNameFocused(true)}
-                    onUserNameBlur={() => setUserNameFocused(false)}
-                  />
-                </View>
-
-                <ModalButton
-                  onPress={handleContinueFromStep2}
-                  disabled={!isStep2Valid}
-                  text={t("joinRoom.continue")}
-                  disabledText={t("joinRoom.enterYourName")}
+                <StepIndicator
+                  currentStep={2}
+                  isStep1Valid={isStep1Valid}
+                  isStep2Valid={isStep2Valid}
+                  onStepPress={(pressedStep) => {
+                    if (pressedStep === 1) setStep(1);
+                    if (pressedStep === 2 && isStep1Valid) setStep(2);
+                    if (pressedStep === 3 && isStep1Valid && isStep2Valid) setStep(3);
+                  }}
                   variant="blue"
-                  className="mt-6"
+                  className="mb-3"
+                />
+
+                <NameStep
+                  userName={userName}
+                  onUserNameChange={setUserName}
+                  onUserNameFocus={() => setUserNameFocused(true)}
+                  onUserNameBlur={() => setUserNameFocused(false)}
+                  onContinue={handleContinueFromStep2}
+                  isValid={isStep2Valid}
+                  variant="blue"
+                  modalButtonMarginTop={modalButtonMarginTop}
+                  buttonText={t("joinRoom.continue")}
+                  buttonDisabledText={t("joinRoom.enterYourName")}
                 />
               </ScrollView>
             )}
 
-            {/* STEP 3: Room Code */}
             {step === 3 && (
-              <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
-                <StepIndicator currentStep={3} />
-
-                <Text
-                  className="text-2xl font-bold text-slate-800 text-center mb-2"
-                  style={{ fontFamily: "MerriweatherSans_700Bold" }}
-                >
-                  {t("joinRoom.enterRoomCode")}
-                </Text>
-
-                <Text
-                  className="text-sm text-slate-500 text-center mb-8"
-                  style={{ fontFamily: "MerriweatherSans_400Regular" }}
-                >
-                  {t("joinRoom.askPartnerForCode")}
-                </Text>
-
-                <View className="mb-6">
-                  <Text
-                    className="text-sm font-semibold text-slate-700 mb-2 ml-1"
-                    style={{ fontFamily: "MerriweatherSans_600SemiBold" }}
-                  >
-                    {t("joinRoom.roomCode")}
-                  </Text>
-
-                  <View
-                    className="w-full bg-gray-50 rounded-2xl border"
-                    style={{
-                      borderColor: "#E2E8F0",
-                      borderWidth: 1,
-                    }}
-                  >
-                    <TextInput
-                      value={roomCode}
-                      onChangeText={(text) => {
-                        const sanitizedText = text
-                          .toLocaleUpperCase("en-US")
-                          .replace(/[^A-Z0-9]/g, "")
-                          .slice(0, 16);
-
-                        setRoomCode(sanitizedText);
-                      }}
-                      onFocus={() => setRoomCodeFocused(true)}
-                      onBlur={() => setRoomCodeFocused(false)}
-                      placeholder={t("joinRoom.enterRoomCodePlaceholder")}
-                      placeholderTextColor="#94A3B8"
-                      autoCapitalize="none"
-                      returnKeyType="done"
-                      onSubmitEditing={handleJoin}
-                      className="px-5 py-4 text-slate-900 text-lg"
-                      style={{
-                        fontFamily: "MerriweatherSans_600SemiBold",
-                        letterSpacing: 2,
-                      }}
-                      maxLength={16}
-                    />
-                  </View>
-                </View>
-
-                <ModalButton
-                  onPress={handleJoin}
-                  disabled={!isStep3Valid}
-                  isLoading={isJoining}
-                  text={t("joinRoom.joinRoom")}
-                  disabledText={t("joinRoom.enterRoomCodeButton")}
-                  loadingText={t("joinRoom.joining")}
-                  variant="blue"
-                  showLoadingIndicator={true}
-                />
-              </ScrollView>
+              <JoinRoomCodeStep
+                isStep1Valid={isStep1Valid}
+                isStep2Valid={isStep2Valid}
+                onStepPress={(pressedStep) => {
+                  if (pressedStep === 1) setStep(1);
+                  if (pressedStep === 2 && isStep1Valid) setStep(2);
+                  if (pressedStep === 3 && isStep1Valid && isStep2Valid) setStep(3);
+                }}
+                roomCode={roomCode}
+                onRoomCodeChange={setRoomCode}
+                onRoomCodeFocus={() => setRoomCodeFocused(true)}
+                onRoomCodeBlur={() => setRoomCodeFocused(false)}
+                onJoin={handleJoin}
+                isStep3Valid={isStep3Valid}
+                isJoining={isJoining}
+              />
             )}
           </Pressable>
         </Pressable>
@@ -347,4 +278,4 @@ const JoinExistingRoom: React.FC<JoinExistingRoomProps> = ({
   );
 };
 
-export default JoinExistingRoom;
+export default JoinExistingRoomModal;

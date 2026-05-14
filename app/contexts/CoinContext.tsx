@@ -10,6 +10,7 @@ import { DailyRewardService } from "../services/dailyRewardService";
 import { NotificationService } from "../services/notificationService";
 import { purchaseService } from "../services/purchaseService";
 import socketService from "../services/socketService";
+import { getAppConfig } from "../services/appConfigService";
 
 interface CoinContextType {
   coins: number;
@@ -257,11 +258,11 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
       // Try up to 5 times with increasing delays in case of temporary Supabase sync issues
       // This handles the case where coins were just purchased and backend webhook hasn't updated Supabase yet
       let realBalance: number | null = null;
-      const maxRetries = 5;
-      const retryDelays = [500, 1000, 2000, 3000, 5000]; // Increasing delays
+      const maxRetries = getAppConfig().economy.balanceSync.maxRetries;
+      const retryDelays = getAppConfig().economy.balanceSync.retryDelaysMs;
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        realBalance = await CoinStorageService.fetchBalanceFromSupabase(id);
+        realBalance = await CoinStorageService.fetchAuthoritativeBalance(id);
 
         // If we got a valid balance and it's enough, break
         if (
@@ -397,7 +398,7 @@ export const CoinProvider = ({ children }: CoinProviderProps) => {
           "❌ [DailyReward] Timeout: no response from backend in 10s. Backend may not have the claim-daily-reward handler yet."
         );
         resolve({ success: false, error: "timeout" });
-      }, 10000);
+      }, getAppConfig().economy.dailyReward.claimTimeoutMs);
 
       console.log("🎁 [DailyReward] Emitting claim-daily-reward...");
       socketService.claimDailyReward(id);
